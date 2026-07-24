@@ -611,12 +611,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = KoveMirror/KoveMirror.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = RF6VN762D3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				CODE_SIGN_ENTITLEMENTS = KoveMirror/KoveMirror.entitlements;
 				INFOPLIST_FILE = KoveMirror/Info.plist;
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "App needs bluetoot connection to connect with the Motorcycle";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "App needs bluetooth Access to connect with Motorbike";
@@ -624,7 +624,7 @@
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Kove Mirror needs location access to read the Wi-Fi network name and ensure connection with the motorcycle.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UIBackgroundModes = "bluetooth-central";
+				INFOPLIST_KEY_UIBackgroundModes = "bluetooth-central location processing";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -650,12 +650,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = KoveMirror/KoveMirror.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = RF6VN762D3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				CODE_SIGN_ENTITLEMENTS = KoveMirror/KoveMirror.entitlements;
 				INFOPLIST_FILE = KoveMirror/Info.plist;
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "App needs bluetoot connection to connect with the Motorcycle";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "App needs bluetooth Access to connect with Motorbike";
@@ -663,7 +663,7 @@
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Kove Mirror needs location access to read the Wi-Fi network name and ensure connection with the motorcycle.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UIBackgroundModes = "bluetooth-central";
+				INFOPLIST_KEY_UIBackgroundModes = "bluetooth-central location processing";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
