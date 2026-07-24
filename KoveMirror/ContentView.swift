@@ -1,8 +1,10 @@
 import SwiftUI
 import ReplayKit
+import NetworkExtension
 
 struct ContentView: View {
     @StateObject private var bleController = BleController()
+    @State private var currentWifiSSID: String? = nil
     
     var body: some View {
         NavigationView {
@@ -44,6 +46,50 @@ struct ContentView: View {
                     )
                     .padding(.horizontal)
                     
+                    // Wi-Fi Connection Status Card (Reactive Validation Info)
+                    if let targetSSID = bleController.connectedDeviceName {
+                        HStack(spacing: 12) {
+                            Image(systemName: isWifiCorrect ? "wifi" : "wifi.exclamationmark")
+                                .font(.title3)
+                                .foregroundColor(isWifiCorrect ? .green : .orange)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(isWifiCorrect ? "Connected to Motorcycle Wi-Fi" : "Wi-Fi Mismatch Warning")
+                                    .font(.subheadline)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                                Text(isWifiCorrect ? "Ready to mirror screen." : "Please connect to Wi-Fi '\(targetSSID)'.")
+                                    .font(.caption)
+                                    .foregroundColor(.white.opacity(0.6))
+                            }
+                            
+                            Spacer()
+                            
+                            if !isWifiCorrect {
+                                Button("Settings") {
+                                    if let url = URL(string: "App-Prefs:root=WIFI") {
+                                        UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                                    }
+                                }
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color.orange.opacity(0.2))
+                                .cornerRadius(8)
+                                .foregroundColor(.orange)
+                            }
+                        }
+                        .padding()
+                        .background(Color.white.opacity(0.03))
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(isWifiCorrect ? Color.green.opacity(0.2) : Color.orange.opacity(0.3), lineWidth: 1)
+                        )
+                        .padding(.horizontal)
+                    }
+                    
                     // Control Actions card
                     VStack(spacing: 16) {
                         HStack(spacing: 16) {
@@ -80,7 +126,7 @@ struct ContentView: View {
                             .disabled(bleController.connectionState == .disconnected)
                         }
                         
-                        // System Broadcast Picker Button
+                        // System Broadcast Picker Button (Native, pops up recording selector directly)
                         BroadcastPickerRepresentable()
                             .frame(height: 50)
                             .cornerRadius(12)
@@ -145,6 +191,27 @@ struct ContentView: View {
             .navigationBarTitleDisplayMode(.inline)
         }
         .preferredColorScheme(.dark)
+        .onAppear {
+            updateCurrentWifiSSID()
+            // Periodically refresh Wi-Fi connection info every 2 seconds
+            Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
+                updateCurrentWifiSSID()
+            }
+        }
+    }
+    
+    private func updateCurrentWifiSSID() {
+        NEHotspotNetwork.fetchCurrent { network in
+            DispatchQueue.main.async {
+                self.currentWifiSSID = network?.ssid
+            }
+        }
+    }
+    
+    private var isWifiCorrect: Bool {
+        guard let targetSSID = bleController.connectedDeviceName else { return true }
+        guard let currentSSID = currentWifiSSID else { return false }
+        return currentSSID.lowercased().contains(targetSSID.lowercased()) || targetSSID.lowercased().contains(currentSSID.lowercased())
     }
     
     private var statusColor: Color {

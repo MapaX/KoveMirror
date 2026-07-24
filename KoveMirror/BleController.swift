@@ -1,6 +1,7 @@
 import Foundation
 import CoreBluetooth
 import Combine
+import CoreLocation
 
 enum BleState: String {
     case disconnected = "Disconnected"
@@ -12,11 +13,13 @@ enum BleState: String {
 class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     @Published var connectionState: BleState = .disconnected
     @Published var logMessages: [String] = []
+    @Published var connectedDeviceName: String? = nil
     
     private var centralManager: CBCentralManager!
     private var targetPeripheral: CBPeripheral?
     private var writeCharacteristic: CBCharacteristic?
     private let tcpServerManager = TcpServerManager()
+    private let locationManager = CLLocationManager()
     
     // Service and Characteristic UUIDs matching the ThinkerRide / Kove protocol
     let serviceUUID = CBUUID(string: "0000e0ff-3c17-d293-8e48-14fe2e4da212")
@@ -29,6 +32,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     override init() {
         super.init()
         centralManager = CBCentralManager(delegate: self, queue: nil, options: [CBCentralManagerOptionRestoreIdentifierKey: "KoveMirrorRestoreID"])
+        locationManager.requestWhenInUseAuthorization()
     }
     
     func log(_ message: String) {
@@ -63,6 +67,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     func disconnect() {
         heartbeatTimer?.invalidate()
         heartbeatTimer = nil
+        connectedDeviceName = nil
         
         log("🔌 Stopping TCP Servers in main app...")
         tcpServerManager.stop()
@@ -136,6 +141,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         log("✅ Connected to \(peripheral.name ?? "TFT Device"). Discovering services...")
         connectionState = .connected
+        connectedDeviceName = peripheral.name
         peripheral.delegate = self
         peripheral.discoverServices([serviceUUID])
     }
@@ -152,6 +158,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         heartbeatTimer?.invalidate()
         heartbeatTimer = nil
         writeCharacteristic = nil
+        connectedDeviceName = nil
         
         log("🔌 Stopping TCP Servers in main app...")
         tcpServerManager.stop()
