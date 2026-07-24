@@ -1,0 +1,937 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		302F1C6D300F506900E78C3F /* PLAN.md in Resources */ = {isa = PBXBuildFile; fileRef = 302F1C6B300F506900E78C3F /* PLAN.md */; };
+		302F1C6E300F506900E78C3F /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 302F1C6C300F506900E78C3F /* README.md */; };
+		30CC1EE83010C8DF00E96D54 /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 30CC1EE73010C8DF00E96D54 /* ReplayKit.framework */; };
+		30CC1EF23010C8DF00E96D54 /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 30CC1EE73010C8DF00E96D54 /* ReplayKit.framework */; };
+		30CC1EF43010C8DF00E96D54 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 30CC1EF33010C8DF00E96D54 /* UIKit.framework */; };
+		30CC1EFB3010C8DF00E96D54 /* Kove broadcast extensionSetupUI.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 30CC1EF13010C8DF00E96D54 /* Kove broadcast extensionSetupUI.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		30CC1EFE3010C8DF00E96D54 /* Kove broadcast extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 30CC1EE53010C8DF00E96D54 /* Kove broadcast extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		302F1C42300F4FE800E78C3F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 302F1C2C300F4FE600E78C3F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 302F1C33300F4FE600E78C3F;
+			remoteInfo = KoveMirror;
+		};
+		302F1C4C300F4FE800E78C3F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 302F1C2C300F4FE600E78C3F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 302F1C33300F4FE600E78C3F;
+			remoteInfo = KoveMirror;
+		};
+		30CC1EF93010C8DF00E96D54 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 302F1C2C300F4FE600E78C3F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 30CC1EF03010C8DF00E96D54;
+			remoteInfo = "Kove broadcast extensionSetupUI";
+		};
+		30CC1EFC3010C8DF00E96D54 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 302F1C2C300F4FE600E78C3F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 30CC1EE43010C8DF00E96D54;
+			remoteInfo = "Kove broadcast extension";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		30CC1F073010C8DF00E96D54 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				30CC1EFB3010C8DF00E96D54 /* Kove broadcast extensionSetupUI.appex in Embed Foundation Extensions */,
+				30CC1EFE3010C8DF00E96D54 /* Kove broadcast extension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		302F1C34300F4FE600E78C3F /* KoveMirror.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KoveMirror.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		302F1C41300F4FE800E78C3F /* KoveMirrorTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KoveMirrorTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		302F1C4B300F4FE800E78C3F /* KoveMirrorUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KoveMirrorUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		302F1C6B300F506900E78C3F /* PLAN.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = PLAN.md; sourceTree = "<group>"; };
+		302F1C6C300F506900E78C3F /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		30CC1EE53010C8DF00E96D54 /* Kove broadcast extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Kove broadcast extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		30CC1EE73010C8DF00E96D54 /* ReplayKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReplayKit.framework; path = System/Library/Frameworks/ReplayKit.framework; sourceTree = SDKROOT; };
+		30CC1EF13010C8DF00E96D54 /* Kove broadcast extensionSetupUI.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Kove broadcast extensionSetupUI.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		30CC1EF33010C8DF00E96D54 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		30CC1EE0300FB96300E96D54 /* Exceptions for "KoveMirror" folder in "KoveMirror" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 302F1C33300F4FE600E78C3F /* KoveMirror */;
+		};
+		30CC1F023010C8DF00E96D54 /* Exceptions for "Kove broadcast extensionSetupUI" folder in "Kove broadcast extensionSetupUI" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 30CC1EF03010C8DF00E96D54 /* Kove broadcast extensionSetupUI */;
+		};
+		30CC1F063010C8DF00E96D54 /* Exceptions for "Kove broadcast extension" folder in "Kove broadcast extension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 30CC1EE43010C8DF00E96D54 /* Kove broadcast extension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		302F1C36300F4FE600E78C3F /* KoveMirror */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				30CC1EE0300FB96300E96D54 /* Exceptions for "KoveMirror" folder in "KoveMirror" target */,
+			);
+			path = KoveMirror;
+			sourceTree = "<group>";
+		};
+		302F1C44300F4FE800E78C3F /* KoveMirrorTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = KoveMirrorTests;
+			sourceTree = "<group>";
+		};
+		302F1C4E300F4FE800E78C3F /* KoveMirrorUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = KoveMirrorUITests;
+			sourceTree = "<group>";
+		};
+		30CC1EE93010C8DF00E96D54 /* Kove broadcast extension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				30CC1F063010C8DF00E96D54 /* Exceptions for "Kove broadcast extension" folder in "Kove broadcast extension" target */,
+			);
+			path = "Kove broadcast extension";
+			sourceTree = "<group>";
+		};
+		30CC1EF53010C8DF00E96D54 /* Kove broadcast extensionSetupUI */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				30CC1F023010C8DF00E96D54 /* Exceptions for "Kove broadcast extensionSetupUI" folder in "Kove broadcast extensionSetupUI" target */,
+			);
+			path = "Kove broadcast extensionSetupUI";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		302F1C31300F4FE600E78C3F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		302F1C3E300F4FE800E78C3F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		302F1C48300F4FE800E78C3F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		30CC1EE23010C8DF00E96D54 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				30CC1EE83010C8DF00E96D54 /* ReplayKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		30CC1EEE3010C8DF00E96D54 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				30CC1EF23010C8DF00E96D54 /* ReplayKit.framework in Frameworks */,
+				30CC1EF43010C8DF00E96D54 /* UIKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		302F1C2B300F4FE600E78C3F = {
+			isa = PBXGroup;
+			children = (
+				302F1C36300F4FE600E78C3F /* KoveMirror */,
+				302F1C44300F4FE800E78C3F /* KoveMirrorTests */,
+				302F1C4E300F4FE800E78C3F /* KoveMirrorUITests */,
+				30CC1EE93010C8DF00E96D54 /* Kove broadcast extension */,
+				30CC1EF53010C8DF00E96D54 /* Kove broadcast extensionSetupUI */,
+				30CC1EE63010C8DF00E96D54 /* Frameworks */,
+				302F1C35300F4FE600E78C3F /* Products */,
+				302F1C6B300F506900E78C3F /* PLAN.md */,
+				302F1C6C300F506900E78C3F /* README.md */,
+			);
+			sourceTree = "<group>";
+		};
+		302F1C35300F4FE600E78C3F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				302F1C34300F4FE600E78C3F /* KoveMirror.app */,
+				302F1C41300F4FE800E78C3F /* KoveMirrorTests.xctest */,
+				302F1C4B300F4FE800E78C3F /* KoveMirrorUITests.xctest */,
+				30CC1EE53010C8DF00E96D54 /* Kove broadcast extension.appex */,
+				30CC1EF13010C8DF00E96D54 /* Kove broadcast extensionSetupUI.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		30CC1EE63010C8DF00E96D54 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				30CC1EE73010C8DF00E96D54 /* ReplayKit.framework */,
+				30CC1EF33010C8DF00E96D54 /* UIKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		302F1C33300F4FE600E78C3F /* KoveMirror */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 302F1C55300F4FE800E78C3F /* Build configuration list for PBXNativeTarget "KoveMirror" */;
+			buildPhases = (
+				302F1C30300F4FE600E78C3F /* Sources */,
+				302F1C31300F4FE600E78C3F /* Frameworks */,
+				302F1C32300F4FE600E78C3F /* Resources */,
+				30CC1F073010C8DF00E96D54 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				30CC1EFA3010C8DF00E96D54 /* PBXTargetDependency */,
+				30CC1EFD3010C8DF00E96D54 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				302F1C36300F4FE600E78C3F /* KoveMirror */,
+			);
+			name = KoveMirror;
+			packageProductDependencies = (
+			);
+			productName = KoveMirror;
+			productReference = 302F1C34300F4FE600E78C3F /* KoveMirror.app */;
+			productType = "com.apple.product-type.application";
+		};
+		302F1C40300F4FE800E78C3F /* KoveMirrorTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 302F1C58300F4FE800E78C3F /* Build configuration list for PBXNativeTarget "KoveMirrorTests" */;
+			buildPhases = (
+				302F1C3D300F4FE800E78C3F /* Sources */,
+				302F1C3E300F4FE800E78C3F /* Frameworks */,
+				302F1C3F300F4FE800E78C3F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				302F1C43300F4FE800E78C3F /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				302F1C44300F4FE800E78C3F /* KoveMirrorTests */,
+			);
+			name = KoveMirrorTests;
+			packageProductDependencies = (
+			);
+			productName = KoveMirrorTests;
+			productReference = 302F1C41300F4FE800E78C3F /* KoveMirrorTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		302F1C4A300F4FE800E78C3F /* KoveMirrorUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 302F1C5B300F4FE800E78C3F /* Build configuration list for PBXNativeTarget "KoveMirrorUITests" */;
+			buildPhases = (
+				302F1C47300F4FE800E78C3F /* Sources */,
+				302F1C48300F4FE800E78C3F /* Frameworks */,
+				302F1C49300F4FE800E78C3F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				302F1C4D300F4FE800E78C3F /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				302F1C4E300F4FE800E78C3F /* KoveMirrorUITests */,
+			);
+			name = KoveMirrorUITests;
+			packageProductDependencies = (
+			);
+			productName = KoveMirrorUITests;
+			productReference = 302F1C4B300F4FE800E78C3F /* KoveMirrorUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		30CC1EE43010C8DF00E96D54 /* Kove broadcast extension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 30CC1F033010C8DF00E96D54 /* Build configuration list for PBXNativeTarget "Kove broadcast extension" */;
+			buildPhases = (
+				30CC1EE13010C8DF00E96D54 /* Sources */,
+				30CC1EE23010C8DF00E96D54 /* Frameworks */,
+				30CC1EE33010C8DF00E96D54 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				30CC1EE93010C8DF00E96D54 /* Kove broadcast extension */,
+			);
+			name = "Kove broadcast extension";
+			packageProductDependencies = (
+			);
+			productName = "Kove broadcast extension";
+			productReference = 30CC1EE53010C8DF00E96D54 /* Kove broadcast extension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		30CC1EF03010C8DF00E96D54 /* Kove broadcast extensionSetupUI */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 30CC1EFF3010C8DF00E96D54 /* Build configuration list for PBXNativeTarget "Kove broadcast extensionSetupUI" */;
+			buildPhases = (
+				30CC1EED3010C8DF00E96D54 /* Sources */,
+				30CC1EEE3010C8DF00E96D54 /* Frameworks */,
+				30CC1EEF3010C8DF00E96D54 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				30CC1EF53010C8DF00E96D54 /* Kove broadcast extensionSetupUI */,
+			);
+			name = "Kove broadcast extensionSetupUI";
+			packageProductDependencies = (
+			);
+			productName = "Kove broadcast extensionSetupUI";
+			productReference = 30CC1EF13010C8DF00E96D54 /* Kove broadcast extensionSetupUI.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		302F1C2C300F4FE600E78C3F /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2660;
+				LastUpgradeCheck = 2660;
+				TargetAttributes = {
+					302F1C33300F4FE600E78C3F = {
+						CreatedOnToolsVersion = 26.6;
+					};
+					302F1C40300F4FE800E78C3F = {
+						CreatedOnToolsVersion = 26.6;
+						TestTargetID = 302F1C33300F4FE600E78C3F;
+					};
+					302F1C4A300F4FE800E78C3F = {
+						CreatedOnToolsVersion = 26.6;
+						TestTargetID = 302F1C33300F4FE600E78C3F;
+					};
+					30CC1EE43010C8DF00E96D54 = {
+						CreatedOnToolsVersion = 26.6;
+					};
+					30CC1EF03010C8DF00E96D54 = {
+						CreatedOnToolsVersion = 26.6;
+					};
+				};
+			};
+			buildConfigurationList = 302F1C2F300F4FE600E78C3F /* Build configuration list for PBXProject "KoveMirror" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 302F1C2B300F4FE600E78C3F;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 302F1C35300F4FE600E78C3F /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				302F1C33300F4FE600E78C3F /* KoveMirror */,
+				302F1C40300F4FE800E78C3F /* KoveMirrorTests */,
+				302F1C4A300F4FE800E78C3F /* KoveMirrorUITests */,
+				30CC1EE43010C8DF00E96D54 /* Kove broadcast extension */,
+				30CC1EF03010C8DF00E96D54 /* Kove broadcast extensionSetupUI */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		302F1C32300F4FE600E78C3F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				302F1C6D300F506900E78C3F /* PLAN.md in Resources */,
+				302F1C6E300F506900E78C3F /* README.md in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		302F1C3F300F4FE800E78C3F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		302F1C49300F4FE800E78C3F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		30CC1EE33010C8DF00E96D54 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		30CC1EEF3010C8DF00E96D54 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		302F1C30300F4FE600E78C3F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		302F1C3D300F4FE800E78C3F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		302F1C47300F4FE800E78C3F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		30CC1EE13010C8DF00E96D54 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		30CC1EED3010C8DF00E96D54 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		302F1C43300F4FE800E78C3F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 302F1C33300F4FE600E78C3F /* KoveMirror */;
+			targetProxy = 302F1C42300F4FE800E78C3F /* PBXContainerItemProxy */;
+		};
+		302F1C4D300F4FE800E78C3F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 302F1C33300F4FE600E78C3F /* KoveMirror */;
+			targetProxy = 302F1C4C300F4FE800E78C3F /* PBXContainerItemProxy */;
+		};
+		30CC1EFA3010C8DF00E96D54 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 30CC1EF03010C8DF00E96D54 /* Kove broadcast extensionSetupUI */;
+			targetProxy = 30CC1EF93010C8DF00E96D54 /* PBXContainerItemProxy */;
+		};
+		30CC1EFD3010C8DF00E96D54 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 30CC1EE43010C8DF00E96D54 /* Kove broadcast extension */;
+			targetProxy = 30CC1EFC3010C8DF00E96D54 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		302F1C53300F4FE800E78C3F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = RF6VN762D3;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		302F1C54300F4FE800E78C3F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = RF6VN762D3;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		302F1C56300F4FE800E78C3F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RF6VN762D3;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = KoveMirror/Info.plist;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "App needs bluetoot connection to connect with the Motorcycle";
+				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "App needs bluetooth Access to connect with Motorbike";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UIBackgroundModes = "bluetooth-central";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mustcode.KoveMirror;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		302F1C57300F4FE800E78C3F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RF6VN762D3;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = KoveMirror/Info.plist;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "App needs bluetoot connection to connect with the Motorcycle";
+				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "App needs bluetooth Access to connect with Motorbike";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UIBackgroundModes = "bluetooth-central";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mustcode.KoveMirror;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		302F1C59300F4FE800E78C3F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RF6VN762D3;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mustcode.KoveMirrorTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KoveMirror.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/KoveMirror";
+			};
+			name = Debug;
+		};
+		302F1C5A300F4FE800E78C3F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RF6VN762D3;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mustcode.KoveMirrorTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KoveMirror.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/KoveMirror";
+			};
+			name = Release;
+		};
+		302F1C5C300F4FE800E78C3F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RF6VN762D3;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mustcode.KoveMirrorUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = KoveMirror;
+			};
+			name = Debug;
+		};
+		302F1C5D300F4FE800E78C3F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RF6VN762D3;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mustcode.KoveMirrorUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = KoveMirror;
+			};
+			name = Release;
+		};
+		30CC1F003010C8DF00E96D54 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RF6VN762D3;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Kove broadcast extensionSetupUI/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Kove broadcast extensionSetupUI";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.mustcode.KoveMirror.Kove-broadcast-extensionSetupUI";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		30CC1F013010C8DF00E96D54 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RF6VN762D3;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Kove broadcast extensionSetupUI/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Kove broadcast extensionSetupUI";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.mustcode.KoveMirror.Kove-broadcast-extensionSetupUI";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		30CC1F043010C8DF00E96D54 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RF6VN762D3;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Kove broadcast extension/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Kove broadcast extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.mustcode.KoveMirror.Kove-broadcast-extension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		30CC1F053010C8DF00E96D54 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RF6VN762D3;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Kove broadcast extension/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Kove broadcast extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.mustcode.KoveMirror.Kove-broadcast-extension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		302F1C2F300F4FE600E78C3F /* Build configuration list for PBXProject "KoveMirror" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				302F1C53300F4FE800E78C3F /* Debug */,
+				302F1C54300F4FE800E78C3F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		302F1C55300F4FE800E78C3F /* Build configuration list for PBXNativeTarget "KoveMirror" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				302F1C56300F4FE800E78C3F /* Debug */,
+				302F1C57300F4FE800E78C3F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		302F1C58300F4FE800E78C3F /* Build configuration list for PBXNativeTarget "KoveMirrorTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				302F1C59300F4FE800E78C3F /* Debug */,
+				302F1C5A300F4FE800E78C3F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		302F1C5B300F4FE800E78C3F /* Build configuration list for PBXNativeTarget "KoveMirrorUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				302F1C5C300F4FE800E78C3F /* Debug */,
+				302F1C5D300F4FE800E78C3F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		30CC1EFF3010C8DF00E96D54 /* Build configuration list for PBXNativeTarget "Kove broadcast extensionSetupUI" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				30CC1F003010C8DF00E96D54 /* Debug */,
+				30CC1F013010C8DF00E96D54 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		30CC1F033010C8DF00E96D54 /* Build configuration list for PBXNativeTarget "Kove broadcast extension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				30CC1F043010C8DF00E96D54 /* Debug */,
+				30CC1F053010C8DF00E96D54 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 302F1C2C300F4FE600E78C3F /* Project object */;
+}
