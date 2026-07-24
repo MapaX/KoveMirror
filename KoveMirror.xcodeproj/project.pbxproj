@@ -619,6 +619,7 @@
 				INFOPLIST_FILE = KoveMirror/Info.plist;
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "App needs bluetoot connection to connect with the Motorcycle";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "App needs bluetooth Access to connect with Motorbike";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Kove Mirror needs Local Network access to connect and stream video to your motorcycle's dashboard over Wi-Fi.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UIBackgroundModes = "bluetooth-central";
@@ -655,6 +656,7 @@
 				INFOPLIST_FILE = KoveMirror/Info.plist;
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "App needs bluetoot connection to connect with the Motorcycle";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "App needs bluetooth Access to connect with Motorbike";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Kove Mirror needs Local Network access to connect and stream video to your motorcycle's dashboard over Wi-Fi.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UIBackgroundModes = "bluetooth-central";

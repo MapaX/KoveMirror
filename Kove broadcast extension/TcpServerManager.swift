@@ -10,10 +10,14 @@ class TcpServerManager {
     private var videoConnection: NWConnection?
     private var heartbeatConnection: NWConnection?
     
-    private var heartbeatTimer: Timer?
-    private var videoHeartbeatTimer: Timer?
+    private var heartbeatTimer: DispatchSourceTimer?
+    private var videoHeartbeatTimer: DispatchSourceTimer?
+    
+    private let networkQueue = DispatchQueue(label: "com.kove.mirror.network", qos: .userInteractive)
+    private var handshakeCompleted = false
     
     func startServers(width: Int, height: Int, onVideoConnect: @escaping () -> Void) {
+        handshakeCompleted = false
         setupControlServer()
         setupHeartbeatServer()
         setupVideoServer(width: width, height: height, onConnect: onVideoConnect)
@@ -31,7 +35,7 @@ class TcpServerManager {
             controlListener?.newConnectionHandler = { [weak self] connection in
                 self?.handleControlConnection(connection)
             }
-            controlListener?.start(queue: .main)
+            controlListener?.start(queue: networkQueue)
         } catch {
             print("❌ Control Listener failed to start: \(error.localizedDescription)")
         }
@@ -39,7 +43,8 @@ class TcpServerManager {
     
     private func handleControlConnection(_ connection: NWConnection) {
         controlConnection = connection
-        connection.stateUpdateHandler = { state in
+        connection.stateUpdateHandler = { [weak self] state in
+            guard let self = self else { return }
             switch state {
             case .ready:
                 print("🔌 Control connection ready.")
@@ -53,7 +58,7 @@ class TcpServerManager {
                 break
             }
         }
-        connection.start(queue: .main)
+        connection.start(queue: networkQueue)
     }
     
     private func sendTucGet(_ connection: NWConnection) {
@@ -93,10 +98,14 @@ class TcpServerManager {
             if let data = data, !data.isEmpty {
                 print("📥 Received control packet (\(data.count) bytes)")
                 
-                // When TFT responds, we send the handshake parameters to finalize pairing.
-                // Normally we would parse JSON, but since the TFT client connecting to this
-                // port always expects the same initialization next, we send the handshake.
-                self?.sendControlHandshake(connection)
+                guard let self = self else { return }
+                if !self.handshakeCompleted {
+                    self.handshakeCompleted = true
+                    // Small delay to let initial data settle, matching Android's Thread.sleep(100)
+                    self.networkQueue.asyncAfter(deadline: .now() + 0.1) {
+                        self.sendControlHandshake(connection)
+                    }
+                }
             }
             
             if !isComplete && error == nil {
@@ -110,17 +119,18 @@ class TcpServerManager {
         
         let emailBody = "yahoo@yahoo.com".data(using: .utf8)!.paddingTo256Bytes()
         
-        let pkts: [Data] = [
-            Data([0x01, 0x01, 0x00, 0x00, 0x00, 0x00]), // Cmd 1 (6 bytes)
-            Data([0x01, 0x17, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x02]), // Cmd 23 (10 bytes)
-            Data([0x01, 0x12, 0x00, 0x00, 0x01, 0x00]) + emailBody, // Cmd 18 (262 bytes)
-            Data([0x01, 0x0E, 0x00, 0x00, 0x00, 0x00]), // Cmd 14 (6 bytes)
-            Data([0x01, 0x11, 0x00, 0x00, 0x00, 0x00])  // Cmd 17 (6 bytes)
-        ]
+        var handshakeData = Data()
+        handshakeData.append(Data([0x01, 0x01, 0x00, 0x00, 0x00, 0x00])) // Cmd 1 (6 bytes)
+        handshakeData.append(Data([0x01, 0x17, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x02])) // Cmd 23 (10 bytes)
+        handshakeData.append(Data([0x01, 0x12, 0x00, 0x00, 0x01, 0x00]) + emailBody) // Cmd 18 (262 bytes)
+        handshakeData.append(Data([0x01, 0x0E, 0x00, 0x00, 0x00, 0x00])) // Cmd 14 (6 bytes)
+        handshakeData.append(Data([0x01, 0x11, 0x00, 0x00, 0x00, 0x00])) // Cmd 17 (6 bytes)
         
-        for p in pkts {
-            connection.send(content: p, completion: .contentProcessed({ _ in }))
-        }
+        connection.send(content: handshakeData, completion: .contentProcessed({ error in
+            if let error = error {
+                print("❌ Error sending binary handshake: \(error.localizedDescription)")
+            }
+        }))
         
         // Followed by INSIDENAVI query packets
         sendFramedJson(connection, "{\"msg_id\":27,\"func\":\"INSIDENAVI\",\"query\":2}")
@@ -139,7 +149,7 @@ class TcpServerManager {
             heartbeatListener?.newConnectionHandler = { [weak self] connection in
                 self?.handleHeartbeatConnection(connection)
             }
-            heartbeatListener?.start(queue: .main)
+            heartbeatListener?.start(queue: networkQueue)
         } catch {
             print("❌ Heartbeat Listener failed: \(error.localizedDescription)")
         }
@@ -147,26 +157,35 @@ class TcpServerManager {
     
     private func handleHeartbeatConnection(_ connection: NWConnection) {
         heartbeatConnection = connection
-        connection.stateUpdateHandler = { state in
+        connection.stateUpdateHandler = { [weak self] state in
+            guard let self = self else { return }
             if state == .ready {
                 print("🔌 Dedicated Heartbeat connection ready. Starting 200ms pulses...")
                 self.startDedicatedHeartbeat(connection)
             }
         }
-        connection.start(queue: .main)
+        connection.start(queue: networkQueue)
     }
     
     private func startDedicatedHeartbeat(_ connection: NWConnection) {
-        heartbeatTimer?.invalidate()
+        heartbeatTimer?.cancel()
+        
+        let timer = DispatchSource.makeTimerSource(queue: networkQueue)
+        timer.schedule(deadline: .now(), repeating: 0.2)
+        
         let packet = Data([0x02, 0x01, 0x00, 0x00, 0x00, 0x00]) // 6-byte keep alive packet
         
-        heartbeatTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { _ in
+        timer.setEventHandler { [weak connection] in
+            guard let connection = connection else { return }
             connection.send(content: packet, completion: .contentProcessed({ error in
                 if error != nil {
                     print("⚠️ Failed to send heartbeat pulse, connection might be closed.")
                 }
             }))
         }
+        
+        heartbeatTimer = timer
+        timer.resume()
     }
     
     // MARK: - Port 15456 (Video / Projection Server)
@@ -180,7 +199,7 @@ class TcpServerManager {
             videoListener?.newConnectionHandler = { [weak self] connection in
                 self?.handleVideoConnection(connection, width: width, height: height, onConnect: onConnect)
             }
-            videoListener?.start(queue: .main)
+            videoListener?.start(queue: networkQueue)
         } catch {
             print("❌ Video Listener failed: \(error.localizedDescription)")
         }
@@ -188,7 +207,8 @@ class TcpServerManager {
     
     private func handleVideoConnection(_ connection: NWConnection, width: Int, height: Int, onConnect: @escaping () -> Void) {
         videoConnection = connection
-        connection.stateUpdateHandler = { state in
+        connection.stateUpdateHandler = { [weak self] state in
+            guard let self = self else { return }
             if state == .ready {
                 print("🔌 Video connection established.")
                 self.sendVideoSizeHeader(connection, width: width, height: height)
@@ -196,7 +216,7 @@ class TcpServerManager {
                 onConnect()
             }
         }
-        connection.start(queue: .main)
+        connection.start(queue: networkQueue)
     }
     
     private func sendVideoSizeHeader(_ connection: NWConnection, width: Int, height: Int) {
@@ -223,12 +243,20 @@ class TcpServerManager {
     }
     
     private func startVideoHeartbeat(_ connection: NWConnection) {
-        videoHeartbeatTimer?.invalidate()
+        videoHeartbeatTimer?.cancel()
+        
+        let timer = DispatchSource.makeTimerSource(queue: networkQueue)
+        timer.schedule(deadline: .now(), repeating: 2.0)
+        
         let packet = Data([0x02, 0x01, 0x00, 0x00, 0x00, 0x00])
         
-        videoHeartbeatTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
+        timer.setEventHandler { [weak connection] in
+            guard let connection = connection else { return }
             connection.send(content: packet, completion: .contentProcessed({ _ in }))
         }
+        
+        videoHeartbeatTimer = timer
+        timer.resume()
     }
     
     func streamVideoFrame(data: Data) {
@@ -244,10 +272,10 @@ class TcpServerManager {
     
     func stop() {
         print("🔌 Stopping all TCP Servers...")
-        heartbeatTimer?.invalidate()
+        heartbeatTimer?.cancel()
         heartbeatTimer = nil
         
-        videoHeartbeatTimer?.invalidate()
+        videoHeartbeatTimer?.cancel()
         videoHeartbeatTimer = nil
         
         controlConnection?.cancel()
@@ -267,6 +295,8 @@ class TcpServerManager {
         
         heartbeatListener?.cancel()
         heartbeatListener = nil
+        
+        handshakeCompleted = false
     }
 }
 
