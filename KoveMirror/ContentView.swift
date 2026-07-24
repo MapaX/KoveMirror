@@ -165,7 +165,7 @@ struct ContentView: View {
 struct BroadcastPickerRepresentable: UIViewRepresentable {
     func makeUIView(context: Context) -> UIView {
         let picker = RPSystemBroadcastPickerView(frame: CGRect(x: 0, y: 0, width: 200, height: 50))
-        picker.preferredExtension = "com.kove.mirror.KoveMirrorUploadExtension" // Replace with extension bundle id
+        picker.preferredExtension = "com.mustcode.KoveMirror.Kove-broadcast-extension"
         picker.showsMicrophoneButton = false
         
         // Customize the button appearance inside the view

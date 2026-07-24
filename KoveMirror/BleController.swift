@@ -16,6 +16,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     private var centralManager: CBCentralManager!
     private var targetPeripheral: CBPeripheral?
     private var writeCharacteristic: CBCharacteristic?
+    private let tcpServerManager = TcpServerManager()
     
     // Service and Characteristic UUIDs matching the ThinkerRide / Kove protocol
     let serviceUUID = CBUUID(string: "0000e0ff-3c17-d293-8e48-14fe2e4da212")
@@ -48,6 +49,12 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
             log("⚠️ Bluetooth is not powered on.")
             return
         }
+        
+        log("🔌 Starting TCP Servers in main app...")
+        tcpServerManager.startServers(width: 480, height: 800) { [weak self] in
+            self?.log("📺 TCP Video stream connected.")
+        }
+        
         connectionState = .scanning
         log("🔍 Scanning for Kove TFT services (\(serviceUUID.uuidString))...")
         centralManager.scanForPeripherals(withServices: [serviceUUID], options: nil)
@@ -56,6 +63,9 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     func disconnect() {
         heartbeatTimer?.invalidate()
         heartbeatTimer = nil
+        
+        log("🔌 Stopping TCP Servers in main app...")
+        tcpServerManager.stop()
         
         if let peripheral = targetPeripheral {
             log("🔴 Disconnecting from \(peripheral.name ?? "TFT Device")...")
@@ -142,6 +152,10 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         heartbeatTimer?.invalidate()
         heartbeatTimer = nil
         writeCharacteristic = nil
+        
+        log("🔌 Stopping TCP Servers in main app...")
+        tcpServerManager.stop()
+        
         // Restart scanning to reconnect automatically
         startScanning()
     }
