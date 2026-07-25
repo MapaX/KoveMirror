@@ -42,3 +42,6 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
+
+# Video recording tests
+captured_test.h264

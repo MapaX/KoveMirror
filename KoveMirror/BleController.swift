@@ -60,7 +60,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     
     func startTcpServers() {
         log("🔌 Starting TCP Servers in main app...")
-        tcpServerManager.startServers(width: 480, height: 800) { [weak self] in
+        tcpServerManager.startServers(width: 600, height: 1024) { [weak self] in
             self?.log("📺 TCP Video stream connected. Starting screen capture...")
             DispatchQueue.main.async {
                 self?.isStreaming = true

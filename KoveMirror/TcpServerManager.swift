@@ -263,13 +263,14 @@ class TcpServerManager {
             header.replaceSubrange(1..<1+nameData.count, with: nameData)
         }
         
-        var w = UInt16(width).bigEndian
-        var h = UInt16(height).bigEndian
+        header[65] = UInt8((width >> 8) & 0xFF)
+        header[66] = UInt8(width & 0xFF)
+        header[67] = UInt8((height >> 8) & 0xFF)
+        header[68] = UInt8(height & 0xFF)
         
-        header.replaceSubrange(65...66, with: Data(bytes: &w, count: 2))
-        header.replaceSubrange(67...68, with: Data(bytes: &h, count: 2))
+        let hexStr = header.map { String(format: "%02X", $0) }.joined(separator: " ")
+        print("📤 Sending VideoSize header (Width: \(width), Height: \(height)). Hex: \(hexStr)")
         
-        print("📤 Sending VideoSize header (Width: \(width), Height: \(height))...")
         connection.send(content: header, completion: .contentProcessed({ error in
             if let error = error {
                 print("❌ Error sending VideoSize header: \(error.localizedDescription)")

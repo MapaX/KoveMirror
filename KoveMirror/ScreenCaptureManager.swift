@@ -19,8 +19,8 @@ class ScreenCaptureManager: NSObject {
         self.targetWindow = window
         self.isStreaming = true
         
-        // Start H.264 Encoder (480x800, matching Android version)
-        encoder.start(width: 480, height: 800, fps: 30)
+        // Start H.264 Encoder (600x1024, matching Android version)
+        encoder.start(width: 600, height: 1024, fps: 30)
         
         // Start display link at 30 FPS
         displayLink = CADisplayLink(target: self, selector: #selector(captureFrame))
@@ -48,8 +48,8 @@ class ScreenCaptureManager: NSObject {
     private func captureFrameDirect() -> CVPixelBuffer? {
         guard let window = targetWindow else { return nil }
         
-        let width = 480
-        let height = 800
+        let width = 600
+        let height = 1024
         
         var pixelBuffer: CVPixelBuffer? = nil
         let attrs = [
@@ -63,7 +63,6 @@ class ScreenCaptureManager: NSObject {
         }
         
         CVPixelBufferLockBaseAddress(buffer, CVPixelBufferLockFlags(rawValue: 0))
-        defer { CVPixelBufferUnlockBaseAddress(buffer, CVPixelBufferLockFlags(rawValue: 0)) }
         
         let context = CGContext(
             data: CVPixelBufferGetBaseAddress(buffer),
@@ -75,17 +74,30 @@ class ScreenCaptureManager: NSObject {
             bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue
         )
         
-        guard let ctx = context else { return nil }
+        if let ctx = context {
+            UIGraphicsPushContext(ctx)
+            
+            // 1. Clear background with black color
+            ctx.setFillColor(UIColor.black.cgColor)
+            ctx.fill(CGRect(x: 0, y: 0, width: CGFloat(width), height: CGFloat(height)))
+            
+            // 2. Flip Y-axis to convert CoreGraphics (bottom-left) to UIKit (top-left) coordinate space
+            ctx.translateBy(x: 0, y: CGFloat(height))
+            ctx.scaleBy(x: 1.0, y: -1.0)
+            
+            // 3. Scale context to fit the window into 600x1024 dimensions
+            ctx.scaleBy(x: CGFloat(width) / window.bounds.width, y: CGFloat(height) / window.bounds.height)
+            
+            // 4. Render raw layer tree (robust fallback)
+            window.layer.render(in: ctx)
+            
+            // 5. Draw SwiftUI view hierarchy
+            window.drawHierarchy(in: window.bounds, afterScreenUpdates: false)
+            
+            UIGraphicsPopContext()
+        }
         
-        // Clear background with black color
-        ctx.setFillColor(UIColor.black.cgColor)
-        ctx.fill(CGRect(x: 0, y: 0, width: width, height: height))
-        
-        // Scale context to fit the window into 480x800 dimensions
-        ctx.scaleBy(x: CGFloat(width) / window.bounds.width, y: CGFloat(height) / window.bounds.height)
-        
-        // Render the window layer directly into the pixel buffer's context
-        window.layer.render(in: ctx)
+        CVPixelBufferUnlockBaseAddress(buffer, CVPixelBufferLockFlags(rawValue: 0))
         
         return buffer
     }

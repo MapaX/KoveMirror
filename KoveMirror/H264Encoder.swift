@@ -8,11 +8,18 @@ protocol H264EncoderDelegate: AnyObject {
 class H264Encoder {
     weak var delegate: H264EncoderDelegate?
     private var session: VTCompressionSession?
+    private var frameCount = 0
     
     func start(width: Int32, height: Int32, fps: Int32) {
         // Calculate dynamic bitrate similar to Android version
         let bitrate = width * height * 3 // ~1.8 Mbps for 600x1024
         print("🎬 Starting H.264 Encoder (\(width)x\(height) @ \(fps) FPS, Bitrate: \(bitrate / 1000) Kbps)")
+        
+        let sourceImageBufferAttributes: [CFString: Any] = [
+            kCVPixelBufferPixelFormatTypeKey: kCVPixelFormatType_32BGRA as CFNumber,
+            kCVPixelBufferWidthKey: width as CFNumber,
+            kCVPixelBufferHeightKey: height as CFNumber
+        ]
         
         let status = VTCompressionSessionCreate(
             allocator: kCFAllocatorDefault,
@@ -20,7 +27,7 @@ class H264Encoder {
             height: height,
             codecType: kCMVideoCodecType_H264,
             encoderSpecification: nil,
-            imageBufferAttributes: nil,
+            imageBufferAttributes: sourceImageBufferAttributes as CFDictionary,
             compressedDataAllocator: nil,
             outputCallback: outputCallback,
             refcon: Unmanaged.passUnretained(self).toOpaque(),
@@ -36,14 +43,18 @@ class H264Encoder {
         VTSessionSetProperty(session, key: kVTCompressionPropertyKey_RealTime, value: kCFBooleanTrue)
         VTSessionSetProperty(session, key: kVTCompressionPropertyKey_ExpectedFrameRate, value: fps as CFNumber)
         VTSessionSetProperty(session, key: kVTCompressionPropertyKey_MaxKeyFrameInterval, value: fps as CFNumber) // Force I-frame every 1 second
+        VTSessionSetProperty(session, key: kVTCompressionPropertyKey_MaxKeyFrameIntervalDuration, value: 1.0 as CFNumber)
         VTSessionSetProperty(session, key: kVTCompressionPropertyKey_AverageBitRate, value: bitrate as CFNumber)
+        
+        // Disable B-frames (Frame Reordering) for low-latency real-time rendering compat
+        VTSessionSetProperty(session, key: kVTCompressionPropertyKey_AllowFrameReordering, value: kCFBooleanFalse)
         
         // Set bit rate limits
         let limit = [bitrate * 2 / 8, 1] as CFArray
         VTSessionSetProperty(session, key: kVTCompressionPropertyKey_DataRateLimits, value: limit)
         
-        // Configure profile: AVC High Profile, Auto Level
-        VTSessionSetProperty(session, key: kVTCompressionPropertyKey_ProfileLevel, value: kVTProfileLevel_H264_High_AutoLevel)
+        // Configure profile: AVC High Profile, Level 4.1
+        VTSessionSetProperty(session, key: kVTCompressionPropertyKey_ProfileLevel, value: kVTProfileLevel_H264_High_4_1)
         VTSessionSetProperty(session, key: kVTCompressionPropertyKey_H264EntropyMode, value: kVTH264EntropyMode_CABAC)
         
         // Prepare to encode
@@ -58,12 +69,18 @@ class H264Encoder {
     func encode(pixelBuffer: CVPixelBuffer, pts: CMTime) {
         guard let session = session else { return }
         
+        frameCount += 1
+        var frameProperties: CFDictionary? = nil
+        if frameCount % 30 == 0 {
+            frameProperties = [kVTEncodeFrameOptionKey_ForceKeyFrame: kCFBooleanTrue] as CFDictionary
+        }
+        
         let status = VTCompressionSessionEncodeFrame(
             session,
             imageBuffer: pixelBuffer,
             presentationTimeStamp: pts,
             duration: .invalid,
-            frameProperties: nil,
+            frameProperties: frameProperties,
             sourceFrameRefcon: nil,
             infoFlagsOut: nil
         )
@@ -113,16 +130,20 @@ private func outputCallback(
         }
     }
     
-    // 1. Send SPS/PPS parameters if we hit a keyframe (dashboard needs them to sync)
+    var frameData = Data()
+    
+    // 1. Accumulate SPS/PPS parameters if we hit a keyframe (dashboard needs them to sync)
     if isKeyFrame {
         var parameterSetCount = 0
-        CMVideoFormatDescriptionGetH264ParameterSetAtIndex(formatDescription, parameterSetIndex: 0, parameterSetPointerOut: nil, parameterSetSizeOut: nil, parameterSetCountOut: &parameterSetCount, nalUnitHeaderLengthOut: nil)
+        let countStatus = CMVideoFormatDescriptionGetH264ParameterSetAtIndex(formatDescription, parameterSetIndex: 0, parameterSetPointerOut: nil, parameterSetSizeOut: nil, parameterSetCountOut: &parameterSetCount, nalUnitHeaderLengthOut: nil)
+        
+        print("🔑 Keyframe detected. Status: \(countStatus), Parameter set count: \(parameterSetCount)")
         
         for index in 0..<parameterSetCount {
             var parameterSetPointer: UnsafePointer<UInt8>?
             var parameterSetSize = 0
             
-            CMVideoFormatDescriptionGetH264ParameterSetAtIndex(
+            let status = CMVideoFormatDescriptionGetH264ParameterSetAtIndex(
                 formatDescription,
                 parameterSetIndex: index,
                 parameterSetPointerOut: &parameterSetPointer,
@@ -131,10 +152,15 @@ private func outputCallback(
                 nalUnitHeaderLengthOut: nil
             )
             
-            if let pointer = parameterSetPointer {
-                var annexBParameterSet = Data([0x00, 0x00, 0x00, 0x01]) // Annex B start code
-                annexBParameterSet.append(pointer, count: parameterSetSize)
-                encoder.delegate?.encoderDidOutputNALUnit(data: annexBParameterSet)
+            if status == noErr, let pointer = parameterSetPointer {
+                print("  - Parameter set \(index) size: \(parameterSetSize) bytes")
+                frameData.append(0x00)
+                frameData.append(0x00)
+                frameData.append(0x00)
+                frameData.append(0x01)
+                frameData.append(pointer, count: parameterSetSize)
+            } else {
+                print("  - Failed to get parameter set \(index): \(status)")
             }
         }
     }
@@ -155,7 +181,6 @@ private func outputCallback(
     guard bufferStatus == kCMBlockBufferNoErr, let pointer = dataPointer else { return }
     
     var offset = 0
-    let startCode = Data([0x00, 0x00, 0x00, 0x01])
     
     while offset < totalLength - 4 {
         // Read the 4-byte NAL unit length prefix (AVCC)
@@ -170,13 +195,19 @@ private func outputCallback(
         }
         
         // Append Annex B start code and payload
-        let payloadPointer = pointer.advanced(by: offset + 4)
-        var naluData = startCode
-        naluData.append(UnsafePointer<UInt8>(OpaquePointer(payloadPointer)), count: Int(naluLength))
+        frameData.append(0x00)
+        frameData.append(0x00)
+        frameData.append(0x00)
+        frameData.append(0x01)
         
-        encoder.delegate?.encoderDidOutputNALUnit(data: naluData)
+        let payloadPointer = pointer.advanced(by: offset + 4)
+        frameData.append(UnsafePointer<UInt8>(OpaquePointer(payloadPointer)), count: Int(naluLength))
         
         // Advance offset
         offset += 4 + Int(naluLength)
+    }
+    
+    if !frameData.isEmpty {
+        encoder.delegate?.encoderDidOutputNALUnit(data: frameData)
     }
 }
