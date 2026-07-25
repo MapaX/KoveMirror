@@ -1,72 +1,81 @@
-# KoveMirroriOS
+# KoveMirror
 
-An iOS application implementing screen-mirroring (using the ThinkerRide projection protocol) from an iPhone to a Kove 800 motorcycle TFT dashboard.
+An iOS application implementing screen-mirroring (using the ThinkerRide projection protocol) from an iPhone to a Kove motorcycle TFT dashboard.
 
 This repository contains the source code template organized into two main components:
-1.  **KoveMirroriOS (Main SwiftUI App):** Manages connection state, user actions, Bluetooth LE (BLE) GATT handshake, and heartbeats.
-2.  **KoveMirrorUploadExtension (ReplayKit Broadcast Extension):** Captures the iPhone screen, initializes the multi-port TCP sockets, compresses screen frames using hardware-accelerated H.264 (VideoToolbox), converts AVCC format to Annex B format, and streams the NAL units directly to the motorcycle over Wi-Fi.
+1. **KoveMirror (Main SwiftUI App):** Manages connection state, user actions, Bluetooth LE (BLE) GATT handshake, heartbeats, automatic Wi-Fi joining, in-app window graphics capture, and compression.
+2. **Kove broadcast extension (ReplayKit Broadcast Extension):** Captures system-wide frames, compresses screen frames using hardware-accelerated H.264 (VideoToolbox), and streams the NAL units to the main app's local bridge receiver.
+
+---
+
+## ✨ Features
+
+- **Automatic Wi-Fi Setup via QR Code:** Scan the motorcycle's QR code (e.g. `http://g.thinkerride.com/?SSID&PASSWORD&ap=1`) to automatically parse credentials and programmatically join the motorcycle's Wi-Fi access point via iOS `NetworkExtension` APIs.
+- **Dynamic Stream Auto-Switching:** 
+  - Starts mirroring immediately by projecting the main app's SwiftUI window.
+  - Tapping **Broadcast Entire Screen** programmatically pops up the ReplayKit picker.
+  - When the broadcast extension connects, the main app automatically suspends in-app capture and forwards the system-wide stream.
+  - If the broadcast extension terminates, it seamlessly falls back to local window capture without dropping the video socket connection.
+- **Low-Latency Video Pipeline:** Video is encoded at the TFT's native `600x1024` resolution (30 FPS) with B-frames (frame reordering) disabled to match the dashboard's hardware decoder and eliminate latency.
+- **Background Lifecycle Resilience:** Automatically stops the capture link and invalidates the active `VTCompressionSession` when backgrounded (preventing media server invalidation errors `-12903`), and cleanly recreates them upon foreground return.
+- **Premium Aesthetics:** Features a dark carbon-fiber design system, glowing animations, custom app icons, and an integrated launch screen matching Kove's brand colors.
+
+---
+
+## 📂 File Architecture
+
+### 📱 Main App Target (`KoveMirror`)
+* [KoveMirrorApp.swift](file:///Users/mapa/Codes/Omat/KoveMirror/KoveMirror/KoveMirrorApp.swift): App entry point initializing the main view.
+* [ConnectionStatusView.swift](file:///Users/mapa/Codes/Omat/KoveMirror/KoveMirror/ConnectionStatusView.swift): Main SwiftUI dashboard view managing pairing controls, mode changes, and log monitoring.
+* [QRCodeScannerView.swift](file:///Users/mapa/Codes/Omat/KoveMirror/KoveMirror/QRCodeScannerView.swift): Camera wrapper interface (`AVCaptureSession`) isolating QR metadata.
+* [QRScannerSheet.swift](file:///Users/mapa/Codes/Omat/KoveMirror/KoveMirror/QRScannerSheet.swift): Scanner sheet view with animated target frame guidelines.
+* [BleController.swift](file:///Users/mapa/Codes/Omat/KoveMirror/KoveMirror/BleController.swift): GATT central manager handling Kove BLE handshakes and heartbeats.
+* [ScreenCaptureManager.swift](file:///Users/mapa/Codes/Omat/KoveMirror/KoveMirror/ScreenCaptureManager.swift): CADisplayLink drawing loop executing UIKit graphic translations.
+* [H264Encoder.swift](file:///Users/mapa/Codes/Omat/KoveMirror/KoveMirror/H264Encoder.swift): Hardware compression encoder (`VTCompressionSession`) outputting Annex B NAL units.
+* [TcpServerManager.swift](file:///Users/mapa/Codes/Omat/KoveMirror/KoveMirror/TcpServerManager.swift): Multi-port socket manager executing video forwarder bridges.
+
+### 📡 Broadcast Extension Target (`Kove broadcast extension`)
+* [SampleHandler.swift](file:///Users/mapa/Codes/Omat/Kove%20broadcast%20extension/SampleHandler.swift): ReplayKit broadcast handler forwarding system-wide frames to the main app loop.
+* [H264Encoder.swift](file:///Users/mapa/Codes/Omat/KoveMirror/KoveMirror/H264Encoder.swift): Shared hardware encoder wrapper.
 
 ---
 
 ## 🛠️ Xcode Project Setup Guide
 
-To build and run this project, you need Xcode on macOS. Follow these steps to assemble the files:
+To build and run this project, you need Xcode 16+ on macOS:
 
-### Step 1: Create a New Project in Xcode
-1.  Open Xcode, select **Create a new Xcode project**.
-2.  Choose **App** under iOS templates. Click Next.
-3.  Product Name: `KoveMirroriOS`.
-4.  Organization Identifier: e.g., `com.yourname` (producing Bundle Identifier: `com.yourname.KoveMirroriOS`).
-5.  Interface: **SwiftUI**, Language: **Swift**. Click Next and save it directly in this repository folder (`/Users/mapa/Codes/Omat/KoveMirroriOS`).
+### Step 1: Create or Open Project
+Ensure the project file is opened directly in this directory: `/Users/mapa/Codes/Omat/KoveMirror/KoveMirror.xcodeproj`. Source files under target directories are automatically indexed via directory group synchronization (`PBXFileSystemSynchronizedRootGroup`).
 
-### Step 2: Add the Broadcast Upload Extension Target
-1.  In Xcode, select **File** > **New** > **Target...**
-2.  Search for **Broadcast Upload Extension**. Select it and click Next.
-3.  Product Name: `KoveMirrorUploadExtension`.
-4.  Language: **Swift**. Do **not** check "Include UI Extension" (we don't need a UI extension, just the upload handler).
-5.  Click Finish. If prompted to activate the scheme, click Activate.
+### Step 2: Configure App Groups (IPC Shared Config)
+Because the Main App and the Broadcast Extension run as separate processes, they need to share configurations:
+1. Select the project file in Xcode.
+2. Select the **KoveMirror** target, go to **Signing & Capabilities** tab.
+3. Click `+ Capability` and search for **App Groups**.
+4. Add a group named `group.com.kove.mirror` (matching `appGroupSuiteName` in `BleController.swift`).
+5. Select the **Kove broadcast extension** target.
+6. Add the **App Groups** capability and check the same group name (`group.com.kove.mirror`).
 
-### Step 3: Copy Source Files
-Drag and drop the Swift files in this repository into their corresponding targets in the Xcode file outline:
-
-*   **To KoveMirroriOS Target:**
-    *   `KoveMirroriOSApp.swift` (App entry)
-    *   `ContentView.swift` (Main User Interface)
-    *   `BleController.swift` (BLE GATT manager)
-*   **To KoveMirrorUploadExtension Target:**
-    *   `SampleHandler.swift` (ReplayKit entry point)
-    *   `H264Encoder.swift` (H.264 VideoToolbox compressor)
-    *   `TcpServerManager.swift` (TCP Sockets listener)
-
-*Note: Choose "Copy items if needed" and ensure target memberships are checked correctly.*
-
-### Step 4: Configure App Groups (IPC Shared Config)
-Because the Main App and the Broadcast Extension run as separate processes, they need to share configurations (like selected Bluetooth device metadata):
-1.  Select the project file in Xcode (the top-level node in the outline).
-2.  Select the **KoveMirroriOS** target, go to **Signing & Capabilities** tab.
-3.  Click `+ Capability` and search for **App Groups**.
-4.  Add a group named `group.com.kove.mirror` (or custom name).
-5.  Select the **KoveMirrorUploadExtension** target, go to **Signing & Capabilities** tab.
-6.  Add the **App Groups** capability and check the same group name (`group.com.kove.mirror`).
-7.  *Note: Make sure to update the `appGroupSuiteName` constant in both `BleController.swift` and `ContentView.swift` if you choose a custom group identifier.*
-
-### Step 5: Configure Permissions & Capabilities
-1.  **Bluetooth Background Execution (Main App):**
-    *   Select the **KoveMirroriOS** target > **Signing & Capabilities** tab.
-    *   Click `+ Capability` and search for **Background Modes**.
-    *   Check **Uses Bluetooth LE accessories** (allows BLE handshake and heartbeats to run indefinitely in the background).
-2.  **Info.plist Keys (Main App):**
-    *   Add `NSBluetoothAlwaysUsageDescription`: `"Kove Mirror needs Bluetooth to pair and maintain connection with your motorcycle's dashboard."`
-    *   Add `NSLocalNetworkUsageDescription`: `"Kove Mirror needs Local Network access to connect and stream video to your motorcycle's dashboard over Wi-Fi."`
+### Step 3: Configure Target Capabilities & Entitlements
+1. **Bluetooth Background Execution (Main App):**
+   * Select the **KoveMirror** target > **Signing & Capabilities** tab.
+   * Add the **Background Modes** capability and check **Uses Bluetooth LE accessories**.
+2. **Hotspot Configuration (Main App):**
+   * Go to **Signing & Capabilities** and ensure **Hotspot Configuration** is checked to allow programmatic connection permissions.
+3. **Info.plist Keys (Main App):**
+   * `NSBluetoothAlwaysUsageDescription`: `"App needs bluetooth connection to connect with the Motorcycle"`
+   * `NSCameraUsageDescription`: `"Kove Mirror needs camera access to scan QR codes for Wi-Fi auto-configuration."`
+   * `NSLocalNetworkUsageDescription`: `"Kove Mirror needs Local Network access to connect and stream video to your motorcycle's dashboard over Wi-Fi."`
+   * `NSLocationWhenInUseUsageDescription`: `"Kove Mirror needs location access to read the Wi-Fi network name and ensure connection with the motorcycle."`
 
 ---
 
 ## 🏍️ Connection Instructions
 
-1.  Start your motorcycle. Turn on the TFT dashboard.
-2.  On your iPhone, go to **Settings** > **Wi-Fi** and connect to the motorcycle's hotspot (usually SSID containing `Kove` or `ThinkerRide`).
-3.  Open the **KoveMirroriOS** app.
-4.  Tap **Connect BLE** to start scanning and automatically establish the handshake with the dashboard.
-5.  Once the Bluetooth state transitions to **Connected & Active**, tap **Start Mirroring**.
-6.  Select **Kove Mirror Extension** from the system recording list and tap **Start Broadcast**.
-7.  Your iPhone screen will immediately start streaming to the motorcycle screen! You can swipe out of the app and open any navigation or mapping software (Google Maps, etc.).
+1. Start your motorcycle. Turn on the TFT dashboard.
+2. Open the **Kove Mirror** app.
+3. **Scan QR Code:** If Wi-Fi is not connected, tap **Scan QR** on the Wi-Fi status card, point the camera at the TFT QR code, and the app will automatically join the motorcycle's Wi-Fi network.
+4. **Connect BLE:** Tap **Connect BLE** to start scanning and automatically establish the handshake with the dashboard.
+5. **Start Mirroring:** Once connected, tap **Start Mirroring**. The app will immediately start projecting the app dashboard onto the TFT screen.
+6. **Broadcast Entire Screen (Optional):** Once mirroring is active, tap **Broadcast Entire Screen** below the Stop button. Select **Kove Mirror** and tap **Start Broadcast**. You can now swipe out of the app to display navigation software (e.g., Google Maps) system-wide.
+7. Tap **Stop Mirroring** at any time to shut down the stream and return the TFT to its standard dashboard UI.

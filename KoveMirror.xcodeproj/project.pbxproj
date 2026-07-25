@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		302F1C6D300F506900E78C3F /* PLAN.md in Resources */ = {isa = PBXBuildFile; fileRef = 302F1C6B300F506900E78C3F /* PLAN.md */; };
 		302F1C6E300F506900E78C3F /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 302F1C6C300F506900E78C3F /* README.md */; };
 		30CC1EE83010C8DF00E96D54 /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 30CC1EE73010C8DF00E96D54 /* ReplayKit.framework */; };
 		30CC1EF23010C8DF00E96D54 /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 30CC1EE73010C8DF00E96D54 /* ReplayKit.framework */; };
@@ -66,7 +65,6 @@
 		302F1C34300F4FE600E78C3F /* KoveMirror.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KoveMirror.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		302F1C41300F4FE800E78C3F /* KoveMirrorTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KoveMirrorTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		302F1C4B300F4FE800E78C3F /* KoveMirrorUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KoveMirrorUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		302F1C6B300F506900E78C3F /* PLAN.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = PLAN.md; sourceTree = "<group>"; };
 		302F1C6C300F506900E78C3F /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		30CC1EE53010C8DF00E96D54 /* Kove broadcast extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Kove broadcast extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		30CC1EE73010C8DF00E96D54 /* ReplayKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReplayKit.framework; path = System/Library/Frameworks/ReplayKit.framework; sourceTree = SDKROOT; };
@@ -196,7 +194,6 @@
 				30CC1EF53010C8DF00E96D54 /* Kove broadcast extensionSetupUI */,
 				30CC1EE63010C8DF00E96D54 /* Frameworks */,
 				302F1C35300F4FE600E78C3F /* Products */,
-				302F1C6B300F506900E78C3F /* PLAN.md */,
 				302F1C6C300F506900E78C3F /* README.md */,
 			);
 			sourceTree = "<group>";
@@ -397,7 +394,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				302F1C6D300F506900E78C3F /* PLAN.md in Resources */,
 				302F1C6E300F506900E78C3F /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
