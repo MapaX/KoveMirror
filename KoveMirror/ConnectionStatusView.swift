@@ -11,6 +11,11 @@ struct ConnectionStatusView: View {
     var body: some View {
         NavigationView {
             ZStack {
+                // Invisible background broadcast picker
+                HiddenBroadcastPicker()
+                    .frame(width: 1, height: 1)
+                    .opacity(0.01)
+                
                 // Background dark gradient for rich aesthetics
                 LinearGradient(
                     gradient: Gradient(colors: [Color(hex: "0D0D11"), Color(hex: "1F1F2E")]),
@@ -100,7 +105,22 @@ struct ConnectionStatusView: View {
                         .pickerStyle(.segmented)
                         .padding(.bottom, 4)
                         
-                        HStack(spacing: 16) {
+                        if bleController.connectionState == .connected || bleController.connectionState == .connecting {
+                            Button(action: {
+                                bleController.disconnect()
+                            }) {
+                                HStack {
+                                    Image(systemName: "stop.fill")
+                                    Text("Disconnect BLE")
+                                }
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(Color(hex: "C62828"))
+                                .cornerRadius(12)
+                            }
+                        } else {
                             Button(action: {
                                 bleController.startScanning()
                             }) {
@@ -115,36 +135,42 @@ struct ConnectionStatusView: View {
                                 .background(Color(hex: "2E7D32"))
                                 .cornerRadius(12)
                             }
-                            .disabled(bleController.connectionState == .connected || bleController.connectionState == .connecting)
-                            
-                            Button(action: {
-                                bleController.disconnect()
-                            }) {
-                                HStack {
-                                    Image(systemName: "stop.fill")
-                                    Text("Disconnect")
-                                }
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(Color(hex: "C62828"))
-                                .cornerRadius(12)
-                            }
-                            .disabled(bleController.connectionState == .disconnected)
                         }
                         
                         if bleController.connectionState == .connected {
-                            if bleController.mirroringMode == .entireScreen && bleController.isStreaming {
-                                SystemBroadcastPickerView()
-                                    .padding(.top, 4)
+                            if bleController.isStreaming {
+                                Button(action: {
+                                    bleController.stopMirroring()
+                                }) {
+                                    HStack {
+                                        Image(systemName: "stop.fill")
+                                        Text("Stop Mirroring")
+                                    }
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .padding()
+                                    .frame(maxWidth: .infinity)
+                                    .background(
+                                        LinearGradient(
+                                            gradient: Gradient(colors: [Color(hex: "C62828"), Color(hex: "B71C1C")]),
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
+                                    )
+                                    .cornerRadius(12)
+                                }
+                                .shadow(color: Color(hex: "C62828").opacity(0.3), radius: 8)
+                                .padding(.top, 4)
                             } else {
                                 Button(action: {
                                     bleController.startMirroring()
+                                    if bleController.mirroringMode == .entireScreen {
+                                        NotificationCenter.default.post(name: NSNotification.Name("TriggerBroadcastPicker"), object: nil)
+                                    }
                                 }) {
                                     HStack {
                                         Image(systemName: "tv.and.mediabox.fill")
-                                        Text(bleController.mirroringMode == .inApp ? "Start Mirroring" : "Prepare Broadcast")
+                                        Text("Start Mirroring")
                                     }
                                     .font(.headline)
                                     .foregroundColor(.white)
@@ -163,6 +189,7 @@ struct ConnectionStatusView: View {
                                 .padding(.top, 4)
                             }
                         }
+                        
                         
                         // Screen Streaming Status Card
                         if bleController.isStreaming {
@@ -388,145 +415,34 @@ extension Color {
     }
 }
 
-struct QRScannerSheet: View {
-    @Binding var showScanner: Bool
-    var onScanSuccess: (String) -> Void
-    
-    @State private var scanErrorMessage: String? = nil
-    @State private var animateLaser = false
-    
-    var body: some View {
-        NavigationView {
-            ZStack {
-                Color.black.ignoresSafeArea()
-                
-                if let error = scanErrorMessage {
-                    VStack(spacing: 16) {
-                        Image(systemName: "camera.fill")
-                            .font(.system(size: 48))
-                            .foregroundColor(.gray)
-                        Text(error)
-                            .foregroundColor(.white)
-                            .font(.headline)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
-                        Button("Cancel") {
-                            showScanner = false
-                        }
-                        .foregroundColor(.blue)
-                        .padding(.top)
-                    }
-                } else {
-                    ZStack {
-                        QRCodeScannerView(onScan: { code in
-                            onScanSuccess(code)
-                            showScanner = false
-                        }, onFailure: { err in
-                            scanErrorMessage = err
-                        })
-                        
-                        // Laser & Border UI
-                        VStack {
-                            Spacer()
-                            
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 16)
-                                    .stroke(Color.blue, lineWidth: 3)
-                                    .frame(width: 260, height: 260)
-                                    .shadow(color: Color.blue.opacity(0.5), radius: 10)
-                                
-                                // Glowing laser animation
-                                Rectangle()
-                                    .fill(Color.blue)
-                                    .frame(width: 240, height: 3)
-                                    .shadow(color: .blue, radius: 4)
-                                    .offset(y: animateLaser ? 110 : -110)
-                                    .onAppear {
-                                        withAnimation(Animation.linear(duration: 2.0).repeatForever(autoreverses: true)) {
-                                            animateLaser = true
-                                        }
-                                    }
-                            }
-                            
-                            Spacer()
-                            
-                            Text("Align the Motorcycle's QR code in the frame")
-                                .font(.subheadline)
-                                .foregroundColor(.white.opacity(0.8))
-                                .padding(.bottom, 32)
-                        }
-                    }
-                }
-            }
-            .navigationTitle("Scan Motorcycle QR")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        showScanner = false
-                    }
-                    .foregroundColor(.white)
-                }
-            }
-        }
-    }
-}
-
-class TransparentBroadcastPickerView: RPSystemBroadcastPickerView {
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        configureButton(in: self)
-    }
-    
-    private func configureButton(in view: UIView) {
-        for subview in view.subviews {
-            if let button = subview as? UIButton {
-                button.frame = view.bounds
-                button.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-                button.isUserInteractionEnabled = true
-            } else {
-                configureButton(in: subview)
-            }
-        }
-    }
-}
-
-struct SystemBroadcastPicker: UIViewRepresentable {
+struct HiddenBroadcastPicker: UIViewRepresentable {
     func makeUIView(context: Context) -> RPSystemBroadcastPickerView {
-        let picker = TransparentBroadcastPickerView()
+        let picker = RPSystemBroadcastPickerView()
         picker.preferredExtension = "com.mustcode.KoveMirror.Kove-broadcast-extension"
         picker.showsMicrophoneButton = false
-        picker.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        
+        // Setup listener to click the button programmatically
+        NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("TriggerBroadcastPicker"),
+            object: nil,
+            queue: .main
+        ) { _ in
+            triggerButton(in: picker)
+        }
+        
         return picker
     }
     
     func updateUIView(_ uiView: RPSystemBroadcastPickerView, context: Context) {}
-}
-
-struct SystemBroadcastPickerView: View {
-    var body: some View {
-        ZStack {
-            HStack(spacing: 8) {
-                Image(systemName: "square.and.arrow.up")
-                Text("Share Entire Screen")
+    
+    private func triggerButton(in view: UIView) {
+        for subview in view.subviews {
+            if let button = subview as? UIButton {
+                button.sendActions(for: .touchUpInside)
+                return
+            } else {
+                triggerButton(in: subview)
             }
-            .font(.headline)
-            .foregroundColor(.white)
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.blue, Color.blue.opacity(0.8)]),
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-            )
-            .cornerRadius(12)
-            .shadow(color: Color.blue.opacity(0.3), radius: 8)
-            
-            SystemBroadcastPicker()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .opacity(0.015)
         }
     }
 }

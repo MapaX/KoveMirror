@@ -276,6 +276,21 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         }
     }
     
+    func stopMirroring() {
+        log("🎬 Stopping screen capture...")
+        isStreaming = false
+        captureManager.stopCapture()
+        
+        log("🔌 Stopping TCP Servers in main app...")
+        tcpServerManager.stop()
+        
+        // Notify TFT that mirroring has stopped
+        writeString("{\"msg_id\":25,\"msg_type\":23,\"msg_source\":2,\"status\":0}")
+        DispatchQueue.global().asyncAfter(deadline: .now() + 0.15) { [weak self] in
+            self?.writeString("{\"msg_id\":25,\"msg_type\":21,\"msg_source\":2,\"status\":0}")
+        }
+    }
+    
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         if let error = error {
             log("❌ Error reading characteristic value: \(error.localizedDescription)")
