@@ -92,6 +92,14 @@ struct ConnectionStatusView: View {
                     
                     // Control Actions card
                     VStack(spacing: 16) {
+                        // Mirroring Mode Picker
+                        Picker("Mirroring Mode", selection: $bleController.mirroringMode) {
+                            Text("In-App Screen").tag(BleController.MirroringMode.inApp)
+                            Text("Entire Phone").tag(BleController.MirroringMode.entireScreen)
+                        }
+                        .pickerStyle(.segmented)
+                        .padding(.bottom, 4)
+                        
                         HStack(spacing: 16) {
                             Button(action: {
                                 bleController.startScanning()
@@ -127,28 +135,33 @@ struct ConnectionStatusView: View {
                         }
                         
                         if bleController.connectionState == .connected {
-                            Button(action: {
-                                bleController.startMirroring()
-                            }) {
-                                HStack {
-                                    Image(systemName: "tv.and.mediabox.fill")
-                                    Text("Start Mirroring")
-                                }
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [Color.blue, Color.blue.opacity(0.8)]),
-                                        startPoint: .leading,
-                                        endPoint: .trailing
+                            if bleController.mirroringMode == .entireScreen && bleController.isStreaming {
+                                SystemBroadcastPickerView()
+                                    .padding(.top, 4)
+                            } else {
+                                Button(action: {
+                                    bleController.startMirroring()
+                                }) {
+                                    HStack {
+                                        Image(systemName: "tv.and.mediabox.fill")
+                                        Text(bleController.mirroringMode == .inApp ? "Start Mirroring" : "Prepare Broadcast")
+                                    }
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .padding()
+                                    .frame(maxWidth: .infinity)
+                                    .background(
+                                        LinearGradient(
+                                            gradient: Gradient(colors: [Color.blue, Color.blue.opacity(0.8)]),
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
                                     )
-                                )
-                                .cornerRadius(12)
+                                    .cornerRadius(12)
+                                }
+                                .shadow(color: Color.blue.opacity(0.3), radius: 8)
+                                .padding(.top, 4)
                             }
-                            .shadow(color: Color.blue.opacity(0.3), radius: 8)
-                            .padding(.top, 4)
                         }
                         
                         // Screen Streaming Status Card
@@ -455,6 +468,44 @@ struct QRScannerSheet: View {
                     .foregroundColor(.white)
                 }
             }
+        }
+    }
+}
+
+struct SystemBroadcastPicker: UIViewRepresentable {
+    func makeUIView(context: Context) -> RPSystemBroadcastPickerView {
+        let picker = RPSystemBroadcastPickerView(frame: CGRect(x: 0, y: 0, width: 44, height: 44))
+        picker.preferredExtension = "com.mustcode.KoveMirror.Kove-broadcast-extension"
+        picker.showsMicrophoneButton = false
+        return picker
+    }
+    func updateUIView(_ uiView: RPSystemBroadcastPickerView, context: Context) {}
+}
+
+struct SystemBroadcastPickerView: View {
+    var body: some View {
+        ZStack {
+            HStack(spacing: 8) {
+                Image(systemName: "square.and.arrow.up")
+                Text("Share Entire Screen")
+            }
+            .font(.headline)
+            .foregroundColor(.white)
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.blue, Color.blue.opacity(0.8)]),
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+            .cornerRadius(12)
+            .shadow(color: Color.blue.opacity(0.3), radius: 8)
+            
+            SystemBroadcastPicker()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .opacity(0.015)
         }
     }
 }

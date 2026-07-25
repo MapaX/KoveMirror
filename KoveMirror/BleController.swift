@@ -17,6 +17,15 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     @Published var connectedDeviceName: String? = nil
     @Published var isStreaming = false
     
+    enum MirroringMode: String, CaseIterable, Identifiable {
+        case inApp = "In-App Screen"
+        case entireScreen = "Entire Phone"
+        
+        var id: String { self.rawValue }
+    }
+    
+    @Published var mirroringMode: MirroringMode = .inApp
+    
     private var centralManager: CBCentralManager!
     private var targetPeripheral: CBPeripheral?
     private var writeCharacteristic: CBCharacteristic?
@@ -61,10 +70,16 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     func startTcpServers() {
         log("🔌 Starting TCP Servers in main app...")
         tcpServerManager.startServers(width: 600, height: 1024) { [weak self] in
-            self?.log("📺 TCP Video stream connected. Starting screen capture...")
+            guard let self = self else { return }
+            self.log("📺 TCP Video stream connected.")
             DispatchQueue.main.async {
-                self?.isStreaming = true
-                self?.captureManager.startCapture(window: self?.activeWindow)
+                self.isStreaming = true
+                if self.mirroringMode == .inApp {
+                    self.log("📺 Starting local in-app screen capture...")
+                    self.captureManager.startCapture(window: self.activeWindow)
+                } else {
+                    self.log("📺 Please tap the share icon to start entire screen broadcast.")
+                }
             }
         }
     }

@@ -9,8 +9,8 @@ class SampleHandler: RPBroadcastSampleHandler, H264EncoderDelegate {
     
     // Screen mirroring resolution configuration (Portrait)
     // Matches the default configuration of the Android version.
-    let targetWidth: Int = 480
-    let targetHeight: Int = 800
+    let targetWidth: Int = 600
+    let targetHeight: Int = 1024
     let targetFps: Int = 30
     
     override func broadcastStarted(withSetupInfo setupInfo: [String : NSObject]?) {
