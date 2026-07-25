@@ -8,6 +8,9 @@ class ScreenCaptureManager: NSObject {
     private var targetWindow: UIWindow?
     private var isStreaming = false
     
+    private var backgroundObserver: NSObjectProtocol?
+    private var foregroundObserver: NSObjectProtocol?
+    
     init(tcpServerManager: TcpServerManager) {
         self.tcpServerManager = tcpServerManager
         super.init()
@@ -18,6 +21,21 @@ class ScreenCaptureManager: NSObject {
         guard !isStreaming else { return }
         self.targetWindow = window
         self.isStreaming = true
+        
+        setupEncoderAndDisplayLink()
+        setupNotificationObservers()
+    }
+    
+    func stopCapture() {
+        guard isStreaming else { return }
+        isStreaming = false
+        removeNotificationObservers()
+        teardownEncoderAndDisplayLink()
+    }
+    
+    private func setupEncoderAndDisplayLink() {
+        // Ensure any previous session is fully cleaned up first
+        teardownEncoderAndDisplayLink()
         
         // Start H.264 Encoder (600x1024, matching Android version)
         encoder.start(width: 600, height: 1024, fps: 30)
@@ -30,13 +48,46 @@ class ScreenCaptureManager: NSObject {
         print("🎬 Direct Screen Capture loop started at 30 FPS.")
     }
     
-    func stopCapture() {
-        guard isStreaming else { return }
-        isStreaming = false
+    private func teardownEncoderAndDisplayLink() {
         displayLink?.invalidate()
         displayLink = nil
         encoder.stop()
-        print("🎬 Direct Screen Capture loop stopped.")
+        print("🎬 Direct Screen Capture loop stopped/suspended.")
+    }
+    
+    private func setupNotificationObservers() {
+        removeNotificationObservers()
+        
+        backgroundObserver = NotificationCenter.default.addObserver(
+            forName: UIApplication.didEnterBackgroundNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self = self, self.isStreaming else { return }
+            print("📱 App entered background. Suspending video encoder session...")
+            self.teardownEncoderAndDisplayLink()
+        }
+        
+        foregroundObserver = NotificationCenter.default.addObserver(
+            forName: UIApplication.willEnterForegroundNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self = self, self.isStreaming else { return }
+            print("📱 App returning to foreground. Resuming video encoder session...")
+            self.setupEncoderAndDisplayLink()
+        }
+    }
+    
+    private func removeNotificationObservers() {
+        if let observer = backgroundObserver {
+            NotificationCenter.default.removeObserver(observer)
+            backgroundObserver = nil
+        }
+        if let observer = foregroundObserver {
+            NotificationCenter.default.removeObserver(observer)
+            foregroundObserver = nil
+        }
     }
     
     @objc private func captureFrame() {
@@ -47,6 +98,11 @@ class ScreenCaptureManager: NSObject {
     
     private func captureFrameDirect() -> CVPixelBuffer? {
         guard let window = targetWindow else { return nil }
+        
+        // Safety guard: Do not capture or render if the application is currently backgrounded
+        guard UIApplication.shared.applicationState != .background else {
+            return nil
+        }
         
         let width = 600
         let height = 1024

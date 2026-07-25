@@ -1,5 +1,6 @@
 import Foundation
 import VideoToolbox
+import UIKit
 
 protocol H264EncoderDelegate: AnyObject {
     func encoderDidOutputNALUnit(data: Data)
@@ -68,6 +69,11 @@ class H264Encoder {
     
     func encode(pixelBuffer: CVPixelBuffer, pts: CMTime) {
         guard let session = session else { return }
+        
+        // Safety guard: Do not encode frames while backgrounded (prevents kVTInvalidSessionErr -12903)
+        guard UIApplication.shared.applicationState != .background else {
+            return
+        }
         
         frameCount += 1
         var frameProperties: CFDictionary? = nil
