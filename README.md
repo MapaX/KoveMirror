@@ -8,6 +8,12 @@ This repository contains the source code template organized into two main compon
 
 ---
 
+## Testing
+This app is currently available only in testflight.
+You can get to the testing group with link https://testflight.apple.com/join/H85r5Zrx
+
+---
+
 ## ✨ Features
 
 - **Automatic Wi-Fi Setup via QR Code:** Scan the motorcycle's QR code (e.g. `http://g.thinkerride.com/?SSID&PASSWORD&ap=1`) to automatically parse credentials and programmatically join the motorcycle's Wi-Fi access point via iOS `NetworkExtension` APIs.
