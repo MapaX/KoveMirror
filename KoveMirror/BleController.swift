@@ -238,45 +238,26 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         }
     }
     
-    func startMirroring() {
-        guard connectionState == .connected,
+    private func writeString(_ str: String) {
+        guard let data = str.data(using: .utf8),
               let peripheral = targetPeripheral,
-              let char = writeCharacteristic else {
+              let char = writeCharacteristic else { return }
+        log("📤 BLE Write: \(str)")
+        peripheral.writeValue(data, for: char, type: .withoutResponse)
+    }
+
+    func startMirroring() {
+        guard connectionState == .connected else {
             log("⚠️ Cannot start mirroring: BLE is not connected to motorcycle.")
             return
         }
         
         log("📤 Manual Start Mirroring requested. Sending Mirror Status packets...")
         
-        let mirrorStatus: [String: Any] = [
-            "msg_id": 25,
-            "msg_type": 23,
-            "msg_source": 2,
-            "status": 1
-        ]
-        
-        let recordStatus: [String: Any] = [
-            "msg_id": 25,
-            "msg_type": 21,
-            "msg_source": 2,
-            "status": 1
-        ]
-        
-        // Write mirror packets
-        if let data = try? JSONSerialization.data(withJSONObject: mirrorStatus) {
-            log("📤 BLE Write (Mirror Status): \(String(data: data, encoding: .utf8) ?? "")")
-            peripheral.writeValue(data, for: char, type: .withoutResponse)
-        }
+        writeString("{\"msg_id\":25,\"msg_type\":23,\"msg_source\":2,\"status\":1}")
         
         DispatchQueue.global().asyncAfter(deadline: .now() + 0.15) { [weak self] in
-            guard let self = self,
-                  let p = self.targetPeripheral,
-                  let c = self.writeCharacteristic else { return }
-            
-            if let data = try? JSONSerialization.data(withJSONObject: recordStatus) {
-                self.log("📤 BLE Write (Record Status): \(String(data: data, encoding: .utf8) ?? "")")
-                p.writeValue(data, for: c, type: .withoutResponse)
-            }
+            self?.writeString("{\"msg_id\":25,\"msg_type\":21,\"msg_source\":2,\"status\":1}")
         }
     }
     
@@ -310,27 +291,17 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     private func sendInitHandshake() {
         log("📤 Sending initial BLE handshake sequence...")
         
-        let packets: [[String: Any]] = [
-            ["msg_id": 27, "func": "PAIR", "act": "get_pairinfo"],
-            ["msg_id": 13],
-            ["msg_id": 25, "msg_type": 18, "msg_source": 2, "language": 2],
-            ["msg_id": 11, "time": getCurrentTimeString(), "tag": -1]
+        let packets = [
+            "{\"msg_id\":27,\"func\":\"PAIR\",\"act\":\"get_pairinfo\"}",
+            "{\"msg_id\":13}",
+            "{\"msg_id\":25,\"msg_type\":18,\"msg_source\":2,\"language\":2}",
+            "{\"msg_id\":11,\"time\":\"\(getCurrentTimeString())\",\"tag\":-1}"
         ]
         
-        // Android version sends packets in sequence with a small queue delay.
-        // We write them asynchronously with 150ms intervals.
-        for (index, packet) in packets.enumerated() {
+        // Android version sends packets in sequence with a 150ms delay
+        for (index, packetStr) in packets.enumerated() {
             DispatchQueue.global().asyncAfter(deadline: .now() + Double(index) * 0.15) { [weak self] in
-                guard let self = self,
-                      let peripheral = self.targetPeripheral,
-                      let char = self.writeCharacteristic else { return }
-                
-                if let data = try? JSONSerialization.data(withJSONObject: packet) {
-                    if let jsonStr = String(data: data, encoding: .utf8) {
-                        self.log("📤 BLE Write: \(jsonStr)")
-                    }
-                    peripheral.writeValue(data, for: char, type: .withoutResponse)
-                }
+                self?.writeString(packetStr)
             }
         }
     }
@@ -340,22 +311,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         log("💓 Starting BLE Heartbeat timer (5.0s interval)")
         
         heartbeatTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
-            guard let self = self,
-                  let peripheral = self.targetPeripheral,
-                  let char = self.writeCharacteristic else { return }
-            
-            let hb: [String: Any] = [
-                "msg_id": 25,
-                "msg_type": 24,
-                "msg_source": 2,
-                "status": 1
-            ]
-            
-            if let data = try? JSONSerialization.data(withJSONObject: hb) {
-                peripheral.writeValue(data, for: char, type: .withoutResponse)
-                // Silent log to avoid flooding console, or print debug
-                print("BLE: 💓 Heartbeat sent")
-            }
+            self?.writeString("{\"msg_id\":25,\"msg_type\":24,\"msg_source\":2,\"status\":1}")
         }
     }
     
