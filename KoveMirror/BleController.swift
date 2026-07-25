@@ -17,14 +17,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     @Published var connectedDeviceName: String? = nil
     @Published var isStreaming = false
     
-    enum MirroringMode: String, CaseIterable, Identifiable {
-        case inApp = "In-App Screen"
-        case entireScreen = "Entire Phone"
-        
-        var id: String { self.rawValue }
-    }
-    
-    @Published var mirroringMode: MirroringMode = .inApp
+    @Published var isBroadcasting = false
     
     private var centralManager: CBCentralManager!
     private var targetPeripheral: CBPeripheral?
@@ -52,6 +45,25 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         super.init()
         centralManager = CBCentralManager(delegate: self, queue: nil, options: [CBCentralManagerOptionRestoreIdentifierKey: "KoveMirrorRestoreID"])
         locationManager.requestWhenInUseAuthorization()
+        setupLocalConnectionCallback()
+    }
+    
+    private func setupLocalConnectionCallback() {
+        self.tcpServerManager.onLocalConnectionChanged = { [weak self] isConnected in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                self.isBroadcasting = isConnected
+                if isConnected {
+                    self.log("📺 Broadcast Extension connected. Suspending in-app capture & streaming entire screen...")
+                    self.captureManager.stopCapture()
+                } else {
+                    self.log("📺 Broadcast Extension disconnected. Resuming local in-app capture...")
+                    if self.isStreaming {
+                        self.captureManager.startCapture(window: self.activeWindow)
+                    }
+                }
+            }
+        }
     }
     
     func log(_ message: String) {
@@ -74,12 +86,8 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
             self.log("📺 TCP Video stream connected.")
             DispatchQueue.main.async {
                 self.isStreaming = true
-                if self.mirroringMode == .inApp {
-                    self.log("📺 Starting local in-app screen capture...")
-                    self.captureManager.startCapture(window: self.activeWindow)
-                } else {
-                    self.log("📺 Please tap the share icon to start entire screen broadcast.")
-                }
+                self.log("📺 Starting local in-app screen capture...")
+                self.captureManager.startCapture(window: self.activeWindow)
             }
         }
     }
@@ -279,6 +287,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     func stopMirroring() {
         log("🎬 Stopping screen capture...")
         isStreaming = false
+        isBroadcasting = false
         captureManager.stopCapture()
         
         log("🔌 Stopping TCP Servers in main app...")

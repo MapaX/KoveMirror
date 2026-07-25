@@ -97,14 +97,6 @@ struct ConnectionStatusView: View {
                     
                     // Control Actions card
                     VStack(spacing: 16) {
-                        // Mirroring Mode Picker
-                        Picker("Mirroring Mode", selection: $bleController.mirroringMode) {
-                            Text("In-App Screen").tag(BleController.MirroringMode.inApp)
-                            Text("Entire Phone").tag(BleController.MirroringMode.entireScreen)
-                        }
-                        .pickerStyle(.segmented)
-                        .padding(.bottom, 4)
-                        
                         if bleController.connectionState == .connected || bleController.connectionState == .connecting {
                             Button(action: {
                                 bleController.disconnect()
@@ -139,34 +131,57 @@ struct ConnectionStatusView: View {
                         
                         if bleController.connectionState == .connected {
                             if bleController.isStreaming {
-                                Button(action: {
-                                    bleController.stopMirroring()
-                                }) {
-                                    HStack {
-                                        Image(systemName: "stop.fill")
-                                        Text("Stop Mirroring")
-                                    }
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                    .padding()
-                                    .frame(maxWidth: .infinity)
-                                    .background(
-                                        LinearGradient(
-                                            gradient: Gradient(colors: [Color(hex: "C62828"), Color(hex: "B71C1C")]),
-                                            startPoint: .leading,
-                                            endPoint: .trailing
+                                VStack(spacing: 12) {
+                                    Button(action: {
+                                        bleController.stopMirroring()
+                                    }) {
+                                        HStack {
+                                            Image(systemName: "tv.and.mediabox.fill.slash")
+                                            Text("Stop Mirroring")
+                                        }
+                                        .font(.headline)
+                                        .foregroundColor(.white)
+                                        .padding()
+                                        .frame(maxWidth: .infinity)
+                                        .background(
+                                            LinearGradient(
+                                                gradient: Gradient(colors: [Color(hex: "C62828"), Color(hex: "B71C1C")]),
+                                                startPoint: .leading,
+                                                endPoint: .trailing
+                                            )
                                         )
-                                    )
-                                    .cornerRadius(12)
+                                        .cornerRadius(12)
+                                    }
+                                    .shadow(color: Color(hex: "C62828").opacity(0.3), radius: 8)
+                                    .padding(.top, 4)
+                                    
+                                    if !bleController.isBroadcasting {
+                                        Button(action: {
+                                            NotificationCenter.default.post(name: NSNotification.Name("TriggerBroadcastPicker"), object: nil)
+                                        }) {
+                                            HStack {
+                                                Image(systemName: "square.and.arrow.up")
+                                                Text("Broadcast Entire Screen")
+                                            }
+                                            .font(.headline)
+                                            .foregroundColor(.white)
+                                            .padding()
+                                            .frame(maxWidth: .infinity)
+                                            .background(
+                                                LinearGradient(
+                                                    gradient: Gradient(colors: [Color.blue, Color.blue.opacity(0.8)]),
+                                                    startPoint: .leading,
+                                                    endPoint: .trailing
+                                                )
+                                            )
+                                            .cornerRadius(12)
+                                        }
+                                        .shadow(color: Color.blue.opacity(0.3), radius: 8)
+                                    }
                                 }
-                                .shadow(color: Color(hex: "C62828").opacity(0.3), radius: 8)
-                                .padding(.top, 4)
                             } else {
                                 Button(action: {
                                     bleController.startMirroring()
-                                    if bleController.mirroringMode == .entireScreen {
-                                        NotificationCenter.default.post(name: NSNotification.Name("TriggerBroadcastPicker"), object: nil)
-                                    }
                                 }) {
                                     HStack {
                                         Image(systemName: "tv.and.mediabox.fill")

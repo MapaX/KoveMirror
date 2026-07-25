@@ -20,6 +20,8 @@ class TcpServerManager {
     private var handshakeCompleted = false
     private var videoFrameCount = 0
     
+    var onLocalConnectionChanged: ((Bool) -> Void)?
+    
     func startServers(width: Int, height: Int, onVideoConnect: @escaping () -> Void) {
         stop() // Release ports and cancel existing timers/connections first
         handshakeCompleted = false
@@ -331,9 +333,16 @@ class TcpServerManager {
         localVideoConnection = connection
         connection.stateUpdateHandler = { [weak self] state in
             guard let self = self else { return }
-            if state == .ready {
+            switch state {
+            case .ready:
                 print("🔌 Local video client connected.")
+                self.onLocalConnectionChanged?(true)
                 self.readLocalVideoData(connection)
+            case .failed, .cancelled:
+                print("🔌 Local video client disconnected.")
+                self.onLocalConnectionChanged?(false)
+            default:
+                break
             }
         }
         connection.start(queue: networkQueue)
