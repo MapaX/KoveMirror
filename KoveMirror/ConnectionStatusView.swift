@@ -472,13 +472,34 @@ struct QRScannerSheet: View {
     }
 }
 
+class TransparentBroadcastPickerView: RPSystemBroadcastPickerView {
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        configureButton(in: self)
+    }
+    
+    private func configureButton(in view: UIView) {
+        for subview in view.subviews {
+            if let button = subview as? UIButton {
+                button.frame = view.bounds
+                button.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+                button.isUserInteractionEnabled = true
+            } else {
+                configureButton(in: subview)
+            }
+        }
+    }
+}
+
 struct SystemBroadcastPicker: UIViewRepresentable {
     func makeUIView(context: Context) -> RPSystemBroadcastPickerView {
-        let picker = RPSystemBroadcastPickerView(frame: CGRect(x: 0, y: 0, width: 44, height: 44))
+        let picker = TransparentBroadcastPickerView()
         picker.preferredExtension = "com.mustcode.KoveMirror.Kove-broadcast-extension"
         picker.showsMicrophoneButton = false
+        picker.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         return picker
     }
+    
     func updateUIView(_ uiView: RPSystemBroadcastPickerView, context: Context) {}
 }
 
