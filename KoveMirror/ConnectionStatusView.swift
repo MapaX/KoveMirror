@@ -2,10 +2,11 @@ import SwiftUI
 import ReplayKit
 import NetworkExtension
 
-struct ContentView: View {
+struct ConnectionStatusView: View {
     @StateObject private var bleController = BleController()
     @State private var currentWifiSSID: String? = nil
     @State private var isPulsing = false
+    @State private var showScanner = false
     
     var body: some View {
         NavigationView {
@@ -22,13 +23,13 @@ struct ContentView: View {
                     
                     // Header Status card
                     VStack(spacing: 8) {
-                        Image(systemName: "bicycle")
+                        Image(systemName: "motorcycle.fill")
                             .font(.system(size: 64))
                             .foregroundColor(statusColor)
                             .shadow(color: statusColor.opacity(0.3), radius: 10, x: 0, y: 5)
                             .padding(.bottom, 8)
                         
-                        Text("Kove Mirror iOS")
+                        Text("Kove Mirror")
                             .font(.title)
                             .fontWeight(.bold)
                             .foregroundColor(.white)
@@ -67,10 +68,8 @@ struct ContentView: View {
                             Spacer()
                             
                             if !isWifiCorrect {
-                                Button("Settings") {
-                                    if let url = URL(string: "App-Prefs:root=WIFI") {
-                                        UIApplication.shared.open(url, options: [:], completionHandler: nil)
-                                    }
+                                Button("Scan QR") {
+                                    showScanner = true
                                 }
                                 .font(.caption)
                                 .fontWeight(.semibold)
@@ -265,6 +264,11 @@ struct ContentView: View {
             .navigationBarTitleDisplayMode(.inline)
         }
         .preferredColorScheme(.dark)
+        .sheet(isPresented: $showScanner) {
+            QRScannerSheet(showScanner: $showScanner) { scannedCode in
+                handleQRCodeScan(scannedCode)
+            }
+        }
         .onAppear {
             updateCurrentWifiSSID()
             // Periodically refresh Wi-Fi connection info every 2 seconds
@@ -300,6 +304,44 @@ struct ContentView: View {
             return .green
         }
     }
+    
+    private func handleQRCodeScan(_ code: String) {
+        // Parse URL format: http://g.thinkerride.com/?SSID&PASSWORD&ap=1
+        guard let url = URL(string: code),
+              let query = url.query else {
+            bleController.log("❌ Scanned invalid QR code URL format.")
+            return
+        }
+        
+        let components = query.components(separatedBy: "&")
+        guard components.count >= 2 else {
+            bleController.log("❌ QR code payload missing SSID or Password parameters.")
+            return
+        }
+        
+        let ssid = components[0]
+        let password = components[1]
+        
+        bleController.log("📡 Scanned Wi-Fi credentials. SSID: \(ssid)")
+        connectToWifi(ssid: ssid, password: password)
+    }
+    
+    private func connectToWifi(ssid: String, password: String) {
+        bleController.log("🔌 Programmatically connecting to Wi-Fi '\(ssid)'...")
+        let config = NEHotspotConfiguration(ssid: ssid, passphrase: password, isWEP: false)
+        config.joinOnce = false // Stay connected
+        
+        NEHotspotConfigurationManager.shared.apply(config) { error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    self.bleController.log("❌ Failed to join Wi-Fi network: \(error.localizedDescription)")
+                } else {
+                    self.bleController.log("✅ Programmatically joined Wi-Fi network: \(ssid)")
+                    self.updateCurrentWifiSSID()
+                }
+            }
+        }
+    }
 }
 
 // Color Hex helpers for styling
@@ -330,5 +372,89 @@ extension Color {
     
     func uiColor() -> UIColor {
         return UIColor(self)
+    }
+}
+
+struct QRScannerSheet: View {
+    @Binding var showScanner: Bool
+    var onScanSuccess: (String) -> Void
+    
+    @State private var scanErrorMessage: String? = nil
+    @State private var animateLaser = false
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.black.ignoresSafeArea()
+                
+                if let error = scanErrorMessage {
+                    VStack(spacing: 16) {
+                        Image(systemName: "camera.fill")
+                            .font(.system(size: 48))
+                            .foregroundColor(.gray)
+                        Text(error)
+                            .foregroundColor(.white)
+                            .font(.headline)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                        Button("Cancel") {
+                            showScanner = false
+                        }
+                        .foregroundColor(.blue)
+                        .padding(.top)
+                    }
+                } else {
+                    ZStack {
+                        QRCodeScannerView(onScan: { code in
+                            onScanSuccess(code)
+                            showScanner = false
+                        }, onFailure: { err in
+                            scanErrorMessage = err
+                        })
+                        
+                        // Laser & Border UI
+                        VStack {
+                            Spacer()
+                            
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(Color.blue, lineWidth: 3)
+                                    .frame(width: 260, height: 260)
+                                    .shadow(color: Color.blue.opacity(0.5), radius: 10)
+                                
+                                // Glowing laser animation
+                                Rectangle()
+                                    .fill(Color.blue)
+                                    .frame(width: 240, height: 3)
+                                    .shadow(color: .blue, radius: 4)
+                                    .offset(y: animateLaser ? 110 : -110)
+                                    .onAppear {
+                                        withAnimation(Animation.linear(duration: 2.0).repeatForever(autoreverses: true)) {
+                                            animateLaser = true
+                                        }
+                                    }
+                            }
+                            
+                            Spacer()
+                            
+                            Text("Align the Motorcycle's QR code in the frame")
+                                .font(.subheadline)
+                                .foregroundColor(.white.opacity(0.8))
+                                .padding(.bottom, 32)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Scan Motorcycle QR")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        showScanner = false
+                    }
+                    .foregroundColor(.white)
+                }
+            }
+        }
     }
 }
