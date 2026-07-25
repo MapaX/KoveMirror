@@ -1,5 +1,6 @@
 import Foundation
 import Network
+import Darwin
 
 class TcpServerManager {
     private var controlListener: NWListener?
@@ -17,10 +18,19 @@ class TcpServerManager {
     
     private let networkQueue = DispatchQueue(label: "com.kove.mirror.network", qos: .userInteractive)
     private var handshakeCompleted = false
+    private var videoFrameCount = 0
     
     func startServers(width: Int, height: Int, onVideoConnect: @escaping () -> Void) {
         stop() // Release ports and cancel existing timers/connections first
         handshakeCompleted = false
+        videoFrameCount = 0
+        
+        // Trigger local network access permission prompt on iOS
+        triggerLocalNetworkPrompt()
+        
+        let ip = getWifiIpAddress() ?? "unknown"
+        print("📡 Active Wi-Fi IP Address (en0): \(ip)")
+        
         setupControlServer()
         setupHeartbeatServer()
         setupVideoServer(width: width, height: height, onConnect: onVideoConnect)
@@ -74,6 +84,8 @@ class TcpServerManager {
         guard let jsonBytes = jsonStr.data(using: .utf8) else { return }
         let len = Int32(jsonBytes.count)
         
+        print("📤 Sending framed JSON: \(jsonStr)")
+        
         var frame = Data()
         frame.append(0xEE)
         frame.append(0xFD)
@@ -87,6 +99,8 @@ class TcpServerManager {
         connection.send(content: frame, completion: .contentProcessed({ error in
             if let error = error {
                 print("❌ Error sending framed JSON: \(error.localizedDescription)")
+            } else {
+                print("✅ Framed JSON sent successfully: \(jsonStr)")
             }
         }))
     }
@@ -100,8 +114,23 @@ class TcpServerManager {
             
             if let data = data, !data.isEmpty {
                 print("📥 Received control packet (\(data.count) bytes)")
+                if let str = String(data: data, encoding: .utf8) {
+                    print("📥 Control packet content: \(str)")
+                } else {
+                    print("📥 Control packet content (hex): \(data.map { String(format: "%02X", $0) }.joined(separator: " "))")
+                }
                 
                 guard let self = self else { return }
+                
+                // Echo Control Port Heartbeat packets (02 01 00 00 00 00) back to TFT
+                if data.count == 6 && data[0] == 0x02 && data[1] == 0x01 && data[2] == 0x00 {
+                    connection.send(content: data, completion: .contentProcessed({ error in
+                        if error == nil {
+                            print("💓 Control Heartbeat Echoed back to TFT (17818).")
+                        }
+                    }))
+                }
+                
                 if !self.handshakeCompleted {
                     self.handshakeCompleted = true
                     // Small delay to let initial data settle, matching Android's Thread.sleep(100)
@@ -267,6 +296,11 @@ class TcpServerManager {
     
     func streamVideoFrame(data: Data) {
         guard let connection = videoConnection else { return }
+        videoFrameCount += 1
+        if videoFrameCount % 100 == 0 {
+            print("📺 Sent 100 video frames. Current NAL unit size: \(data.count) bytes. Total frames sent: \(videoFrameCount)")
+        }
+        
         connection.send(content: data, completion: .contentProcessed({ error in
             if let error = error {
                 print("❌ Error sending video frame chunk: \(error.localizedDescription)")
@@ -357,6 +391,53 @@ class TcpServerManager {
         localVideoListener = nil
         
         handshakeCompleted = false
+    }
+    
+    private func triggerLocalNetworkPrompt() {
+        // Send a dummy UDP packet to a multicast address to trigger the iOS Local Network access permission prompt.
+        let connection = NWConnection(
+            host: "255.255.255.255",
+            port: 8888,
+            using: .udp
+        )
+        connection.stateUpdateHandler = { state in
+            if case .ready = state {
+                let data = "ping".data(using: .utf8)
+                connection.send(content: data, completion: .contentProcessed({ _ in
+                    connection.cancel()
+                }))
+            }
+        }
+        connection.start(queue: .global())
+        print("📡 Sent local network UDP broadcast to trigger permission prompt.")
+    }
+    
+    private func getWifiIpAddress() -> String? {
+        var address: String?
+        var ifaddr: UnsafeMutablePointer<ifaddrs>?
+        guard getifaddrs(&ifaddr) == 0 else { return nil }
+        guard let firstAddr = ifaddr else { return nil }
+        
+        var ptr: UnsafeMutablePointer<ifaddrs>? = firstAddr
+        while ptr != nil {
+            if let interface = ptr {
+                let name = String(cString: interface.pointee.ifa_name)
+                if name == "en0" {
+                    let addr = interface.pointee.ifa_addr.pointee
+                    if addr.sa_family == UInt8(AF_INET) {
+                        var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+                        var addrCopy = addr
+                        if getnameinfo(&addrCopy, socklen_t(addrCopy.sa_len), &hostname, socklen_t(hostname.count), nil, socklen_t(0), NI_NUMERICHOST) == 0 {
+                            address = String(cString: hostname)
+                            break
+                        }
+                    }
+                }
+                ptr = interface.pointee.ifa_next
+            }
+        }
+        freeifaddrs(ifaddr)
+        return address
     }
 }
 

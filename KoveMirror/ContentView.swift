@@ -5,6 +5,7 @@ import NetworkExtension
 struct ContentView: View {
     @StateObject private var bleController = BleController()
     @State private var currentWifiSSID: String? = nil
+    @State private var isPulsing = false
     
     var body: some View {
         NavigationView {
@@ -126,11 +127,84 @@ struct ContentView: View {
                             .disabled(bleController.connectionState == .disconnected)
                         }
                         
-                        // System Broadcast Picker Button (Native, pops up recording selector directly)
-                        BroadcastPickerRepresentable()
-                            .frame(height: 50)
-                            .cornerRadius(12)
+                        if bleController.connectionState == .connected {
+                            Button(action: {
+                                bleController.startMirroring()
+                            }) {
+                                HStack {
+                                    Image(systemName: "tv.and.mediabox.fill")
+                                    Text("Start Mirroring")
+                                }
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [Color.blue, Color.blue.opacity(0.8)]),
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .cornerRadius(12)
+                            }
                             .shadow(color: Color.blue.opacity(0.3), radius: 8)
+                            .padding(.top, 4)
+                        }
+                        
+                        // Screen Streaming Status Card
+                        if bleController.isStreaming {
+                            HStack(spacing: 12) {
+                                Image(systemName: "tv.and.mediabox.fill")
+                                    .font(.title2)
+                                    .foregroundColor(.green)
+                                    .opacity(isPulsing ? 1.0 : 0.4)
+                                    .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isPulsing)
+                                
+                                Text("SCREEN STREAMING IS ACTIVE")
+                                    .font(.subheadline)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                                
+                                Spacer()
+                                
+                                Circle()
+                                    .fill(Color.green)
+                                    .frame(width: 8, height: 8)
+                                    .shadow(color: .green, radius: 4)
+                            }
+                            .padding()
+                            .frame(height: 50)
+                            .background(Color.green.opacity(0.1))
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.green.opacity(0.3), lineWidth: 1.5)
+                            )
+                            .onAppear {
+                                isPulsing = true
+                            }
+                        } else {
+                            HStack(spacing: 12) {
+                                Image(systemName: "tv.and.mediabox")
+                                    .font(.title3)
+                                    .foregroundColor(.gray)
+                                
+                                Text("Mirroring Offline")
+                                    .font(.subheadline)
+                                    .foregroundColor(.white.opacity(0.4))
+                                
+                                Spacer()
+                            }
+                            .padding()
+                            .frame(height: 50)
+                            .background(Color.white.opacity(0.02))
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                            )
+                        }
                     }
                     .padding(.horizontal)
                     
@@ -149,7 +223,7 @@ struct ContentView: View {
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.6))
                         
-                        Text("3. Tap 'Start Mirroring' and choose 'KoveMirrorUploadExtension' to start screen transmission.")
+                        Text("3. Your screen will automatically project to the TFT screen. Keep the app open in the foreground.")
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.6))
                     }
@@ -226,29 +300,6 @@ struct ContentView: View {
             return .green
         }
     }
-}
-
-// SwiftUI wrapper for ReplayKit RPSystemBroadcastPickerView
-struct BroadcastPickerRepresentable: UIViewRepresentable {
-    func makeUIView(context: Context) -> UIView {
-        let picker = RPSystemBroadcastPickerView(frame: CGRect(x: 0, y: 0, width: 200, height: 50))
-        picker.preferredExtension = "com.mustcode.KoveMirror.Kove-broadcast-extension"
-        picker.showsMicrophoneButton = false
-        
-        // Customize the button appearance inside the view
-        if let button = picker.subviews.first(where: { $0 is UIButton }) as? UIButton {
-            button.setTitle("Start Mirroring", for: .normal)
-            button.setTitleColor(.white, for: .normal)
-            button.setImage(UIImage(systemName: "tv.and.mediabox.fill"), for: .normal)
-            button.tintColor = .white
-            button.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
-            button.backgroundColor = Color(hex: "1565C0").uiColor()
-            button.layer.cornerRadius = 12
-        }
-        return picker
-    }
-    
-    func updateUIView(_ uiView: UIView, context: Context) {}
 }
 
 // Color Hex helpers for styling

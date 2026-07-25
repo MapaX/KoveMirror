@@ -2,6 +2,7 @@ import Foundation
 import CoreBluetooth
 import Combine
 import CoreLocation
+import UIKit
 
 enum BleState: String {
     case disconnected = "Disconnected"
@@ -14,12 +15,21 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     @Published var connectionState: BleState = .disconnected
     @Published var logMessages: [String] = []
     @Published var connectedDeviceName: String? = nil
+    @Published var isStreaming = false
     
     private var centralManager: CBCentralManager!
     private var targetPeripheral: CBPeripheral?
     private var writeCharacteristic: CBCharacteristic?
     private let tcpServerManager = TcpServerManager()
     private let locationManager = CLLocationManager()
+    private lazy var captureManager = ScreenCaptureManager(tcpServerManager: tcpServerManager)
+    
+    private var activeWindow: UIWindow? {
+        return UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .first { $0.isKeyWindow }
+    }
     
     // Service and Characteristic UUIDs matching the ThinkerRide / Kove protocol
     let serviceUUID = CBUUID(string: "0000e0ff-3c17-d293-8e48-14fe2e4da212")
@@ -48,16 +58,24 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         print("BLE: \(message)")
     }
     
+    func startTcpServers() {
+        log("🔌 Starting TCP Servers in main app...")
+        tcpServerManager.startServers(width: 480, height: 800) { [weak self] in
+            self?.log("📺 TCP Video stream connected. Starting screen capture...")
+            DispatchQueue.main.async {
+                self?.isStreaming = true
+                self?.captureManager.startCapture(window: self?.activeWindow)
+            }
+        }
+    }
+    
     func startScanning() {
         guard centralManager.state == .poweredOn else {
             log("⚠️ Bluetooth is not powered on.")
             return
         }
         
-        log("🔌 Starting TCP Servers in main app...")
-        tcpServerManager.startServers(width: 480, height: 800) { [weak self] in
-            self?.log("📺 TCP Video stream connected.")
-        }
+        startTcpServers()
         
         connectionState = .scanning
         log("🔍 Scanning for Kove TFT services (\(serviceUUID.uuidString))...")
@@ -68,6 +86,10 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         heartbeatTimer?.invalidate()
         heartbeatTimer = nil
         connectedDeviceName = nil
+        
+        log("🎬 Stopping screen capture...")
+        isStreaming = false
+        captureManager.stopCapture()
         
         log("🔌 Stopping TCP Servers in main app...")
         tcpServerManager.stop()
@@ -86,6 +108,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         switch central.state {
         case .poweredOn:
             log("🟢 Bluetooth is ON.")
+            startTcpServers()
             // Try to reconnect if we have a saved peripheral UUID
             if let savedUuidString = UserDefaults(suiteName: appGroupSuiteName)?.string(forKey: "last_ble_uuid"),
                let uuid = UUID(uuidString: savedUuidString) {
@@ -160,6 +183,10 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         writeCharacteristic = nil
         connectedDeviceName = nil
         
+        log("🎬 Stopping screen capture...")
+        isStreaming = false
+        captureManager.stopCapture()
+        
         log("🔌 Stopping TCP Servers in main app...")
         tcpServerManager.stop()
         
@@ -211,6 +238,48 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         }
     }
     
+    func startMirroring() {
+        guard connectionState == .connected,
+              let peripheral = targetPeripheral,
+              let char = writeCharacteristic else {
+            log("⚠️ Cannot start mirroring: BLE is not connected to motorcycle.")
+            return
+        }
+        
+        log("📤 Manual Start Mirroring requested. Sending Mirror Status packets...")
+        
+        let mirrorStatus: [String: Any] = [
+            "msg_id": 25,
+            "msg_type": 23,
+            "msg_source": 2,
+            "status": 1
+        ]
+        
+        let recordStatus: [String: Any] = [
+            "msg_id": 25,
+            "msg_type": 21,
+            "msg_source": 2,
+            "status": 1
+        ]
+        
+        // Write mirror packets
+        if let data = try? JSONSerialization.data(withJSONObject: mirrorStatus) {
+            log("📤 BLE Write (Mirror Status): \(String(data: data, encoding: .utf8) ?? "")")
+            peripheral.writeValue(data, for: char, type: .withoutResponse)
+        }
+        
+        DispatchQueue.global().asyncAfter(deadline: .now() + 0.15) { [weak self] in
+            guard let self = self,
+                  let p = self.targetPeripheral,
+                  let c = self.writeCharacteristic else { return }
+            
+            if let data = try? JSONSerialization.data(withJSONObject: recordStatus) {
+                self.log("📤 BLE Write (Record Status): \(String(data: data, encoding: .utf8) ?? "")")
+                p.writeValue(data, for: c, type: .withoutResponse)
+            }
+        }
+    }
+    
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         if let error = error {
             log("❌ Error reading characteristic value: \(error.localizedDescription)")
@@ -220,6 +289,16 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         if characteristic.uuid == notifyCharUUID, let data = characteristic.value {
             if let text = String(data: data, encoding: .utf8) {
                 log("📥 TFT -> BLE: \(text)")
+                
+                // Parse for send_pairresult confirmation
+                if let jsonData = text.data(using: .utf8),
+                   let json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] {
+                    if let msgId = json["msg_id"] as? Int, msgId == 27,
+                       let act = json["act"] as? String, act == "send_pairresult",
+                       let result = json["result"] as? Int, result == 1 {
+                        log("✅ BLE pairing confirmed by TFT (send_pairresult=1)! Ready to start mirroring.")
+                    }
+                }
             } else {
                 log("📥 TFT -> BLE (Binary): \(data.map { String(format: "%02X", $0) }.joined(separator: " "))")
             }
@@ -235,9 +314,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
             ["msg_id": 27, "func": "PAIR", "act": "get_pairinfo"],
             ["msg_id": 13],
             ["msg_id": 25, "msg_type": 18, "msg_source": 2, "language": 2],
-            ["msg_id": 11, "time": getCurrentTimeString(), "tag": -1],
-            ["msg_id": 25, "msg_type": 23, "msg_source": 2, "status": 1], // Enable Mirror Status
-            ["msg_id": 25, "msg_type": 21, "msg_source": 2, "status": 1]  // Enable Record Status
+            ["msg_id": 11, "time": getCurrentTimeString(), "tag": -1]
         ]
         
         // Android version sends packets in sequence with a small queue delay.
