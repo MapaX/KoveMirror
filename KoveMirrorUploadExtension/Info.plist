@@ -27,7 +27,7 @@
 		<key>NSExtensionPrincipalClass</key>
 		<string>$(PRODUCT_MODULE_NAME).SampleHandler</string>
 		<key>RPBroadcastProcessMode</key>
-		<string>RPBroadcastProcessModeVideo</string>
+		<string>RPBroadcastProcessModeSampleBuffer</string>
 	</dict>
 </dict>
 </plist>
