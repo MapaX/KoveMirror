@@ -75,6 +75,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		307A0D723014DD0300FDD68E /* Exceptions for "KoveMirror" folder in "Kove broadcast extension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				H264Encoder.swift,
+				TcpServerManager.swift,
+			);
+			target = 30CC1EE43010C8DF00E96D54 /* Kove broadcast extension */;
+		};
 		30CC1EE0300FB96300E96D54 /* Exceptions for "KoveMirror" folder in "KoveMirror" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -103,6 +111,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				30CC1EE0300FB96300E96D54 /* Exceptions for "KoveMirror" folder in "KoveMirror" target */,
+				307A0D723014DD0300FDD68E /* Exceptions for "KoveMirror" folder in "Kove broadcast extension" target */,
 			);
 			path = KoveMirror;
 			sourceTree = "<group>";
