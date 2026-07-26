@@ -133,6 +133,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
                 self.isStreaming = true
                 self.log("📺 Starting local in-app screen capture...")
                 self.captureManager.startCapture(window: self.activeWindow)
+                BackgroundKeepAliveManager.shared.start()
             }
         }
     }
@@ -158,6 +159,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         log("🎬 Stopping screen capture...")
         isStreaming = false
         captureManager.stopCapture()
+        BackgroundKeepAliveManager.shared.stop()
         
         log("🔌 Stopping TCP Servers in main app...")
         tcpServerManager.stop()
@@ -254,6 +256,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         log("🎬 Stopping screen capture...")
         isStreaming = false
         captureManager.stopCapture()
+        BackgroundKeepAliveManager.shared.stop()
         
         log("🔌 Stopping TCP Servers in main app...")
         tcpServerManager.stop()
@@ -334,6 +337,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         isStreaming = false
         isBroadcasting = false
         captureManager.stopCapture()
+        BackgroundKeepAliveManager.shared.stop()
         
         log("🔌 Stopping TCP Servers in main app...")
         tcpServerManager.stop()
