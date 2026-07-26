@@ -41,11 +41,51 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     private var heartbeatTimer: Timer?
     private let appGroupSuiteName = "group.com.kove.mirror" // Update with your actual App Group
     
+    private let logQueue = DispatchQueue(label: "com.kove.mirror.log", qos: .utility)
+    private let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm:ss.SSS"
+        return formatter
+    }()
+    
+    private var logFilePath: URL {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        return paths[0].appendingPathComponent("KoveMirror.log")
+    }
+    
+    private func checkLogFileSizeLimit() {
+        let path = logFilePath.path
+        if FileManager.default.fileExists(atPath: path),
+           let attrs = try? FileManager.default.attributesOfItem(atPath: path),
+           let fileSize = attrs[.size] as? UInt64,
+           fileSize > 5 * 1024 * 1024 { // 5 MB limit
+            try? FileManager.default.removeItem(atPath: path)
+        }
+    }
+    
+    private func writeToLogFile(_ line: String) {
+        guard UserDefaults.standard.bool(forKey: "enableFileLogging") else { return }
+        
+        let lineWithNewline = line + "\n"
+        if let data = lineWithNewline.data(using: .utf8) {
+            if FileManager.default.fileExists(atPath: logFilePath.path) {
+                if let fileHandle = try? FileHandle(forWritingTo: logFilePath) {
+                    fileHandle.seekToEndOfFile()
+                    fileHandle.write(data)
+                    fileHandle.closeFile()
+                }
+            } else {
+                try? data.write(to: logFilePath, options: .atomic)
+            }
+        }
+    }
+    
     override init() {
         super.init()
         centralManager = CBCentralManager(delegate: self, queue: nil, options: [CBCentralManagerOptionRestoreIdentifierKey: "KoveMirrorRestoreID"])
         locationManager.requestWhenInUseAuthorization()
         setupLocalConnectionCallback()
+        checkLogFileSizeLimit()
     }
     
     private func setupLocalConnectionCallback() {
@@ -67,13 +107,18 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     }
     
     func log(_ message: String) {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm:ss.SSS"
-        let timestamp = formatter.string(from: Date())
-        DispatchQueue.main.async {
-            self.logMessages.insert("[\(timestamp)] \(message)", at: 0)
-            if self.logMessages.count > 100 {
-                self.logMessages.removeLast()
+        logQueue.async { [weak self] in
+            guard let self = self else { return }
+            let timestamp = self.dateFormatter.string(from: Date())
+            let logLine = "[\(timestamp)] \(message)"
+            
+            self.writeToLogFile(logLine)
+            
+            DispatchQueue.main.async {
+                self.logMessages.insert(logLine, at: 0)
+                if self.logMessages.count > 100 {
+                    self.logMessages.removeLast()
+                }
             }
         }
         print("BLE: \(message)")

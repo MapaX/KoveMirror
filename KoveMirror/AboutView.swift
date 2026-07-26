@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AboutView: View {
     @Environment(\.dismiss) var dismiss
+    @AppStorage("enableFileLogging") var enableFileLogging = false
     
     var body: some View {
         NavigationView {
@@ -92,6 +93,44 @@ struct AboutView: View {
                                 title: "Dynamic Source-Switching",
                                 description: "Automatically streams the in-app dashboard views. When you broadcast the entire screen, it seamlessly switches to the broadcast stream, falling back dynamically on exit."
                             )
+                        }
+                        .padding()
+                        .background(Color.white.opacity(0.03))
+                        .cornerRadius(16)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.white.opacity(0.05), lineWidth: 1)
+                        )
+                        .padding(.horizontal)
+                        
+                        // Log Settings Card
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("Diagnostics")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                            
+                            Toggle(isOn: $enableFileLogging) {
+                                HStack(spacing: 12) {
+                                    Image(systemName: "doc.text.fill")
+                                        .font(.system(size: 16, weight: .bold))
+                                        .foregroundColor(.blue)
+                                        .frame(width: 24, height: 24)
+                                        .background(Color.blue.opacity(0.1))
+                                        .cornerRadius(6)
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Write Logs to File")
+                                            .font(.subheadline)
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(.white)
+                                        Text("Save event logs to a text file for troubleshooting connection errors.")
+                                            .font(.caption)
+                                            .foregroundColor(.white.opacity(0.6))
+                                            .lineLimit(nil)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    }
+                                }
+                            }
+                            .toggleStyle(SwitchToggleStyle(tint: .blue))
                         }
                         .padding()
                         .background(Color.white.opacity(0.03))
