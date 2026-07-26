@@ -7,6 +7,7 @@ struct ConnectionStatusView: View {
     @State private var currentWifiSSID: String? = nil
     @State private var isPulsing = false
     @State private var showScanner = false
+    @State private var showAboutSheet = false
     
     var body: some View {
         NavigationView {
@@ -312,6 +313,19 @@ struct ConnectionStatusView: View {
                         .padding(.horizontal)
                     }
                     
+                    Button(action: {
+                        showAboutSheet = true
+                    }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "info.circle.fill")
+                            Text("About Kove Mirror")
+                        }
+                        .font(.footnote)
+                        .foregroundColor(.blue.opacity(0.8))
+                        .padding(.vertical, 8)
+                    }
+                    .padding(.bottom, 8)
+                    
                     Spacer()
                 }
                 .padding(.top)
@@ -323,6 +337,9 @@ struct ConnectionStatusView: View {
             QRScannerSheet(showScanner: $showScanner) { scannedCode in
                 handleQRCodeScan(scannedCode)
             }
+        }
+        .sheet(isPresented: $showAboutSheet) {
+            AboutView()
         }
         .onAppear {
             updateCurrentWifiSSID()
