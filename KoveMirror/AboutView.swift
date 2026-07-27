@@ -3,6 +3,13 @@ import SwiftUI
 struct AboutView: View {
     @Environment(\.dismiss) var dismiss
     @AppStorage("enableFileLogging") var enableFileLogging = false
+    @State private var showShareSheet = false
+    @State private var isLogFileAvailable = false
+    
+    private var logFilePath: URL {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        return paths[0].appendingPathComponent("KoveMirror.log")
+    }
     
     var body: some View {
         NavigationView {
@@ -131,6 +138,73 @@ struct AboutView: View {
                                 }
                             }
                             .toggleStyle(SwitchToggleStyle(tint: .blue))
+                            
+                            Divider()
+                                .background(Color.white.opacity(0.1))
+                            
+                            if isLogFileAvailable {
+                                HStack(spacing: 12) {
+                                    // Share Button
+                                    Button(action: {
+                                        showShareSheet = true
+                                    }) {
+                                        HStack {
+                                            Image(systemName: "square.and.arrow.up")
+                                            Text("Share")
+                                        }
+                                        .font(.subheadline)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.white)
+                                        .padding()
+                                        .frame(maxWidth: .infinity)
+                                        .background(
+                                            LinearGradient(
+                                                gradient: Gradient(colors: [Color.blue, Color.blue.opacity(0.8)]),
+                                                startPoint: .leading,
+                                                endPoint: .trailing
+                                            )
+                                        )
+                                        .cornerRadius(12)
+                                    }
+                                    .shadow(color: Color.blue.opacity(0.2), radius: 6)
+                                    
+                                    // Delete Button
+                                    Button(action: {
+                                        try? FileManager.default.removeItem(at: logFilePath)
+                                        isLogFileAvailable = false
+                                    }) {
+                                        HStack {
+                                            Image(systemName: "trash.fill")
+                                            Text("Delete")
+                                        }
+                                        .font(.subheadline)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.white)
+                                        .padding()
+                                        .frame(maxWidth: .infinity)
+                                        .background(
+                                            LinearGradient(
+                                                gradient: Gradient(colors: [Color(hex: "C62828"), Color(hex: "B71C1C")]),
+                                                startPoint: .leading,
+                                                endPoint: .trailing
+                                            )
+                                        )
+                                        .cornerRadius(12)
+                                    }
+                                    .shadow(color: Color(hex: "C62828").opacity(0.2), radius: 6)
+                                }
+                                .padding(.top, 4)
+                            } else {
+                                HStack {
+                                    Image(systemName: "exclamationmark.circle")
+                                        .foregroundColor(.white.opacity(0.4))
+                                    Text("No log file available. Enable file logging above to generate logs.")
+                                        .font(.caption)
+                                        .foregroundColor(.white.opacity(0.4))
+                                }
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .padding(.vertical, 8)
+                            }
                         }
                         .padding()
                         .background(Color.white.opacity(0.03))
@@ -191,6 +265,15 @@ struct AboutView: View {
                     }
                     .foregroundColor(.blue)
                 }
+            }
+            .sheet(isPresented: $showShareSheet) {
+                ActivityViewController(activityItems: [logFilePath])
+            }
+            .onAppear {
+                isLogFileAvailable = FileManager.default.fileExists(atPath: logFilePath.path)
+            }
+            .onChange(of: enableFileLogging) { newValue in
+                isLogFileAvailable = FileManager.default.fileExists(atPath: logFilePath.path)
             }
         }
     }
@@ -269,4 +352,16 @@ struct LinkButton: View {
             )
         }
     }
+}
+
+struct ActivityViewController: UIViewControllerRepresentable {
+    var activityItems: [Any]
+    var applicationActivities: [UIActivity]? = nil
+    
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        let controller = UIActivityViewController(activityItems: activityItems, applicationActivities: applicationActivities)
+        return controller
+    }
+    
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
