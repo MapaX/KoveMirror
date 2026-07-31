@@ -48,6 +48,10 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         return formatter
     }()
     
+    private let queueAccessQueue = DispatchQueue(label: "com.kove.mirror.bleWriteQueue")
+    private var bleWriteQueue: [Data] = []
+    private var isWritingPackets = false
+    
     private var logFilePath: URL {
         let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
         return paths[0].appendingPathComponent("KoveMirror.log")
@@ -152,6 +156,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     }
     
     func disconnect() {
+        clearWriteQueue()
         heartbeatTimer?.invalidate()
         heartbeatTimer = nil
         connectedDeviceName = nil
@@ -246,6 +251,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     }
     
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+        clearWriteQueue()
         log("🔴 Disconnected: \(error?.localizedDescription ?? "Clean disconnect")")
         connectionState = .disconnected
         heartbeatTimer?.invalidate()
@@ -310,11 +316,55 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     }
     
     private func writeString(_ str: String) {
-        guard let data = str.data(using: .utf8),
-              let peripheral = targetPeripheral,
-              let char = writeCharacteristic else { return }
-        log("📤 BLE Write: \(str)")
-        peripheral.writeValue(data, for: char, type: .withoutResponse)
+        guard let data = str.data(using: .utf8) else { return }
+        
+        queueAccessQueue.async { [weak self] in
+            guard let self = self else { return }
+            self.bleWriteQueue.append(data)
+            if !self.isWritingPackets {
+                self.isWritingPackets = true
+                self.processNextWriteItem()
+            }
+        }
+    }
+    
+    private func processNextWriteItem() {
+        queueAccessQueue.async { [weak self] in
+            guard let self = self else { return }
+            
+            guard !self.bleWriteQueue.isEmpty else {
+                self.isWritingPackets = false
+                return
+            }
+            
+            let data = self.bleWriteQueue.removeFirst()
+            
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self,
+                      let peripheral = self.targetPeripheral,
+                      let char = self.writeCharacteristic else {
+                    self?.queueAccessQueue.async {
+                        self?.isWritingPackets = false
+                    }
+                    return
+                }
+                
+                let str = String(data: data, encoding: .utf8) ?? ""
+                self.log("📤 BLE Write: \(str)")
+                peripheral.writeValue(data, for: char, type: .withoutResponse)
+                
+                self.queueAccessQueue.asyncAfter(deadline: .now() + 0.15) { [weak self] in
+                    self?.processNextWriteItem()
+                }
+            }
+        }
+    }
+    
+    private func clearWriteQueue() {
+        queueAccessQueue.async { [weak self] in
+            self?.bleWriteQueue.removeAll()
+            self?.isWritingPackets = false
+        }
     }
 
     func startMirroring() {
@@ -387,10 +437,8 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         ]
         
         // Android version sends packets in sequence with a 150ms delay
-        for (index, packetStr) in packets.enumerated() {
-            DispatchQueue.global().asyncAfter(deadline: .now() + Double(index) * 0.15) { [weak self] in
-                self?.writeString(packetStr)
-            }
+        for packetStr in packets {
+            writeString(packetStr)
         }
     }
     
@@ -398,9 +446,15 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         heartbeatTimer?.invalidate()
         log("💓 Starting BLE Heartbeat timer (5.0s interval)")
         
+        sendHeartbeatPacket()
+        
         heartbeatTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
-            self?.writeString("{\"msg_id\":25,\"msg_type\":24,\"msg_source\":2,\"status\":1}")
+            self?.sendHeartbeatPacket()
         }
+    }
+    
+    private func sendHeartbeatPacket() {
+        writeString("{\"msg_id\":25,\"msg_type\":24,\"msg_source\":2,\"status\":1}")
     }
     
     private func getCurrentTimeString() -> String {
