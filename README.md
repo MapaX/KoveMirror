@@ -14,6 +14,15 @@ You can get to the testing group with link https://testflight.apple.com/join/H85
 
 ---
 
+## Android version
+This project is only for the iOS version, but there is similar project for the Android available in
+https://github.com/nakturk/kovemirror
+
+APK is available in that page in: https://github.com/nakturk/kovemirror/tree/main/builds
+
+---
+
+
 ## ✨ Features
 
 - **Automatic Wi-Fi Setup via QR Code:** Scan the motorcycle's QR code (e.g. `http://g.thinkerride.com/?SSID&PASSWORD&ap=1`) to automatically parse credentials and programmatically join the motorcycle's Wi-Fi access point via iOS `NetworkExtension` APIs.
