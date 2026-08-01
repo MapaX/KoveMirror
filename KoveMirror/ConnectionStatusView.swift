@@ -268,15 +268,22 @@ struct ConnectionStatusView: View {
                             .fontWeight(.semibold)
                             .foregroundColor(.white.opacity(0.8))
                         
-                        Text("1. Connect your iPhone to the motorcycle's Wi-Fi network.")
+                        Text("1. Connect your iPhone to the motorcycle's Bluetooth network.")
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.6))
                         
-                        Text("2. Click 'Connect BLE' above to pair with the motorcycle's TFT.")
+                        Text("2. Connect your iPhone to the motorcycle's Wi-Fi network.")
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.6))
                         
-                        Text("3. Your screen will automatically project to the TFT screen. Keep the app open in the foreground.")
+                        Text("3. Long press SET button from motorcycle handlebar, and select 'Sceen navigation'")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.6))
+                        
+                        Text("4. Your screen will automatically project to the TFT screen.")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.6))
+                        Text("5. After the phone screen is visible, press the 'Broadcast Entire Screen' button to start whole phone mirroring.")
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.6))
                     }
