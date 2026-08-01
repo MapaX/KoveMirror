@@ -181,27 +181,25 @@ struct ConnectionStatusView: View {
                                     }
                                 }
                             } else {
-                                Button(action: {
-                                    bleController.startMirroring()
-                                }) {
-                                    HStack {
-                                        Image(systemName: "tv.and.mediabox.fill")
-                                        Text("Start Mirroring")
-                                    }
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                    .padding()
-                                    .frame(maxWidth: .infinity)
-                                    .background(
-                                        LinearGradient(
-                                            gradient: Gradient(colors: [Color.blue, Color.blue.opacity(0.8)]),
-                                            startPoint: .leading,
-                                            endPoint: .trailing
-                                        )
-                                    )
-                                    .cornerRadius(12)
+                                VStack(spacing: 12) {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .blue))
+                                        .scaleEffect(1.2)
+                                        .padding(.top, 8)
+                                    
+                                    Text("Waiting for TFT to connect...")
+                                        .font(.subheadline)
+                                        .foregroundColor(.white.opacity(0.7))
+                                        .fontWeight(.semibold)
                                 }
-                                .shadow(color: Color.blue.opacity(0.3), radius: 8)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.white.opacity(0.02))
+                                .cornerRadius(12)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.white.opacity(0.05), lineWidth: 1)
+                                )
                                 .padding(.top, 4)
                             }
                         }

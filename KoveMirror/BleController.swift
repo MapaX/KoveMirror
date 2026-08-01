@@ -302,16 +302,29 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
                 log("📝 Write Characteristic ready.")
             } else if char.uuid == notifyCharUUID {
                 peripheral.setNotifyValue(true, for: char)
-                log("🔔 Notifications enabled on Notify Characteristic.")
+                log("🔔 Enabling notifications on Notify Characteristic...")
             }
         }
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
+        if let error = error {
+            log("❌ Notification state update error: \(error.localizedDescription)")
+            return
+        }
         
-        if writeCharacteristic != nil {
-            // Initiate Handshake
-            sendInitHandshake()
-            startHeartbeat()
-        } else {
-            log("❌ Necessary characteristics are missing.")
+        if characteristic.uuid == notifyCharUUID {
+            if characteristic.isNotifying {
+                log("✅ BLE Handshake (Notification) active!")
+                if writeCharacteristic != nil {
+                    sendInitHandshake()
+                    startHeartbeat()
+                } else {
+                    log("⚠️ Write Characteristic not ready yet.")
+                }
+            } else {
+                log("🔔 Notifications disabled on Notify Characteristic.")
+            }
         }
     }
     
@@ -415,7 +428,8 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
                     if let msgId = json["msg_id"] as? Int, msgId == 27,
                        let act = json["act"] as? String, act == "send_pairresult",
                        let result = json["result"] as? Int, result == 1 {
-                        log("✅ BLE pairing confirmed by TFT (send_pairresult=1)! Ready to start mirroring.")
+                        log("✅ BLE pairing confirmed by TFT (send_pairresult=1)! Automatically starting mirroring.")
+                        startMirroring()
                     }
                 }
             } else {
