@@ -21,11 +21,15 @@ class TcpServerManager {
     private var videoFrameCount = 0
     
     var onLocalConnectionChanged: ((Bool) -> Void)?
+    private var onVideoConnectCallback: (() -> Void)?
     
     func startServers(width: Int, height: Int, onVideoConnect: @escaping () -> Void) {
-        stop() // Release ports and cancel existing timers/connections first
+        onVideoConnectCallback = onVideoConnect
         handshakeCompleted = false
         videoFrameCount = 0
+        
+        // Stop any active client sessions to clean up previous run
+        stopActiveConnections()
         
         // Trigger local network access permission prompt on iOS
         triggerLocalNetworkPrompt()
@@ -33,9 +37,17 @@ class TcpServerManager {
         let ip = getWifiIpAddress() ?? "unknown"
         print("📡 Active Wi-Fi IP Address (en0): \(ip)")
         
-        setupControlServer()
-        setupHeartbeatServer()
-        setupVideoServer(width: width, height: height, onConnect: onVideoConnect)
+        // Setup server listeners if they are not already active
+        if controlListener == nil {
+            setupControlServer()
+        }
+        if heartbeatListener == nil {
+            setupHeartbeatServer()
+        }
+        if videoListener == nil {
+            setupVideoServer(width: width, height: height)
+        }
+        
         print("TCP Servers initialized in Main App. Video on 15456, Heartbeat on 15457, Control on 17818.")
     }
     
@@ -224,14 +236,14 @@ class TcpServerManager {
     
     // MARK: - Port 15456 (Video / Projection Server)
     
-    private func setupVideoServer(width: Int, height: Int, onConnect: @escaping () -> Void) {
+    private func setupVideoServer(width: Int, height: Int) {
         do {
             let parameters = NWParameters.tcp
             parameters.requiredInterfaceType = .wifi
             
             videoListener = try NWListener(using: parameters, on: 15456)
             videoListener?.newConnectionHandler = { [weak self] connection in
-                self?.handleVideoConnection(connection, width: width, height: height, onConnect: onConnect)
+                self?.handleVideoConnection(connection, width: width, height: height)
             }
             videoListener?.start(queue: networkQueue)
             
@@ -242,7 +254,7 @@ class TcpServerManager {
         }
     }
     
-    private func handleVideoConnection(_ connection: NWConnection, width: Int, height: Int, onConnect: @escaping () -> Void) {
+    private func handleVideoConnection(_ connection: NWConnection, width: Int, height: Int) {
         videoConnection = connection
         connection.stateUpdateHandler = { [weak self] state in
             guard let self = self else { return }
@@ -250,7 +262,7 @@ class TcpServerManager {
                 print("🔌 Video connection established.")
                 self.sendVideoSizeHeader(connection, width: width, height: height)
                 self.startVideoHeartbeat(connection)
-                onConnect()
+                self.onVideoConnectCallback?()
             }
         }
         connection.start(queue: networkQueue)
@@ -314,6 +326,7 @@ class TcpServerManager {
     // MARK: - Local Video Forwarder (Port 15455)
     
     private func setupLocalVideoServer() {
+        if localVideoListener != nil { return }
         do {
             let parameters = NWParameters.tcp
             parameters.requiredInterfaceType = .loopback // Loopback only for localhost security
@@ -369,7 +382,11 @@ class TcpServerManager {
     // MARK: - Lifecycle Management
     
     func stop() {
-        print("🔌 Stopping all TCP Servers...")
+        stopActiveConnections()
+    }
+    
+    func stopActiveConnections() {
+        print("🔌 Stopping active TCP connections...")
         heartbeatTimer?.cancel()
         heartbeatTimer = nil
         
@@ -388,6 +405,13 @@ class TcpServerManager {
         localVideoConnection?.cancel()
         localVideoConnection = nil
         
+        handshakeCompleted = false
+    }
+    
+    func stopAll() {
+        print("🔌 Shutting down all TCP listeners and connections...")
+        stopActiveConnections()
+        
         controlListener?.cancel()
         controlListener = nil
         
@@ -399,8 +423,6 @@ class TcpServerManager {
         
         localVideoListener?.cancel()
         localVideoListener = nil
-        
-        handshakeCompleted = false
     }
     
     private func triggerLocalNetworkPrompt() {
