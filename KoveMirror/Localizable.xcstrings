@@ -1,0 +1,1378 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "1. Connect your iPhone to the motorcycle's Bluetooth network." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Verbinde dein iPhone mit dem Bluetooth-Netzwerk des Motorrads."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Συνδέστε το iPhone σας στο δίκτυο Bluetooth της μοτοσυκλέτας."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Conecta tu iPhone a la red Bluetooth de la motocicleta."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Yhdistä iPhone moottoripyörän Bluetooth-verkkoon."
+          }
+        }
+      }
+    },
+    "2. Connect your iPhone to the motorcycle's Wi-Fi network." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2. Verbinde dein iPhone mit dem Wi-Fi-Netzwerk des Motorrads."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2. Συνδέστε το iPhone σας στο δίκτυο Wi-Fi της μοτοσυκλέτας."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2. Conecta tu iPhone a la red Wi-Fi de la motocicleta."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2. Yhdistä iPhone moottoripyörän Wi-Fi-verkkoon."
+          }
+        }
+      }
+    },
+    "3. Long press SET button from motorcycle handlebar, and select 'Sceen navigation'" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "3. Halte die SET-Taste am Motorradlenker gedrückt und wähle 'Sceen navigation'"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "3. Πιέστε παρατεταμένα το κουμπί SET στο τιμόνι της μοτοσυκλέτας και επιλέξτε 'Sceen navigation'"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "3. Mantén presionado el botón SET en el manillar y selecciona 'Sceen navigation'"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "3. Paina ohjaustangon SET-painiketta pitkään ja valitse 'Sceen navigation'"
+          }
+        }
+      }
+    },
+    "4. Your screen will automatically project to the TFT screen." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "4. Dein Bildschirm wird automatisch auf dem TFT-Bildschirm gespiegelt."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "4. Η οθόνη σας θα προβληθεί αυτόματα στην οθόνη TFT."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "4. Tu pantalla se proyectará automáticamente en la pantalla TFT."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "4. Näyttösi peilataan automaattisesti TFT-näytölle."
+          }
+        }
+      }
+    },
+    "5. After the phone screen is visible, press the 'Broadcast Entire Screen' button to start whole phone mirroring." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5. Sobald der Telefonbildschirm sichtbar ist, drücke die Taste 'Gesamten Bildschirm übertragen', um die Spiegelung zu starten."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5. Αφού εμφανιστεί η οθόνη του τηλεφώνου, πατήστε το κουμπί 'Μετάδοση ολόκληρης οθόνης' για να ξεκινήσει η πλήρης καθρέφτιση."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5. Una vez visible la pantalla del teléfono, presiona 'Transmitir pantalla completa' para iniciar el reflejo total."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5. Kun puhelimen näyttö on näkyvissä, paina 'Peilaa koko näyttö' -painiketta aloittaaksesi koko puhelimen peilauksen."
+          }
+        }
+      }
+    },
+    "About" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Über"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Σχετικά"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acerca de"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tietoja"
+          }
+        }
+      }
+    },
+    "About Kove Mirror" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Über Kove Mirror"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Σχετικά με το Kove Mirror"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acerca de Kove Mirror"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tietoja Kove Mirrorista"
+          }
+        }
+      }
+    },
+    "Align the Motorcycle's QR code in the frame" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Richte den QR-Code des Motorrads im Rahmen aus"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ευθυγραμμίστε τον κωδικό QR της μοτοσυκλέτας στο πλαίσιο"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alinea el código QR de la motocicleta en el marco"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aseta moottoripyörän QR-koodi kehykseen"
+          }
+        }
+      }
+    },
+    "Automatically streams the in-app dashboard views. When you broadcast the entire screen, it seamlessly switches to the broadcast stream, falling back dynamically on exit." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Überträgt automatisch die Ansichten des In-App-Dashboards. Wenn du den gesamten Bildschirm überträgst, wird nahtlos zum Übertragungsstream gewechselt und beim Beenden dynamisch zurückgekehrt."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Μεταδίδει αυτόματα τις προβολές του πίνακα οργάνων της εφαρμογής. Όταν μεταδίδετε ολόκληρη την οθόνη, μεταβαίνει ομαλά στη ροή μετάδοσης, επιστρέφοντας δυναμικά κατά την έξοδο."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transmite automáticamente las vistas del panel dentro de la app. Al transmitir la pantalla completa, cambia sin problemas a la transmisión completa y regresa dinámicamente al salir."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Striimaa automaattisesti sovelluksen sisäisiä näkymiä. Kun peilaat koko näytön, se siirtyy saumattomasti järjestelmäpeilaukseen ja palaa takaisin poistuttaessa."
+          }
+        }
+      }
+    },
+    "Bluetooth LE Pairing" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth LE-Kopplung"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ζεύξη Bluetooth LE"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Emparejamiento Bluetooth LE"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth LE -pariliitos"
+          }
+        }
+      }
+    },
+    "Broadcast Entire Screen" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gesamten Bildschirm übertragen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Μετάδοση ολόκληρης οθόνης"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transmitir pantalla completa"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Peilaa koko näyttö"
+          }
+        }
+      }
+    },
+    "Cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ακύρωση"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelar"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Peruuta"
+          }
+        }
+      }
+    },
+    "Connect BLE" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "BLE verbinden"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Σύνδεση BLE"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectar BLE"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yhdistä BLE"
+          }
+        }
+      }
+    },
+    "Connected & Active" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbunden & Aktiv"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Συνδεδεμένο & Ενεργό"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectado y activo"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yhdistetty ja aktiivinen"
+          }
+        }
+      }
+    },
+    "Connected to Motorcycle Wi-Fi" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mit dem Motorrad-Wi-Fi verbunden"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Συνδεδεμένο στο Wi-Fi της μοτοσυκλέτας"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectado a la Wi-Fi de la motocicleta"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yhdistetty moottoripyörän Wi-Fi-verkkoon"
+          }
+        }
+      }
+    },
+    "Connecting..." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbinde..."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Σύνδεση..."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectando..."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yhdistetään..."
+          }
+        }
+      }
+    },
+    "Delete" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Löschen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Διαγραφή"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eliminar"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poista"
+          }
+        }
+      }
+    },
+    "Diagnostics" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diagnose"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Διαγνωστικά"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diagnóstico"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diagnostiikka"
+          }
+        }
+      }
+    },
+    "Disconnected" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Getrennt"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αποσυνδεδεμένο"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desconectado"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ei yhdistetty"
+          }
+        }
+      }
+    },
+    "Done" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fertig"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Τέλος"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hecho"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Valmis"
+          }
+        }
+      }
+    },
+    "Dynamic Source-Switching" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dynamische Quellenumschaltung"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Δυναμική εναλλαγή πηγής"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cambio dinámico de fuente"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dynaaminen kuvalähteen vaihto"
+          }
+        }
+      }
+    },
+    "Establishes a low-power connection with the motorcycle's dashboard, performs the pairing handshake, and transmits continuous heartbeats to keep the system active." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stellt eine energiesparende Verbindung mit dem Armaturenbrett des Motorrads her, führt den Kopplungshandshake durch und überträgt kontinuierlich Heartbeats, um das System aktiv zu halten."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Δημιουργεί μια σύνδεση χαμηλής κατανάλωσης με τον πίνακα οργάνων της μοτοσυκλέτας, εκτελεί τη χειραψία ζεύξης και μεταδίδει συνεχείς παλμούς για να διατηρεί το σύστημα ενεργό."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Establece una conexión de bajo consumo con el panel de la motocicleta, realiza el protocolo de emparejamiento y transmite señales continuas para mantener el sistema activo."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muodostaa vähävirtaisen yhteyden moottoripyörän mittaristoon, suorittaa pariliitoksen ja lähettää jatkuvia syötteitä pitääkseen järjestelmän aktiivisena."
+          }
+        }
+      }
+    },
+    "Event Log:" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ereignisprotokoll:"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Καταγραφή συμβάντων:"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Registro de eventos:"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tapahtumaloki:"
+          }
+        }
+      }
+    },
+    "Explore the source code, file issues, or contribute to the project on GitHub." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erkunde den Quellcode, melde Probleme oder trage auf GitHub zum Projekt bei."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Εξερευνήστε τον πηγαίο κώδικα, αναφέρετε προβλήματα ή συνεισφέρετε στο έργο στο GitHub."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Explora el código fuente, reporta problemas o contribuye al proyecto en GitHub."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tutustu lähdekoodiin, raportoi ongelmia tai osallistu projektiin GitHubissa."
+          }
+        }
+      }
+    },
+    "Hardware H.264 Encoder" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hardware-H.264-Encoder"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hardware Κωδικοποιητής H.264"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Codificador de hardware H.264"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laitteistotason H.264-pakkaus"
+          }
+        }
+      }
+    },
+    "High-Speed Wi-Fi Bridge" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hochgeschwindigkeits-Wi-Fi-Brücke"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Γέφυρα Wi-Fi υψηλής ταχύτητας"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puente Wi-Fi de alta velocidad"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nopea Wi-Fi-silta"
+          }
+        }
+      }
+    },
+    "How It Works" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wie es funktioniert"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πώς λειτουργεί"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cómo funciona"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kuinka se toimii"
+          }
+        }
+      }
+    },
+    "Instructions:" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anweisungen:"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Οδηγίες:"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instrucciones:"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ohjeet:"
+          }
+        }
+      }
+    },
+    "iOS Codebase" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS-Quellcode"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πηγαίος κώδικας iOS"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Código fuente de iOS"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS-lähdekoodi"
+          }
+        }
+      }
+    },
+    "iOS version was inspired by the Android version" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die iOS-Version wurde von der Android-Version inspiriert"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η έκδοση iOS εμπνεύστηκε από την έκδοση Android"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La versión de iOS se inspiró en la versión de Android"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS-versio on saanut inspiraationsa Android-versiosta"
+          }
+        }
+      }
+    },
+    "Kove Mirror" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kove Mirror"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kove Mirror"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kove Mirror"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kove Mirror"
+          }
+        }
+      }
+    },
+    "Launches local TCP/UDP socket servers. The motorcycle dashboard connects to your iPhone's hotspot or Wi-Fi to receive the high-fidelity video stream." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Startet lokale TCP/UDP-Socket-Server. Das Motorrad-Armaturenbrett verbindet sich mit dem Hotspot oder Wi-Fi deines iPhones, um den hochauflösenden Videostream zu empfangen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Εκκινεί τοπικούς διακομιστές υποδοχών TCP/UDP. Ο πίνακας οργάνων της μοτοσυκλέτας συνδέεται στο hotspot ή στο Wi-Fi του iPhone σας για να λάβει τη ροή βίντεο υψηλής πιστότητας."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inicia servidores de socket TCP/UDP locales. El panel de la motocicleta se conecta al punto de acceso o Wi-Fi de tu iPhone para recibir la transmisión de video de alta fidelidad."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Käynnistää paikalliset TCP/UDP-palvelimet. Moottoripyörän mittaristo yhdistää iPhonen yhteyspisteeseen tai Wi-Fi-verkkoon vastaanottaakseen korkealaatuisen kuvasyötteen."
+          }
+        }
+      }
+    },
+    "Mirroring Offline" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiegelung offline"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Καθρέφτιση εκτός σύνδεσης"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reflejo fuera de línea"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Peilaus ei käytössä"
+          }
+        }
+      }
+    },
+    "No log file available. Enable file logging above to generate logs." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Protokolldatei verfügbar. Aktiviere oben die Dateiprotokollierung, um Protokolle zu erstellen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Δεν υπάρχει διαθέσιμο αρχείο καταγραφής. Ενεργοποιήστε την καταγραφή αρχείου παραπάνω για να δημιουργήσετε αρχεία καταγραφής."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay archivo de registro disponible. Activa el registro en archivo arriba para generar registros."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lokitiedostoa ei ole saatavilla. Ota lokitus käyttöön ylhäältä luodaksesi lokitiedoston."
+          }
+        }
+      }
+    },
+    "Open Source Repositories" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open-Source-Repositories"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αποθετήρια ανοιχτού κώδικα"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repositorios de código abierto"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avoimen lähdekoodin repositoriot"
+          }
+        }
+      }
+    },
+    "Please connect to Wi-Fi '%@'." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitte verbinde dich mit dem Wi-Fi '%@'."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Παρακαλούμε συνδεθείτε στο Wi-Fi '%@'."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Por favor conéctate a la Wi-Fi '%@'."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yhdistä Wi-Fi-verkkoon '%@'."
+          }
+        }
+      }
+    },
+    "Ready to mirror screen." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bereit zum Spiegeln des Bildschirms."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Έτοιμο για καθρέφτιση οθόνης."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Listo para reflejar la pantalla."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Valmis peilaamaan näytön."
+          }
+        }
+      }
+    },
+    "Save event logs to a text file for troubleshooting connection errors." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speichere Ereignisprotokolle in einer Textdatei zur Fehlerbehebung bei Verbindungsfehlern."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αποθηκεύστε τα αρχεία καταγραφής συμβάντων σε αρχείο κειμένου για την αντιμετώπιση σφαλμάτων σύνδεσης."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guarda los registros de eventos en un archivo de texto para solucionar errores de conexión."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tallenna tapahtumalokit tekstitiedostoon yhteysvirheiden selvittämistä varten."
+          }
+        }
+      }
+    },
+    "Scan Motorcycle QR" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Motorrad-QR-Code scannen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Σάρωση QR μοτοσυκλέτας"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escanear QR de la motocicleta"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lue moottoripyörän QR-koodi"
+          }
+        }
+      }
+    },
+    "Scan QR" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QR-Code scannen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Σάρωση QR"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escanear QR"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lue QR-koodi"
+          }
+        }
+      }
+    },
+    "Scanning..." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scannen..."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Σάρωση..."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escaneando..."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Etsitään..."
+          }
+        }
+      }
+    },
+    "SCREEN STREAMING IS ACTIVE" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "BILDSCHIRMÜBERTRAGUNG IST AKTIV"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η ΡΟΗ ΟΘΟΝΗΣ ΕΙΝΑΙ ΕΝΕΡΓΗ"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TRANSMISIÓN DE PANTALLA ACTIVA"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NÄYTÖN PEILAUS ON AKTIIVINEN"
+          }
+        }
+      }
+    },
+    "Share" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teilen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Κοινοποίηση"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compartir"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jaa"
+          }
+        }
+      }
+    },
+    "Stop Mirroring" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiegelung beenden"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Διακοπή καθρέφτισης"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detener reflejo"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lopeta peilaus"
+          }
+        }
+      }
+    },
+    "Uses Apple's hardware-accelerated VideoToolbox engine to compress frames in real-time at the dashboard's native 600x1024 resolution with zero latency." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verwendet Apples hardwarebeschleunigte VideoToolbox-Engine, um Einzelbilder in Echtzeit bei der nativen Auflösung von 600x1024 des Armaturenbretts ohne Latenz zu komprimieren."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Χρησιμοποιεί τη μηχανή VideoToolbox με επιτάχυνση υλικού της Apple για τη συμπίεση πλαισίων σε πραγματικό χρόνο στην εγγενή ανάλυση 600x1024 του πίνακα οργάνων με μηδενική καθυστέρηση."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utiliza el motor VideoToolbox acelerado por hardware de Apple para comprimir fotogramas en tiempo real a la resolución nativa de 600x1024 del panel sin latencia."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Käyttää Applen laitteistokiihdytettyä VideoToolbox-moottoria kuvaruutujen reaaliaikaiseen pakkaukseen mittariston 600x1024-natiiviresoluutiolla ilman viivettä."
+          }
+        }
+      }
+    },
+    "Version %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version %@"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Έκδοση %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versión %@"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versio %@"
+          }
+        }
+      }
+    },
+    "Waiting for TFT to connect..." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Warten auf Verbindung des TFT-Bildschirms..."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αναμονή για σύνδεση της οθόνης TFT..."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esperando conexión de la pantalla TFT..."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odotetaan TFT-näytön yhdistämistä..."
+          }
+        }
+      }
+    },
+    "Wi-Fi Mismatch Warning" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wi-Fi-Abweichungswarnung"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Προειδοποίηση ασυμφωνίας Wi-Fi"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Advertencia de desajuste Wi-Fi"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wi-Fi-verkon täsmäävyysvaroitus"
+          }
+        }
+      }
+    },
+    "Write Logs to File" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Protokolle in Datei schreiben"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Εγγραφή αρχείων καταγραφής σε αρχείο"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escribir registros en archivo"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kirjoita lokit tiedostoon"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

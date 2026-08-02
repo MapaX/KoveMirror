@@ -52,7 +52,7 @@ struct ConnectionStatusView: View {
                                     .controlSize(.small)
                             }
                             
-                            Text(bleController.connectionState.rawValue)
+                            Text(LocalizedStringKey(bleController.connectionState.rawValue))
                                 .font(.headline)
                                 .foregroundColor(statusColor)
                         }
