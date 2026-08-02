@@ -272,7 +272,7 @@ struct AboutView: View {
             .onAppear {
                 isLogFileAvailable = FileManager.default.fileExists(atPath: logFilePath.path)
             }
-            .onChange(of: enableFileLogging) { newValue in
+            .onChange(of: enableFileLogging) {
                 isLogFileAvailable = FileManager.default.fileExists(atPath: logFilePath.path)
             }
         }
@@ -282,8 +282,8 @@ struct AboutView: View {
 struct AboutInfoRow: View {
     var icon: String
     var iconColor: Color
-    var title: String
-    var description: String
+    var title: LocalizedStringKey
+    var description: LocalizedStringKey
     
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -312,7 +312,7 @@ struct AboutInfoRow: View {
 
 struct LinkButton: View {
     var icon: String
-    var title: String
+    var title: LocalizedStringKey
     var subtitle: String
     var url: String
     

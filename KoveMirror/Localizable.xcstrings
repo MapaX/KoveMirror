@@ -2,6 +2,7 @@
   "sourceLanguage" : "en",
   "strings" : {
     "1. Connect your iPhone to the motorcycle's Bluetooth network." : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -30,6 +31,7 @@
       }
     },
     "2. Connect your iPhone to the motorcycle's Wi-Fi network." : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -58,6 +60,7 @@
       }
     },
     "3. Long press SET button from motorcycle handlebar, and select 'Sceen navigation'" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -86,6 +89,7 @@
       }
     },
     "4. Your screen will automatically project to the TFT screen." : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -114,6 +118,7 @@
       }
     },
     "5. After the phone screen is visible, press the 'Broadcast Entire Screen' button to start whole phone mirroring." : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -142,6 +147,7 @@
       }
     },
     "About" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -170,6 +176,7 @@
       }
     },
     "About Kove Mirror" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -198,6 +205,7 @@
       }
     },
     "Align the Motorcycle's QR code in the frame" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -226,6 +234,7 @@
       }
     },
     "Automatically streams the in-app dashboard views. When you broadcast the entire screen, it seamlessly switches to the broadcast stream, falling back dynamically on exit." : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -254,6 +263,7 @@
       }
     },
     "Bluetooth LE Pairing" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -282,6 +292,7 @@
       }
     },
     "Broadcast Entire Screen" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -309,7 +320,37 @@
         }
       }
     },
+    "Camera not supported on this device." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kamera auf diesem Gerät nicht unterstützt."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η κάμερα δεν υποστηρίζεται σε αυτή τη συσκευή."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cámara no compatible en este dispositivo."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kameraa ei tueta tällä laitteella."
+          }
+        }
+      }
+    },
     "Cancel" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -338,6 +379,7 @@
       }
     },
     "Connect BLE" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -366,6 +408,7 @@
       }
     },
     "Connected & Active" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -394,6 +437,7 @@
       }
     },
     "Connected to Motorcycle Wi-Fi" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -422,6 +466,7 @@
       }
     },
     "Connecting..." : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -450,6 +495,7 @@
       }
     },
     "Delete" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -478,6 +524,7 @@
       }
     },
     "Diagnostics" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -506,6 +553,7 @@
       }
     },
     "Disconnected" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -534,6 +582,7 @@
       }
     },
     "Done" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -562,6 +611,7 @@
       }
     },
     "Dynamic Source-Switching" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -590,6 +640,7 @@
       }
     },
     "Establishes a low-power connection with the motorcycle's dashboard, performs the pairing handshake, and transmits continuous heartbeats to keep the system active." : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -618,6 +669,7 @@
       }
     },
     "Event Log:" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -646,6 +698,7 @@
       }
     },
     "Explore the source code, file issues, or contribute to the project on GitHub." : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -674,6 +727,7 @@
       }
     },
     "Hardware H.264 Encoder" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -702,6 +756,7 @@
       }
     },
     "High-Speed Wi-Fi Bridge" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -730,6 +785,7 @@
       }
     },
     "How It Works" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -758,6 +814,7 @@
       }
     },
     "Instructions:" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -786,6 +843,7 @@
       }
     },
     "iOS Codebase" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -814,6 +872,7 @@
       }
     },
     "iOS version was inspired by the Android version" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -842,6 +901,7 @@
       }
     },
     "Kove Mirror" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -870,6 +930,7 @@
       }
     },
     "Launches local TCP/UDP socket servers. The motorcycle dashboard connects to your iPhone's hotspot or Wi-Fi to receive the high-fidelity video stream." : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -898,6 +959,7 @@
       }
     },
     "Mirroring Offline" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -926,6 +988,7 @@
       }
     },
     "No log file available. Enable file logging above to generate logs." : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -954,6 +1017,7 @@
       }
     },
     "Open Source Repositories" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -982,6 +1046,7 @@
       }
     },
     "Please connect to Wi-Fi '%@'." : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1010,6 +1075,7 @@
       }
     },
     "Ready to mirror screen." : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1038,6 +1104,7 @@
       }
     },
     "Save event logs to a text file for troubleshooting connection errors." : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1066,6 +1133,7 @@
       }
     },
     "Scan Motorcycle QR" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1094,6 +1162,7 @@
       }
     },
     "Scan QR" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1122,6 +1191,7 @@
       }
     },
     "Scanning..." : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1150,6 +1220,7 @@
       }
     },
     "SCREEN STREAMING IS ACTIVE" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1178,6 +1249,7 @@
       }
     },
     "Share" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1206,6 +1278,7 @@
       }
     },
     "Stop Mirroring" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1234,6 +1307,7 @@
       }
     },
     "Uses Apple's hardware-accelerated VideoToolbox engine to compress frames in real-time at the dashboard's native 600x1024 resolution with zero latency." : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1262,6 +1336,7 @@
       }
     },
     "Version %@" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1290,6 +1365,7 @@
       }
     },
     "Waiting for TFT to connect..." : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1318,6 +1394,7 @@
       }
     },
     "Wi-Fi Mismatch Warning" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1346,6 +1423,7 @@
       }
     },
     "Write Logs to File" : {
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
