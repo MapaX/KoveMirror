@@ -3,11 +3,16 @@ import ReplayKit
 import NetworkExtension
 
 struct ConnectionStatusView: View {
-    @StateObject private var bleController = BleController()
-    @State private var currentWifiSSID: String? = nil
+    @ObservedObject var bleController: BleController
+    @State private var currentWifiSSID: String?
     @State private var isPulsing = false
     @State private var showScanner = false
     @State private var showAboutSheet = false
+    
+    init(bleController: BleController = BleController(), currentWifiSSID: String? = nil) {
+        self.bleController = bleController
+        _currentWifiSSID = State(initialValue: currentWifiSSID)
+    }
     
     var body: some View {
         NavigationView {
@@ -40,9 +45,17 @@ struct ConnectionStatusView: View {
                             .fontWeight(.bold)
                             .foregroundColor(.white)
                         
-                        Text(bleController.connectionState.rawValue)
-                            .font(.headline)
-                            .foregroundColor(statusColor)
+                        HStack(spacing: 10) {
+                            if bleController.connectionState == .scanning || bleController.connectionState == .connecting {
+                                ProgressView()
+                                    .tint(statusColor)
+                                    .controlSize(.small)
+                            }
+                            
+                            Text(bleController.connectionState.rawValue)
+                                .font(.headline)
+                                .foregroundColor(statusColor)
+                        }
                     }
                     .padding(.vertical, 24)
                     .frame(maxWidth: .infinity)
@@ -98,22 +111,7 @@ struct ConnectionStatusView: View {
                     
                     // Control Actions card
                     VStack(spacing: 16) {
-                        if bleController.connectionState == .connected || bleController.connectionState == .connecting {
-                            Button(action: {
-                                bleController.disconnect()
-                            }) {
-                                HStack {
-                                    Image(systemName: "stop.fill")
-                                    Text("Disconnect BLE")
-                                }
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(Color(hex: "C62828"))
-                                .cornerRadius(12)
-                            }
-                        } else {
+                        if bleController.connectionState == .disconnected {
                             Button(action: {
                                 bleController.startScanning()
                             }) {
@@ -180,7 +178,7 @@ struct ConnectionStatusView: View {
                                         .shadow(color: Color.blue.opacity(0.3), radius: 8)
                                     }
                                 }
-                            } else {
+                            } else if isWifiCorrect {
                                 VStack(spacing: 12) {
                                     ProgressView()
                                         .progressViewStyle(CircularProgressViewStyle(tint: .blue))
@@ -347,6 +345,7 @@ struct ConnectionStatusView: View {
             AboutView()
         }
         .onAppear {
+            guard !bleController.isPreview else { return }
             updateCurrentWifiSSID()
             // Periodically refresh Wi-Fi connection info every 2 seconds
             Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
@@ -356,9 +355,12 @@ struct ConnectionStatusView: View {
     }
     
     private func updateCurrentWifiSSID() {
+        guard !bleController.isPreview else { return }
         NEHotspotNetwork.fetchCurrent { network in
             DispatchQueue.main.async {
-                self.currentWifiSSID = network?.ssid
+                if let ssid = network?.ssid {
+                    self.currentWifiSSID = ssid
+                }
             }
         }
     }
@@ -483,3 +485,186 @@ struct HiddenBroadcastPicker: UIViewRepresentable {
         }
     }
 }
+
+// MARK: - SwiftUI Previews
+
+#Preview("1. Disconnected") {
+    ConnectionStatusView(
+        bleController: .preview(
+            state: .disconnected,
+            logs: [
+                "[08:57:00.120] 🟢 Bluetooth is ON.",
+                "[08:57:00.150] 🔴 Bluetooth is disconnected."
+            ]
+        )
+    )
+}
+
+#Preview("2. Scanning") {
+    ConnectionStatusView(
+        bleController: .preview(
+            state: .scanning,
+            logs: [
+                "[08:57:00.120] 🟢 Bluetooth is ON.",
+                "[08:57:01.000] 🔌 Starting TCP Servers in main app...",
+                "[08:57:01.050] 🔍 Scanning for Kove TFT services (0000E0FF-3C17-D293-8E48-14FE2E4DA212)..."
+            ]
+        )
+    )
+}
+
+#Preview("3. Connecting") {
+    ConnectionStatusView(
+        bleController: .preview(
+            state: .connecting,
+            deviceName: "CQKY_Kove800X",
+            logs: [
+                "[08:57:01.050] 🔍 Scanning for Kove TFT services...",
+                "[08:57:02.100] 📱 Discovered peripheral: CQKY_Kove800X [RSSI: -58]",
+                "[08:57:02.150] 🔌 Connecting to CQKY_Kove800X..."
+            ]
+        )
+    )
+}
+
+#Preview("4. Connected (Wi-Fi Mismatch)") {
+    ConnectionStatusView(
+        bleController: .preview(
+            state: .connected,
+            deviceName: "CQKY_Kove800X",
+            logs: [
+                "[08:57:02.500] ✅ Connected to CQKY_Kove800X. Discovering services...",
+                "[08:57:02.700] 🔓 Discovered Mirroring Service.",
+                "[08:57:03.000] ✅ BLE Handshake active!",
+                "[08:57:03.100] ⚠️ Connected Wi-Fi ('Home_WiFi') does not match motorcycle AP ('CQKY_Kove800X')."
+            ]
+        ),
+        currentWifiSSID: "Home_WiFi"
+    )
+}
+
+#Preview("5. Connected (Ready for Mirroring)") {
+    ConnectionStatusView(
+        bleController: .preview(
+            state: .connected,
+            deviceName: "CQKY_Kove800X",
+            logs: [
+                "[08:57:02.500] ✅ Connected to CQKY_Kove800X. Discovering services...",
+                "[08:57:02.700] 🔓 Discovered Mirroring Service.",
+                "[08:57:03.000] ✅ BLE Handshake active!",
+                "[08:57:03.050] 💓 Starting BLE Heartbeat timer (5.0s interval)"
+            ]
+        ),
+        currentWifiSSID: "CQKY_Kove800X"
+    )
+}
+
+#Preview("6. Streaming (In-App Capture)") {
+    ConnectionStatusView(
+        bleController: .preview(
+            state: .connected,
+            deviceName: "CQKY_Kove800X",
+            isStreaming: true,
+            isBroadcasting: false,
+            logs: [
+                "[08:57:03.000] ✅ BLE Handshake active!",
+                "[08:57:04.200] 📺 TCP Video stream connected.",
+                "[08:57:04.250] 📺 Starting local in-app screen capture..."
+            ]
+        ),
+        currentWifiSSID: "CQKY_Kove800X"
+    )
+}
+
+#Preview("7. Streaming (System Broadcast)") {
+    ConnectionStatusView(
+        bleController: .preview(
+            state: .connected,
+            deviceName: "CQKY_Kove800X",
+            isStreaming: true,
+            isBroadcasting: true,
+            logs: [
+                "[08:57:03.000] ✅ BLE Handshake active!",
+                "[08:57:04.200] 📺 TCP Video stream connected.",
+                "[08:57:06.100] 📺 Broadcast Extension connected. Suspending in-app capture & streaming entire screen..."
+            ]
+        ),
+        currentWifiSSID: "CQKY_Kove800X"
+    )
+}
+
+struct ConnectionStatusView_Previews: PreviewProvider {
+    static var previews: some View {
+        Group {
+            ConnectionStatusView(
+                bleController: .preview(
+                    state: .disconnected,
+                    logs: ["[08:57:00.120] 🔴 Bluetooth is disconnected."]
+                )
+            )
+            .previewDisplayName("Disconnected")
+
+            ConnectionStatusView(
+                bleController: .preview(
+                    state: .scanning,
+                    logs: ["[08:57:01.050] 🔍 Scanning for Kove TFT services..."]
+                )
+            )
+            .previewDisplayName("Scanning")
+
+            ConnectionStatusView(
+                bleController: .preview(
+                    state: .connecting,
+                    deviceName: "CQKY_Kove800X",
+                    logs: ["[08:57:02.150] 🔌 Connecting to CQKY_Kove800X..."]
+                )
+            )
+            .previewDisplayName("Connecting")
+
+            ConnectionStatusView(
+                bleController: .preview(
+                    state: .connected,
+                    deviceName: "CQKY_Kove800X",
+                    logs: ["[08:57:03.100] ⚠️ Connected Wi-Fi ('Home_WiFi') does not match motorcycle AP."]
+                ),
+                currentWifiSSID: "Home_WiFi"
+            )
+            .previewDisplayName("Wi-Fi Mismatch")
+
+            ConnectionStatusView(
+                bleController: .preview(
+                    state: .connected,
+                    deviceName: "CQKY_Kove800X",
+                    logs: ["[08:57:03.000] ✅ BLE Handshake active!"]
+                ),
+                currentWifiSSID: "CQKY_Kove800X"
+            )
+            .previewDisplayName("Connected & Ready")
+
+            ConnectionStatusView(
+                bleController: .preview(
+                    state: .connected,
+                    deviceName: "CQKY_Kove800X",
+                    isStreaming: true,
+                    isBroadcasting: false,
+                    logs: ["[08:57:04.250] 📺 Starting local in-app screen capture..."]
+                ),
+                currentWifiSSID: "CQKY_Kove800X"
+            )
+            .previewDisplayName("Streaming (In-App)")
+
+            ConnectionStatusView(
+                bleController: .preview(
+                    state: .connected,
+                    deviceName: "CQKY_Kove800X",
+                    isStreaming: true,
+                    isBroadcasting: true,
+                    logs: ["[08:57:06.100] 📺 Broadcast Extension connected."]
+                ),
+                currentWifiSSID: "CQKY_Kove800X"
+            )
+            .previewDisplayName("Streaming (System Broadcast)")
+        }
+    }
+}
+

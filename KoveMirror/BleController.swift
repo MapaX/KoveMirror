@@ -84,12 +84,26 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         }
     }
     
+    let isPreview: Bool
+    
     override init() {
+        self.isPreview = false
         super.init()
         centralManager = CBCentralManager(delegate: self, queue: nil, options: [CBCentralManagerOptionRestoreIdentifierKey: "KoveMirrorRestoreID"])
         locationManager.requestWhenInUseAuthorization()
         setupLocalConnectionCallback()
         checkLogFileSizeLimit()
+    }
+    
+    init(isPreview: Bool) {
+        self.isPreview = isPreview
+        super.init()
+        if !isPreview {
+            centralManager = CBCentralManager(delegate: self, queue: nil, options: [CBCentralManagerOptionRestoreIdentifierKey: "KoveMirrorRestoreID"])
+            locationManager.requestWhenInUseAuthorization()
+            setupLocalConnectionCallback()
+            checkLogFileSizeLimit()
+        }
     }
     
     private func setupLocalConnectionCallback() {
@@ -180,6 +194,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     // MARK: - CBCentralManagerDelegate
     
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
+        guard !isPreview else { return }
         switch central.state {
         case .poweredOn:
             log("🟢 Bluetooth is ON.")
@@ -477,3 +492,23 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         return df.string(from: Date())
     }
 }
+
+// MARK: - Preview Helpers
+extension BleController {
+    static func preview(
+        state: BleState = .disconnected,
+        deviceName: String? = nil,
+        isStreaming: Bool = false,
+        isBroadcasting: Bool = false,
+        logs: [String] = []
+    ) -> BleController {
+        let controller = BleController(isPreview: true)
+        controller.connectionState = state
+        controller.connectedDeviceName = deviceName
+        controller.isStreaming = isStreaming
+        controller.isBroadcasting = isBroadcasting
+        controller.logMessages = logs
+        return controller
+    }
+}
+
