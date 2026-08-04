@@ -31,303 +31,38 @@ struct ConnectionStatusView: View {
                 .ignoresSafeArea()
                 
                 VStack(spacing: 24) {
-                    
                     // Header Status card
-                    VStack(spacing: 8) {
-                        Image(systemName: "motorcycle.fill")
-                            .font(.system(size: 64))
-                            .foregroundColor(statusColor)
-                            .shadow(color: statusColor.opacity(0.3), radius: 10, x: 0, y: 5)
-                            .padding(.bottom, 8)
-                        
-                        Text("Kove Mirror")
-                            .font(.title)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                        
-                        HStack(spacing: 10) {
-                            if bleController.connectionState == .scanning || bleController.connectionState == .connecting {
-                                ProgressView()
-                                    .tint(statusColor)
-                                    .controlSize(.small)
-                            }
-                            
-                            Text(LocalizedStringKey(bleController.connectionState.rawValue))
-                                .font(.headline)
-                                .foregroundColor(statusColor)
-                        }
-                    }
-                    .padding(.vertical, 24)
-                    .frame(maxWidth: .infinity)
-                    .background(Color.white.opacity(0.05))
-                    .cornerRadius(20)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(statusColor.opacity(0.2), lineWidth: 1)
+                    HeaderStatusCard(
+                        connectionState: bleController.connectionState,
+                        statusColor: statusColor
                     )
-                    .padding(.horizontal)
                     
-                    // Wi-Fi Connection Status Card (Reactive Validation Info)
+                    // Wi-Fi Connection Status Card
                     if let targetSSID = bleController.connectedDeviceName {
-                        HStack(spacing: 12) {
-                            Image(systemName: isWifiCorrect ? "wifi" : "wifi.exclamationmark")
-                                .font(.title3)
-                                .foregroundColor(isWifiCorrect ? .green : .orange)
-                            
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(isWifiCorrect ? "Connected to Motorcycle Wi-Fi" : "Wi-Fi Mismatch Warning")
-                                    .font(.subheadline)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                                Text(isWifiCorrect ? "Ready to mirror screen." : "Please connect to Wi-Fi '\(targetSSID)'.")
-                                    .font(.caption)
-                                    .foregroundColor(.white.opacity(0.6))
-                            }
-                            
-                            Spacer()
-                            
-                            if !isWifiCorrect {
-                                Button("Scan QR") {
-                                    showScanner = true
-                                }
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(Color.orange.opacity(0.2))
-                                .cornerRadius(8)
-                                .foregroundColor(.orange)
-                            }
-                        }
-                        .padding()
-                        .background(Color.white.opacity(0.03))
-                        .cornerRadius(12)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(isWifiCorrect ? Color.green.opacity(0.2) : Color.orange.opacity(0.3), lineWidth: 1)
+                        WifiStatusCard(
+                            targetSSID: targetSSID,
+                            isWifiCorrect: isWifiCorrect,
+                            onScanQR: { showScanner = true }
                         )
-                        .padding(.horizontal)
                     }
                     
                     // Control Actions card
-                    VStack(spacing: 16) {
-                        if bleController.connectionState == .disconnected {
-                            Button(action: {
-                                bleController.startScanning()
-                            }) {
-                                HStack {
-                                    Image(systemName: "play.fill")
-                                    Text("Connect BLE")
-                                }
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(Color(hex: "2E7D32"))
-                                .cornerRadius(12)
-                            }
-                        }
-                        
-                        if bleController.connectionState == .connected {
-                            if bleController.isStreaming {
-                                VStack(spacing: 12) {
-                                    Button(action: {
-                                        bleController.stopMirroring()
-                                    }) {
-                                        HStack {
-                                            Image(systemName: "tv.and.mediabox.fill.slash")
-                                            Text("Stop Mirroring")
-                                        }
-                                        .font(.headline)
-                                        .foregroundColor(.white)
-                                        .padding()
-                                        .frame(maxWidth: .infinity)
-                                        .background(
-                                            LinearGradient(
-                                                gradient: Gradient(colors: [Color(hex: "C62828"), Color(hex: "B71C1C")]),
-                                                startPoint: .leading,
-                                                endPoint: .trailing
-                                            )
-                                        )
-                                        .cornerRadius(12)
-                                    }
-                                    .shadow(color: Color(hex: "C62828").opacity(0.3), radius: 8)
-                                    .padding(.top, 4)
-                                    
-                                    if !bleController.isBroadcasting {
-                                        Button(action: {
-                                            NotificationCenter.default.post(name: NSNotification.Name("TriggerBroadcastPicker"), object: nil)
-                                        }) {
-                                            HStack {
-                                                Image(systemName: "square.and.arrow.up")
-                                                Text("Broadcast Entire Screen")
-                                            }
-                                            .font(.headline)
-                                            .foregroundColor(.white)
-                                            .padding()
-                                            .frame(maxWidth: .infinity)
-                                            .background(
-                                                LinearGradient(
-                                                    gradient: Gradient(colors: [Color.blue, Color.blue.opacity(0.8)]),
-                                                    startPoint: .leading,
-                                                    endPoint: .trailing
-                                                )
-                                            )
-                                            .cornerRadius(12)
-                                        }
-                                        .shadow(color: Color.blue.opacity(0.3), radius: 8)
-                                    }
-                                }
-                            } else if isWifiCorrect {
-                                VStack(spacing: 12) {
-                                    ProgressView()
-                                        .progressViewStyle(CircularProgressViewStyle(tint: .blue))
-                                        .scaleEffect(1.2)
-                                        .padding(.top, 8)
-                                    
-                                    Text("Waiting for TFT to connect...")
-                                        .font(.subheadline)
-                                        .foregroundColor(.white.opacity(0.7))
-                                        .fontWeight(.semibold)
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.white.opacity(0.02))
-                                .cornerRadius(12)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color.white.opacity(0.05), lineWidth: 1)
-                                )
-                                .padding(.top, 4)
-                            }
-                        }
-                        
-                        
-                        // Screen Streaming Status Card
-                        if bleController.isStreaming {
-                            HStack(spacing: 12) {
-                                Image(systemName: "tv.and.mediabox.fill")
-                                    .font(.title2)
-                                    .foregroundColor(.green)
-                                    .opacity(isPulsing ? 1.0 : 0.4)
-                                    .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isPulsing)
-                                
-                                Text("SCREEN STREAMING IS ACTIVE")
-                                    .font(.subheadline)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                                
-                                Spacer()
-                                
-                                Circle()
-                                    .fill(Color.green)
-                                    .frame(width: 8, height: 8)
-                                    .shadow(color: .green, radius: 4)
-                            }
-                            .padding()
-                            .frame(height: 50)
-                            .background(Color.green.opacity(0.1))
-                            .cornerRadius(12)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color.green.opacity(0.3), lineWidth: 1.5)
-                            )
-                            .onAppear {
-                                isPulsing = true
-                            }
-                        } else {
-                            HStack(spacing: 12) {
-                                Image(systemName: "tv.and.mediabox")
-                                    .font(.title3)
-                                    .foregroundColor(.gray)
-                                
-                                Text("Mirroring Offline")
-                                    .font(.subheadline)
-                                    .foregroundColor(.white.opacity(0.4))
-                                
-                                Spacer()
-                            }
-                            .padding()
-                            .frame(height: 50)
-                            .background(Color.white.opacity(0.02))
-                            .cornerRadius(12)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                            )
-                        }
-                    }
-                    .padding(.horizontal)
+                    ControlActionsCard(
+                        bleController: bleController,
+                        isWifiCorrect: isWifiCorrect,
+                        isPulsing: $isPulsing
+                    )
                     
                     // Instruction Section
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Instructions:")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.white.opacity(0.8))
-                        
-                        Text("1. Connect your iPhone to the motorcycle's Bluetooth network.")
-                            .font(.caption)
-                            .foregroundColor(.white.opacity(0.6))
-                        
-                        Text("2. Connect your iPhone to the motorcycle's Wi-Fi network.")
-                            .font(.caption)
-                            .foregroundColor(.white.opacity(0.6))
-                        
-                        Text("3. Long press SET button from motorcycle handlebar, and select 'Sceen navigation'")
-                            .font(.caption)
-                            .foregroundColor(.white.opacity(0.6))
-                        
-                        Text("4. Your screen will automatically project to the TFT screen.")
-                            .font(.caption)
-                            .foregroundColor(.white.opacity(0.6))
-                        Text("5. After the phone screen is visible, press the 'Broadcast Entire Screen' button to start whole phone mirroring.")
-                            .font(.caption)
-                            .foregroundColor(.white.opacity(0.6))
-                    }
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color.white.opacity(0.02))
-                    .cornerRadius(12)
-                    .padding(.horizontal)
+                    InstructionsCard()
                     
                     // Logger terminal
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Event Log:")
-                            .font(.caption)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white.opacity(0.6))
-                            .padding(.horizontal)
-                        
-                        ScrollView {
-                            LazyVStack(alignment: .leading, spacing: 6) {
-                                ForEach(bleController.logMessages, id: \.self) { msg in
-                                    Text(msg)
-                                        .font(.system(.caption, design: .monospaced))
-                                        .foregroundColor(msg.contains("❌") ? .red : (msg.contains("🟢") || msg.contains("✅") ? .green : .white.opacity(0.8)))
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                }
-                            }
-                            .padding()
-                        }
-                        .frame(maxHeight: 180)
-                        .background(Color.black.opacity(0.4))
-                        .cornerRadius(12)
-                        .padding(.horizontal)
-                    }
+                    EventLogTerminal(logMessages: bleController.logMessages)
                     
-                    Button(action: {
+                    // About Button
+                    AboutButton {
                         showAboutSheet = true
-                    }) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "info.circle.fill")
-                            Text("About Kove Mirror")
-                        }
-                        .font(.footnote)
-                        .foregroundColor(.blue.opacity(0.8))
-                        .padding(.vertical, 8)
                     }
-                    .padding(.bottom, 8)
                     
                     Spacer()
                 }
@@ -486,6 +221,334 @@ struct HiddenBroadcastPicker: UIViewRepresentable {
     }
 }
 
+// MARK: - Component Subviews
+
+struct HeaderStatusCard: View {
+    let connectionState: BleState
+    let statusColor: Color
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "motorcycle.fill")
+                .font(.system(size: 64))
+                .foregroundColor(statusColor)
+                .shadow(color: statusColor.opacity(0.3), radius: 10, x: 0, y: 5)
+                .padding(.bottom, 8)
+            
+            Text("Kove Mirror")
+                .font(.title)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+            
+            HStack(spacing: 10) {
+                if connectionState == .scanning || connectionState == .connecting {
+                    ProgressView()
+                        .tint(statusColor)
+                        .controlSize(.small)
+                }
+                
+                Text(LocalizedStringKey(connectionState.rawValue))
+                    .font(.headline)
+                    .foregroundColor(statusColor)
+            }
+        }
+        .padding(.vertical, 24)
+        .frame(maxWidth: .infinity)
+        .background(Color.white.opacity(0.05))
+        .cornerRadius(20)
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(statusColor.opacity(0.2), lineWidth: 1)
+        )
+        .padding(.horizontal)
+    }
+}
+
+struct WifiStatusCard: View {
+    let targetSSID: String
+    let isWifiCorrect: Bool
+    let onScanQR: () -> Void
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: isWifiCorrect ? "wifi" : "wifi.exclamationmark")
+                .font(.title3)
+                .foregroundColor(isWifiCorrect ? .green : .orange)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(isWifiCorrect ? "Connected to Motorcycle Wi-Fi" : "Wi-Fi Mismatch Warning")
+                    .font(.subheadline)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                Text(isWifiCorrect ? "Ready to mirror screen." : "Please connect to Wi-Fi '\(targetSSID)'.")
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.6))
+            }
+            
+            Spacer()
+            
+            if !isWifiCorrect {
+                Button("Scan QR") {
+                    onScanQR()
+                }
+                .font(.caption)
+                .fontWeight(.semibold)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(Color.orange.opacity(0.2))
+                .cornerRadius(8)
+                .foregroundColor(.orange)
+            }
+        }
+        .padding()
+        .background(Color.white.opacity(0.03))
+        .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(isWifiCorrect ? Color.green.opacity(0.2) : Color.orange.opacity(0.3), lineWidth: 1)
+        )
+        .padding(.horizontal)
+    }
+}
+
+struct ControlActionsCard: View {
+    @ObservedObject var bleController: BleController
+    let isWifiCorrect: Bool
+    @Binding var isPulsing: Bool
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            if bleController.connectionState == .disconnected {
+                Button(action: {
+                    bleController.startScanning()
+                }) {
+                    HStack {
+                        Image(systemName: "play.fill")
+                        Text("Connect BLE")
+                    }
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color(hex: "2E7D32"))
+                    .cornerRadius(12)
+                }
+            }
+            
+            if bleController.isStreaming {
+                VStack(spacing: 12) {
+                    Button(action: {
+                        bleController.stopMirroring()
+                    }) {
+                        HStack {
+                            Image(systemName: "tv.and.mediabox.fill.slash")
+                            Text("Stop Mirroring")
+                        }
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(
+                            LinearGradient(
+                                gradient: Gradient(colors: [Color(hex: "C62828"), Color(hex: "B71C1C")]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(12)
+                    }
+                    .shadow(color: Color(hex: "C62828").opacity(0.3), radius: 8)
+                    .padding(.top, 4)
+                    
+                    if !bleController.isBroadcasting {
+                        Button(action: {
+                            NotificationCenter.default.post(name: NSNotification.Name("TriggerBroadcastPicker"), object: nil)
+                        }) {
+                            HStack {
+                                Image(systemName: "square.and.arrow.up")
+                                Text("Broadcast Entire Screen")
+                            }
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [Color.blue, Color.blue.opacity(0.8)]),
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .cornerRadius(12)
+                        }
+                        .shadow(color: Color.blue.opacity(0.3), radius: 8)
+                    }
+                }
+            } else if isWifiCorrect {
+                VStack(spacing: 12) {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .blue))
+                        .scaleEffect(1.2)
+                        .padding(.top, 8)
+                    
+                    Text("Waiting for TFT to connect...")
+                        .font(.subheadline)
+                        .foregroundColor(.white.opacity(0.7))
+                        .fontWeight(.semibold)
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.white.opacity(0.02))
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.white.opacity(0.05), lineWidth: 1)
+                )
+                .padding(.top, 4)
+            }
+            
+            
+            // Screen Streaming Status Card
+            if bleController.isStreaming {
+                HStack(spacing: 12) {
+                    Image(systemName: "tv.and.mediabox.fill")
+                        .font(.title2)
+                        .foregroundColor(.green)
+                        .opacity(isPulsing ? 1.0 : 0.4)
+                        .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isPulsing)
+                    
+                    Text("SCREEN STREAMING IS ACTIVE")
+                        .font(.subheadline)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                    
+                    Spacer()
+                    
+                    Circle()
+                        .fill(Color.green)
+                        .frame(width: 8, height: 8)
+                        .shadow(color: .green, radius: 4)
+                }
+                .padding()
+                .frame(height: 50)
+                .background(Color.green.opacity(0.1))
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.green.opacity(0.3), lineWidth: 1.5)
+                )
+                .onAppear {
+                    isPulsing = true
+                }
+            } else {
+                HStack(spacing: 12) {
+                    Image(systemName: "tv.and.mediabox")
+                        .font(.title3)
+                        .foregroundColor(.gray)
+                    
+                    Text("Mirroring Offline")
+                        .font(.subheadline)
+                        .foregroundColor(.white.opacity(0.4))
+                    
+                    Spacer()
+                }
+                .padding()
+                .frame(height: 50)
+                .background(Color.white.opacity(0.02))
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                )
+            }
+        }
+        .padding(.horizontal)
+    }
+}
+
+struct InstructionsCard: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Instructions:")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundColor(.white.opacity(0.8))
+            
+            Text("1. Connect your iPhone to the motorcycle's Bluetooth network.")
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.6))
+            
+            Text("2. Connect your iPhone to the motorcycle's Wi-Fi network.")
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.6))
+            
+            Text("3. Long press SET button from motorcycle handlebar, and select 'Sceen navigation'")
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.6))
+            
+            Text("4. Your screen will automatically project to the TFT screen.")
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.6))
+            
+            Text("5. After the phone screen is visible, press the 'Broadcast Entire Screen' button to start whole phone mirroring.")
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.6))
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.white.opacity(0.02))
+        .cornerRadius(12)
+        .padding(.horizontal)
+    }
+}
+
+struct EventLogTerminal: View {
+    let logMessages: [String]
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Event Log:")
+                .font(.caption)
+                .fontWeight(.bold)
+                .foregroundColor(.white.opacity(0.6))
+                .padding(.horizontal)
+            
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 6) {
+                    ForEach(logMessages, id: \.self) { msg in
+                        Text(msg)
+                            .font(.system(.caption, design: .monospaced))
+                            .foregroundColor(msg.contains("❌") ? .red : (msg.contains("🟢") || msg.contains("✅") ? .green : .white.opacity(0.8)))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+                .padding()
+            }
+            .frame(maxHeight: 180)
+            .background(Color.black.opacity(0.4))
+            .cornerRadius(12)
+            .padding(.horizontal)
+        }
+    }
+}
+
+struct AboutButton: View {
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                Image(systemName: "info.circle.fill")
+                Text("About Kove Mirror")
+            }
+            .font(.footnote)
+            .foregroundColor(.blue.opacity(0.8))
+            .padding(.vertical, 8)
+        }
+        .padding(.bottom, 8)
+    }
+}
+
 // MARK: - SwiftUI Previews
 
 #Preview("1. Disconnected") {
@@ -603,7 +666,7 @@ struct ConnectionStatusView_Previews: PreviewProvider {
                 )
             )
             .previewDisplayName("Disconnected")
-
+            
             ConnectionStatusView(
                 bleController: .preview(
                     state: .scanning,
@@ -611,7 +674,7 @@ struct ConnectionStatusView_Previews: PreviewProvider {
                 )
             )
             .previewDisplayName("Scanning")
-
+            
             ConnectionStatusView(
                 bleController: .preview(
                     state: .connecting,
@@ -620,7 +683,7 @@ struct ConnectionStatusView_Previews: PreviewProvider {
                 )
             )
             .previewDisplayName("Connecting")
-
+            
             ConnectionStatusView(
                 bleController: .preview(
                     state: .connected,
@@ -630,7 +693,7 @@ struct ConnectionStatusView_Previews: PreviewProvider {
                 currentWifiSSID: "Home_WiFi"
             )
             .previewDisplayName("Wi-Fi Mismatch")
-
+            
             ConnectionStatusView(
                 bleController: .preview(
                     state: .connected,
@@ -640,7 +703,7 @@ struct ConnectionStatusView_Previews: PreviewProvider {
                 currentWifiSSID: "CQKY_Kove800X"
             )
             .previewDisplayName("Connected & Ready")
-
+            
             ConnectionStatusView(
                 bleController: .preview(
                     state: .connected,
@@ -652,7 +715,7 @@ struct ConnectionStatusView_Previews: PreviewProvider {
                 currentWifiSSID: "CQKY_Kove800X"
             )
             .previewDisplayName("Streaming (In-App)")
-
+            
             ConnectionStatusView(
                 bleController: .preview(
                     state: .connected,

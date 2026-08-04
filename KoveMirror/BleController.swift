@@ -437,15 +437,32 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
             if let text = String(data: data, encoding: .utf8) {
                 log("📥 TFT -> BLE: \(text)")
                 
-                // Parse for send_pairresult confirmation
-                if let jsonData = text.data(using: .utf8),
-                   let json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] {
-                    if let msgId = json["msg_id"] as? Int, msgId == 27,
-                       let act = json["act"] as? String, act == "send_pairresult",
-                       let result = json["result"] as? Int, result == 1 {
-                        log("✅ BLE pairing confirmed by TFT (send_pairresult=1)! Automatically starting mirroring.")
-                        startMirroring()
+                // Parse for send_pairresult confirmation (supporting concatenated JSON payloads)
+                var pairingConfirmed = false
+                
+                if text.contains("send_pairresult") && (text.contains("\"result\":1") || text.contains("\"result\": 1")) {
+                    pairingConfirmed = true
+                } else {
+                    let sanitizedText = text.replacingOccurrences(of: "}{", with: "}\n{")
+                    let lines = sanitizedText.components(separatedBy: "\n")
+                    for line in lines {
+                        guard let jsonData = line.trimmingCharacters(in: .whitespacesAndNewlines).data(using: .utf8),
+                              let json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else {
+                            continue
+                        }
+                        
+                        if let msgId = json["msg_id"] as? Int, msgId == 27,
+                           let act = json["act"] as? String, act == "send_pairresult",
+                           let result = json["result"] as? Int, result == 1 {
+                            pairingConfirmed = true
+                            break
+                        }
                     }
+                }
+                
+                if pairingConfirmed {
+                    log("✅ BLE pairing confirmed by TFT (send_pairresult=1)! Automatically starting mirroring.")
+                    startMirroring()
                 }
             } else {
                 log("📥 TFT -> BLE (Binary): \(data.map { String(format: "%02X", $0) }.joined(separator: " "))")
