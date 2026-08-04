@@ -9,9 +9,19 @@ import SwiftUI
 
 @main
 struct KoveMirrorApp: App {
+    @AppStorage("enableProximitySensor") private var enableProximitySensor = false
+    
+    init() {
+        let enabled = UserDefaults.standard.bool(forKey: "enableProximitySensor")
+        UIDevice.current.isProximityMonitoringEnabled = enabled
+    }
+    
     var body: some Scene {
         WindowGroup {
             ConnectionStatusView()
+                .onAppear {
+                    UIDevice.current.isProximityMonitoringEnabled = enableProximitySensor
+                }
         }
     }
 }

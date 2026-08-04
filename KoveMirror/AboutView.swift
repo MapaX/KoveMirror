@@ -3,6 +3,7 @@ import SwiftUI
 struct AboutView: View {
     @Environment(\.dismiss) var dismiss
     @AppStorage("enableFileLogging") var enableFileLogging = false
+    @AppStorage("enableProximitySensor") var enableProximitySensor = false
     @State private var showShareSheet = false
     @State private var isLogFileAvailable = false
     
@@ -65,6 +66,47 @@ struct AboutView: View {
                                 .font(.footnote)
                                 .foregroundColor(.white.opacity(0.5))
                         }
+                        
+                        // Settings Card (Proximity Sensor)
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("Settings")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                            
+                            Toggle(isOn: $enableProximitySensor) {
+                                HStack(spacing: 12) {
+                                    Image(systemName: "sensor.fill")
+                                        .font(.system(size: 16, weight: .bold))
+                                        .foregroundColor(.orange)
+                                        .frame(width: 24, height: 24)
+                                        .background(Color.orange.opacity(0.1))
+                                        .cornerRadius(6)
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Proximity Screen Dimming")
+                                            .font(.subheadline)
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(.white)
+                                        Text("Turns off screen and disables touch when phone is placed in a pocket or near ear.")
+                                            .font(.caption)
+                                            .foregroundColor(.white.opacity(0.6))
+                                            .lineLimit(nil)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    }
+                                }
+                            }
+                            .toggleStyle(SwitchToggleStyle(tint: .orange))
+                            .onChange(of: enableProximitySensor) { newValue in
+                                UIDevice.current.isProximityMonitoringEnabled = newValue
+                            }
+                        }
+                        .padding()
+                        .background(Color.white.opacity(0.03))
+                        .cornerRadius(16)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.white.opacity(0.05), lineWidth: 1)
+                        )
+                        .padding(.horizontal)
                         
                         // Technical Description Card
                         VStack(alignment: .leading, spacing: 16) {

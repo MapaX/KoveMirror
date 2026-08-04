@@ -375,6 +375,7 @@
 				de,
 				es,
 				el,
+				it,
 				Base,
 			);
 			mainGroup = 302F1C2B300F4FE600E78C3F;
