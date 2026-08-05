@@ -1855,6 +1855,111 @@
           }
         }
       }
+    },
+    "Bluetooth is Turned Off": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bluetooth ist ausgeschaltet"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To Bluetooth είναι απενεργοποιημένο"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El Bluetooth está desactivado"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bluetooth on pois päältä"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il Bluetooth è disattivato"
+          }
+        }
+      }
+    },
+    "Open Settings": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen öffnen"
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Άνοιγμα ρυθμίσεων"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir Ajustes"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avaa Asetukset"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri Impostazioni"
+          }
+        }
+      }
+    },
+    "Bluetooth must be turned on to connect to your motorcycle's TFT display.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bluetooth muss eingeschaltet sein, um eine Verbindung zum TFT-Display des Motorrads herzustellen."
+          }
+        },
+        "el": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Το Bluetooth πρέπει να είναι ενεργοποιημένο για να συνδεθείτε στην οθόνη TFT της μοτοσυκλέτας."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El Bluetooth debe estar activado para conectarse a la pantalla TFT de la motocicleta."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bluetoothin on oltava päällä moottoripyörän TFT-näyttöön yhdistämiseksi."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il Bluetooth deve essere attivo per connettersi al display TFT della moto."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

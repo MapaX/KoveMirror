@@ -79,6 +79,18 @@ struct ConnectionStatusView: View {
         .sheet(isPresented: $showAboutSheet) {
             AboutView()
         }
+        .alert("Bluetooth is Turned Off", isPresented: $bleController.isBluetoothPoweredOff) {
+            Button("Open Settings") {
+                if let url = URL(string: "App-Prefs:root=Bluetooth"), UIApplication.shared.canOpenURL(url) {
+                    UIApplication.shared.open(url)
+                } else if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Bluetooth must be turned on to connect to your motorcycle's TFT display.")
+        }
         .onAppear {
             guard !bleController.isPreview else { return }
             updateCurrentWifiSSID()

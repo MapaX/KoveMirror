@@ -18,6 +18,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     @Published var isStreaming = false
     
     @Published var isBroadcasting = false
+    @Published var isBluetoothPoweredOff = false
     
     private var centralManager: CBCentralManager!
     private var targetPeripheral: CBPeripheral?
@@ -197,6 +198,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         guard !isPreview else { return }
         switch central.state {
         case .poweredOn:
+            isBluetoothPoweredOff = false
             log("🟢 Bluetooth is ON.")
             startTcpServers()
             // If the saved peripheral is ALREADY connected at the OS level, use it directly
@@ -216,6 +218,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
             // Always start a fresh over-the-air scan to connect to the active advertising TFT immediately
             startScanning()
         case .poweredOff:
+            isBluetoothPoweredOff = true
             log("🔴 Bluetooth is OFF.")
             connectionState = .disconnected
         case .unauthorized:
