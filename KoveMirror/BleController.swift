@@ -199,18 +199,21 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         case .poweredOn:
             log("🟢 Bluetooth is ON.")
             startTcpServers()
-            // Try to reconnect if we have a saved peripheral UUID
+            // If the saved peripheral is ALREADY connected at the OS level, use it directly
             if let savedUuidString = UserDefaults(suiteName: appGroupSuiteName)?.string(forKey: "last_ble_uuid"),
                let uuid = UUID(uuidString: savedUuidString) {
                 let peripherals = central.retrievePeripherals(withIdentifiers: [uuid])
-                if let savedPeripheral = peripherals.first {
-                    log("🔄 Found saved device, connecting...")
+                if let savedPeripheral = peripherals.first, savedPeripheral.state == .connected {
+                    log("🔄 Reusing already connected device: \(savedPeripheral.name ?? "TFT Device")")
                     targetPeripheral = savedPeripheral
-                    connectionState = .connecting
-                    central.connect(savedPeripheral, options: nil)
+                    savedPeripheral.delegate = self
+                    connectionState = .connected
+                    connectedDeviceName = savedPeripheral.name
+                    savedPeripheral.discoverServices([serviceUUID])
                     return
                 }
             }
+            // Always start a fresh over-the-air scan to connect to the active advertising TFT immediately
             startScanning()
         case .poweredOff:
             log("🔴 Bluetooth is OFF.")
