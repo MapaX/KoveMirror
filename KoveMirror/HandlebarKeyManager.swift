@@ -42,25 +42,38 @@ class HandlebarKeyManager: ObservableObject {
             let funcName = (json["func"] as? String)?.uppercased() ?? ""
             let actName = (json["act"] as? String)?.lowercased() ?? ""
             
-            let isMusicOrKey = funcName == "MUSIC" || funcName == "KEY" || funcName == "MEDIA"
-            let isControlOrKey = actName == "control" || actName == "key" || actName.isEmpty
+            let isMusicOrKey = funcName == "MUSIC" || funcName == "KEY" || funcName == "MEDIA" ||
+                               funcName == "MOTOR_SIGNAL" || funcName == "HANDLEBAR" ||
+                               funcName == "KEY_SIGNAL" || funcName == "NAVI_KEY" || funcName == "CONTROL"
             
-            if isMusicOrKey && isControlOrKey {
-                // Read status, key, or button property
-                let statusVal = json["status"] as? Int ?? json["key"] as? Int ?? json["button"] as? Int ?? -1
+            if isMusicOrKey {
+                var detectedKey: HandlebarKey? = nil
                 
-                let detectedKey: HandlebarKey?
-                switch statusVal {
-                case 0:
-                    detectedKey = .esc
-                case 1:
-                    detectedKey = .enter
-                case 2:
-                    detectedKey = .up
-                case 3:
-                    detectedKey = .down
-                default:
-                    detectedKey = nil
+                // Kove MOTOR_SIGNAL format: value = key code (2=UP, 3=DOWN, 1=ENTER, 0=ESC), status = 1 (pressed) / 0 (released)
+                if funcName == "MOTOR_SIGNAL" || actName == "send_signal" {
+                    let keyVal = json["value"] as? Int ?? json["status"] as? Int ?? -1
+                    let pressStatus = json["status"] as? Int ?? 1
+                    
+                    // Only dispatch key on press down (status == 1)
+                    if pressStatus == 1 || json["value"] != nil {
+                        switch keyVal {
+                        case 3: detectedKey = .down  // Zoom In
+                        case 2: detectedKey = .up    // Zoom Out
+                        case 1: detectedKey = .enter // Recenter
+                        case 0: detectedKey = .esc   // Back/Exit
+                        default: break
+                        }
+                    }
+                } else {
+                    // Standard MUSIC / KEY control format: status or key property
+                    let statusVal = json["status"] as? Int ?? json["key"] as? Int ?? json["button"] as? Int ?? json["value"] as? Int ?? -1
+                    switch statusVal {
+                    case 3: detectedKey = .down
+                    case 2: detectedKey = .up
+                    case 1: detectedKey = .enter
+                    case 0: detectedKey = .esc
+                    default: break
+                    }
                 }
                 
                 if let key = detectedKey {

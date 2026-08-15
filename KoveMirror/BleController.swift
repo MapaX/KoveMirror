@@ -178,8 +178,9 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         startTcpServers()
         
         connectionState = .scanning
-        log("🔍 Scanning for Kove TFT services (\(serviceUUID.uuidString))...")
-        centralManager.scanForPeripherals(withServices: [serviceUUID], options: nil)
+        log("🔍 Scanning for Kove TFT devices...")
+        // Scan for all peripherals to discover Kove TFTs whether they advertise service UUIDs or local device names
+        centralManager.scanForPeripherals(withServices: nil, options: [CBCentralManagerScanOptionAllowDuplicatesKey: false])
     }
     
     func disconnect() {
@@ -223,7 +224,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
                     savedPeripheral.delegate = self
                     connectionState = .connected
                     connectedDeviceName = savedPeripheral.name
-                    savedPeripheral.discoverServices([serviceUUID])
+                    savedPeripheral.discoverServices(nil)
                     return
                 }
             }
@@ -254,7 +255,19 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     }
     
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
-        log("📱 Discovered peripheral: \(peripheral.name ?? "Unknown") [RSSI: \(RSSI)]")
+        let name = peripheral.name ?? (advertisementData[CBAdvertisementDataLocalNameKey] as? String) ?? ""
+        let advertisedServices = advertisementData[CBAdvertisementDataServiceUUIDsKey] as? [CBUUID] ?? []
+        
+        let isKoveDevice = name.uppercased().contains("CQKY") ||
+                           name.uppercased().contains("KOVE") ||
+                           name.uppercased().contains("THINKER") ||
+                           name.uppercased().contains("TFT") ||
+                           advertisedServices.contains(where: { allSupportedServiceUUIDs.contains($0) })
+        
+        guard isKoveDevice else { return }
+        
+        let displayName = name.isEmpty ? "Kove TFT Device" : name
+        log("📱 Discovered peripheral: \(displayName) [RSSI: \(RSSI)]")
         targetPeripheral = peripheral
         
         // Save UUID to App Groups to share with the Extension
@@ -265,7 +278,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         
         connectionState = .connecting
         centralManager.stopScan()
-        log("🔌 Connecting to \(peripheral.name ?? "TFT Device")...")
+        log("🔌 Connecting to \(displayName)...")
         centralManager.connect(peripheral, options: nil)
     }
     
@@ -274,7 +287,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         connectionState = .connected
         connectedDeviceName = peripheral.name
         peripheral.delegate = self
-        peripheral.discoverServices([serviceUUID])
+        peripheral.discoverServices(nil)
     }
     
     func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
@@ -285,6 +298,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         clearWriteQueue()
+        TelemetrySyncManager.shared.stopSync()
         log("🔴 Disconnected: \(error?.localizedDescription ?? "Clean disconnect")")
         connectionState = .disconnected
         heartbeatTimer?.invalidate()
@@ -511,6 +525,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     
     private func sendInitHandshake() {
         log("📤 Sending initial BLE handshake sequence...")
+        TelemetrySyncManager.shared.startSync(bleController: self)
         
         let packets = [
             "{\"msg_id\":27,\"func\":\"PAIR\",\"act\":\"get_pairinfo\"}",

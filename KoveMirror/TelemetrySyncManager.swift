@@ -125,15 +125,24 @@ class TelemetrySyncManager: ObservableObject {
         let wCode = currentWeatherCode
         let speed = LocationAndNavigationManager.shared.currentSpeedKmH
         
-        // 1. Weather & Temperature Packet (msg_id: 8)
-        let weatherJson = "{\"msg_id\":8,\"weather\":\(wCode),\"temperature\":\"\(tempStr)\"}"
-        ble.sendJsonPacket(weatherJson)
+        let tempVal = currentTemperatureCelsius ?? 20
         
-        // 2. Location & Altitude Telemetry Packet (msg_id: 27, func: CAR_INFO)
+        // 1. Weather & Temperature Packets (msg_id: 8 and msg_id: 27 WEATHER)
+        let weatherJson1 = "{\"msg_id\":8,\"weather\":\(wCode),\"temperature\":\"\(tempStr)\"}"
+        let weatherJson2 = "{\"msg_id\":27,\"func\":\"WEATHER\",\"act\":\"send_weather_info\",\"weather\":\(wCode),\"temp\":\(tempVal),\"temp_unit\":0}"
+        ble.sendJsonPacket(weatherJson1)
+        ble.sendJsonPacket(weatherJson2)
+        
+        // 2. Location & Altitude Telemetry Packets (msg_id: 27 CAR_INFO and ALTITUDE)
         if let loc = LocationAndNavigationManager.shared.userLocation {
             let latStr = String(format: "%.5f", loc.coordinate.latitude)
             let lonStr = String(format: "%.5f", loc.coordinate.longitude)
-            let altJson = "{\"msg_id\":27,\"func\":\"CAR_INFO\",\"act\":\"set_location_info\",\"altitude\":\(alt),\"lat\":\(latStr),\"lon\":\(lonStr),\"speed\":\(speed)}"
+            let carInfoJson = "{\"msg_id\":27,\"func\":\"CAR_INFO\",\"act\":\"set_location_info\",\"altitude\":\(alt),\"lat\":\(latStr),\"lon\":\(lonStr),\"speed\":\(speed)}"
+            let altJson = "{\"msg_id\":27,\"func\":\"ALTITUDE\",\"act\":\"send_alt_info\",\"altitude\":\(alt)}"
+            ble.sendJsonPacket(carInfoJson)
+            ble.sendJsonPacket(altJson)
+        } else {
+            let altJson = "{\"msg_id\":27,\"func\":\"ALTITUDE\",\"act\":\"send_alt_info\",\"altitude\":\(alt)}"
             ble.sendJsonPacket(altJson)
         }
         
