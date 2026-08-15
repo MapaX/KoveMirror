@@ -1,6 +1,12 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%lld events" : {
+
+    },
+    "%lld log events recorded" : {
+
+    },
     "• Screen Visible & Stream Running" : {
 
     },
@@ -669,6 +675,12 @@
         }
       }
     },
+    "Copied!" : {
+
+    },
+    "Copy Log" : {
+
+    },
     "Delete" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -703,6 +715,9 @@
           }
         }
       }
+    },
+    "Diagnostic Terminal" : {
+
     },
     "Diagnostics" : {
       "extractionState" : "manual",
@@ -881,6 +896,9 @@
           }
         }
       }
+    },
+    "Event Log" : {
+
     },
     "Event Log:" : {
       "extractionState" : "manual",
@@ -1266,6 +1284,9 @@
           }
         }
       }
+    },
+    "No log events match your query." : {
+
     },
     "No log file available. Enable file logging above to generate logs." : {
       "extractionState" : "manual",
@@ -1655,6 +1676,9 @@
         }
       }
     },
+    "Search logs..." : {
+
+    },
     "Settings" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1867,6 +1891,9 @@
           }
         }
       }
+    },
+    "View Event Log" : {
+
     },
     "Waiting for TFT to connect..." : {
       "extractionState" : "manual",

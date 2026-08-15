@@ -8,6 +8,7 @@ struct ConnectionStatusView: View {
     @State private var isPulsing = false
     @State private var showScanner = false
     @State private var showAboutSheet = false
+    @State private var showLogSheet = false
     
     init(bleController: BleController = BleController(), currentWifiSSID: String? = nil) {
         self.bleController = bleController
@@ -56,8 +57,13 @@ struct ConnectionStatusView: View {
                     // Instruction Section
                     InstructionsCard()
                     
-                    // Logger terminal
-                    EventLogTerminal(logMessages: bleController.logMessages)
+                    // Event Log Button (opens dedicated EventLogView)
+                    EventLogCardButton(
+                        logCount: bleController.logMessages.count,
+                        latestLog: bleController.logMessages.first
+                    ) {
+                        showLogSheet = true
+                    }
                     
                     // About Button
                     AboutButton {
@@ -81,6 +87,9 @@ struct ConnectionStatusView: View {
         }
         .sheet(isPresented: $showAboutSheet) {
             AboutView()
+        }
+        .sheet(isPresented: $showLogSheet) {
+            EventLogView(bleController: bleController)
         }
         .alert("Bluetooth is Turned Off", isPresented: $bleController.isBluetoothPoweredOff) {
             Button("Open Settings") {
@@ -517,31 +526,57 @@ struct InstructionsCard: View {
     }
 }
 
-struct EventLogTerminal: View {
-    let logMessages: [String]
+struct EventLogCardButton: View {
+    let logCount: Int
+    let latestLog: String?
+    let action: () -> Void
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Event Log:")
-                .font(.caption)
-                .fontWeight(.bold)
-                .foregroundColor(.white.opacity(0.6))
-                .padding(.horizontal)
-            
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 6) {
-                    ForEach(logMessages, id: \.self) { msg in
-                        Text(msg)
-                            .font(.system(.caption, design: .monospaced))
-                            .foregroundColor(msg.contains("❌") ? .red : (msg.contains("🟢") || msg.contains("✅") ? .green : .white.opacity(0.8)))
-                            .frame(maxWidth: .infinity, alignment: .leading)
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: "terminal.fill")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.cyan)
+                    .frame(width: 32, height: 32)
+                    .background(Color.cyan.opacity(0.12))
+                    .cornerRadius(8)
+                
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack {
+                        Text("View Event Log")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                        Spacer()
+                        Text("\(logCount) events")
+                            .font(.caption2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.cyan)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(Color.cyan.opacity(0.15))
+                            .cornerRadius(6)
+                    }
+                    
+                    if let latest = latestLog {
+                        Text(latest)
+                            .font(.system(.caption2, design: .monospaced))
+                            .foregroundColor(.white.opacity(0.6))
+                            .lineLimit(1)
                     }
                 }
-                .padding()
+                
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(.white.opacity(0.3))
             }
-            .frame(maxHeight: 180)
-            .background(Color.black.opacity(0.4))
+            .padding(12)
+            .background(Color.white.opacity(0.04))
             .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.white.opacity(0.06), lineWidth: 1)
+            )
             .padding(.horizontal)
         }
     }
