@@ -71,7 +71,7 @@ struct DestinationSearchSheet: View {
                         
                         TextField("Search destination or address...", text: $query)
                             .foregroundColor(.white)
-                            .onChange(of: query) { newValue in
+                            .onChange(of: query) { oldValue, newValue in
                                 completerDelegate.search(query: newValue, region: userRegion)
                             }
                         

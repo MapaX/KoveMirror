@@ -1,10 +1,35 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "--°C" : {
+
+    },
+    "%@ • %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ • %2$@"
+          }
+        }
+      }
+    },
+    "%lld" : {
+
+    },
     "%lld events" : {
 
     },
     "%lld log events recorded" : {
+
+    },
+    "%lld m" : {
+
+    },
+    "%lld°C" : {
+
+    },
+    "%lldm" : {
 
     },
     "• Screen Visible & Stream Running" : {
@@ -289,6 +314,9 @@
           }
         }
       }
+    },
+    "Altitude" : {
+
     },
     "Automatically streams the in-app dashboard views. When you broadcast the entire screen, it seamlessly switches to the broadcast stream, falling back dynamically on exit." : {
       "extractionState" : "manual",
@@ -897,6 +925,9 @@
         }
       }
     },
+    "ETA %@" : {
+
+    },
     "Event Log" : {
 
     },
@@ -969,6 +1000,9 @@
           }
         }
       }
+    },
+    "Find Your Route" : {
+
     },
     "Hardware H.264 Encoder" : {
       "extractionState" : "manual",
@@ -1180,6 +1214,9 @@
         }
       }
     },
+    "KM/H" : {
+
+    },
     "Kove Mirror" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1214,6 +1251,9 @@
           }
         }
       }
+    },
+    "Kove Model / Screen Resolution" : {
+
     },
     "Launches local TCP/UDP socket servers. The motorcycle dashboard connects to your iPhone's hotspot or Wi-Fi to receive the high-fidelity video stream." : {
       "extractionState" : "manual",
@@ -1250,6 +1290,9 @@
         }
       }
     },
+    "Map & Navigation" : {
+
+    },
     "Mirroring Offline" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1284,6 +1327,9 @@
           }
         }
       }
+    },
+    "Navigation Error" : {
+
     },
     "No log events match your query." : {
 
@@ -1322,6 +1368,9 @@
           }
         }
       }
+    },
+    "OK" : {
+
     },
     "Open Settings" : {
       "extractionState" : "manual",
@@ -1676,7 +1725,19 @@
         }
       }
     },
+    "Search destination or address..." : {
+
+    },
     "Search logs..." : {
+
+    },
+    "Searching locations..." : {
+
+    },
+    "Select your motorcycle TFT screen profile for optimal streaming aspect ratio." : {
+
+    },
+    "Set Destination" : {
 
     },
     "Settings" : {
@@ -1752,6 +1813,9 @@
     "Smart Screen Dimming (Stream-Safe)" : {
 
     },
+    "START RIDING" : {
+
+    },
     "Stop Mirroring" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1787,6 +1851,15 @@
         }
       }
     },
+    "Temperature" : {
+
+    },
+    "TFT Resolution" : {
+
+    },
+    "Turn-by-turn routing for motorcycle TFT display" : {
+
+    },
     "Turns off screen and disables touch when phone is placed in a pocket or near ear." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1821,6 +1894,9 @@
           }
         }
       }
+    },
+    "Type an address, city, or choose a category above to set your destination for motorcycle navigation." : {
+
     },
     "Uses Apple's hardware-accelerated VideoToolbox engine to compress frames in real-time at the dashboard's native 600x1024 resolution with zero latency." : {
       "extractionState" : "manual",

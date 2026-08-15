@@ -134,7 +134,7 @@ struct AboutView: View {
                                 }
                             }
                             .toggleStyle(SwitchToggleStyle(tint: .orange))
-                            .onChange(of: enableProximitySensor) { newValue in
+                            .onChange(of: enableProximitySensor) { oldValue, newValue in
                                 UIDevice.current.isProximityMonitoringEnabled = false
                                 CameraProximityManager.shared.isEnabled = newValue
                             }
