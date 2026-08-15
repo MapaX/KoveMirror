@@ -9,6 +9,7 @@ struct ConnectionStatusView: View {
     @State private var showScanner = false
     @State private var showAboutSheet = false
     @State private var showLogSheet = false
+    @State private var showMapView = false
     
     init(bleController: BleController = BleController(), currentWifiSSID: String? = nil) {
         self.bleController = bleController
@@ -31,7 +32,7 @@ struct ConnectionStatusView: View {
                 )
                 .ignoresSafeArea()
                 
-                VStack(spacing: 24) {
+                VStack(spacing: 20) {
                     // Header Status card
                     HeaderStatusCard(
                         connectionState: bleController.connectionState,
@@ -53,6 +54,11 @@ struct ConnectionStatusView: View {
                         isWifiCorrect: isWifiCorrect,
                         isPulsing: $isPulsing
                     )
+                    
+                    // Map & Navigation Card Button
+                    MapNavigationCardButton {
+                        showMapView = true
+                    }
                     
                     // Instruction Section
                     InstructionsCard()
@@ -90,6 +96,9 @@ struct ConnectionStatusView: View {
         }
         .sheet(isPresented: $showLogSheet) {
             EventLogView(bleController: bleController)
+        }
+        .fullScreenCover(isPresented: $showMapView) {
+            MapView()
         }
         .alert("Bluetooth is Turned Off", isPresented: $bleController.isBluetoothPoweredOff) {
             Button("Open Settings") {
@@ -576,6 +585,53 @@ struct EventLogCardButton: View {
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(Color.white.opacity(0.06), lineWidth: 1)
+            )
+            .padding(.horizontal)
+        }
+    }
+}
+
+struct MapNavigationCardButton: View {
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 14) {
+                Image(systemName: "map.fill")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(.orange)
+                    .frame(width: 40, height: 40)
+                    .background(Color.orange.opacity(0.15))
+                    .cornerRadius(10)
+                
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Map & Navigation")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                    
+                    Text("Turn-by-turn routing for motorcycle TFT display")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.6))
+                }
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(.orange)
+            }
+            .padding(14)
+            .background(
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.orange.opacity(0.12), Color.white.opacity(0.03)]),
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+            .cornerRadius(14)
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(Color.orange.opacity(0.3), lineWidth: 1)
             )
             .padding(.horizontal)
         }

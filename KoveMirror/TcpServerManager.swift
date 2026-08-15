@@ -21,6 +21,7 @@ class TcpServerManager {
     private var videoFrameCount = 0
     
     var onLocalConnectionChanged: ((Bool) -> Void)?
+    var onControlPacketReceived: ((String) -> Void)?
     private var onVideoConnectCallback: (() -> Void)?
     
     func startServers(width: Int, height: Int, onVideoConnect: @escaping () -> Void) {
@@ -130,6 +131,7 @@ class TcpServerManager {
                 print("📥 Received control packet (\(data.count) bytes)")
                 if let str = String(data: data, encoding: .utf8) {
                     print("📥 Control packet content: \(str)")
+                    self?.onControlPacketReceived?(str)
                 } else {
                     print("📥 Control packet content (hex): \(data.map { String(format: "%02X", $0) }.joined(separator: " "))")
                 }

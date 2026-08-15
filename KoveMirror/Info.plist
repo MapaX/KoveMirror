@@ -14,5 +14,9 @@
 	<false/>
 	<key>NSCameraUsageDescription</key>
 	<string>Camera access is required for non-disruptive proximity detection to dim the screen without turning it off or interrupting video streaming.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Location access is required to display your position on the map and provide turn-by-turn navigation on your motorcycle dashboard.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Location access is required for background turn-by-turn navigation updates while riding.</string>
 </dict>
 </plist>

@@ -145,6 +145,11 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     
     func startTcpServers() {
         log("🔌 Starting TCP Servers in main app...")
+        
+        tcpServerManager.onControlPacketReceived = { text in
+            HandlebarKeyManager.shared.processJsonText(text)
+        }
+        
         tcpServerManager.startServers(width: 600, height: 1024) { [weak self] in
             guard let self = self else { return }
             self.log("📺 TCP Video stream connected.")
@@ -442,6 +447,9 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         if characteristic.uuid == notifyCharUUID, let data = characteristic.value {
             if let text = String(data: data, encoding: .utf8) {
                 log("📥 TFT -> BLE: \(text)")
+                
+                // Check for handlebar key press events over BLE
+                HandlebarKeyManager.shared.processJsonText(text)
                 
                 // Parse for send_pairresult confirmation (supporting concatenated JSON payloads)
                 var pairingConfirmed = false
