@@ -22,6 +22,7 @@ class TcpServerManager {
     
     var onLocalConnectionChanged: ((Bool) -> Void)?
     var onControlPacketReceived: ((String) -> Void)?
+    var onLog: ((String) -> Void)?
     private var onVideoConnectCallback: (() -> Void)?
     
     func startServers(width: Int, height: Int, onVideoConnect: @escaping () -> Void) {
@@ -120,6 +121,14 @@ class TcpServerManager {
         }))
     }
     
+    private func extractJsonText(from data: Data) -> String {
+        if let text = String(data: data, encoding: .utf8), text.contains("{") {
+            return text
+        }
+        let printableBytes = data.filter { ($0 >= 32 && $0 <= 126) || $0 == 10 || $0 == 13 || $0 == 9 }
+        return String(bytes: printableBytes, encoding: .ascii) ?? ""
+    }
+    
     private func readControlData(_ connection: NWConnection) {
         connection.receive(minimumIncompleteLength: 1, maximumLength: 4096) { [weak self] data, _, isComplete, error in
             if let error = error {
@@ -129,11 +138,16 @@ class TcpServerManager {
             
             if let data = data, !data.isEmpty {
                 print("📥 Received control packet (\(data.count) bytes)")
-                if let str = String(data: data, encoding: .utf8) {
-                    print("📥 Control packet content: \(str)")
-                    self?.onControlPacketReceived?(str)
+                let text = self?.extractJsonText(from: data) ?? ""
+                if !text.isEmpty && text.contains("{") {
+                    print("📥 Control packet content: \(text)")
+                    self?.onLog?("📥 TFT Control (Port 17818): \(text)")
+                    self?.onControlPacketReceived?(text)
                 } else {
-                    print("📥 Control packet content (hex): \(data.map { String(format: "%02X", $0) }.joined(separator: " "))")
+                    let hexStr = data.map { String(format: "%02X", $0) }.joined(separator: " ")
+                    print("📥 Control packet content (hex): [\(hexStr)] (\(data.count)B)")
+                    self?.onLog?("📥 TFT Control (Port 17818 Hex): [\(hexStr)] (\(data.count)B)")
+                    self?.onControlPacketReceived?(text)
                 }
                 
                 guard let self = self else { return }

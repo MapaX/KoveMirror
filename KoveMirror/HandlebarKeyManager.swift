@@ -1,9 +1,10 @@
 import Foundation
 import Combine
+import MediaPlayer
 
 enum HandlebarKey: String, CaseIterable {
-    case up = "UP (Zoom Out / Prev)"
-    case down = "DOWN (Zoom In / Next)"
+    case up = "UP (Zoom In / Prev)"
+    case down = "DOWN (Zoom Out / Next)"
     case enter = "ENTER (Recenter / Play)"
     case esc = "ESC (Back / Pause)"
 }
@@ -19,7 +20,48 @@ class HandlebarKeyManager: ObservableObject {
     
     var logCallback: ((String) -> Void)?
     
-    private init() {}
+    private init() {
+        setupRemoteCommandCenter()
+    }
+    
+    private func setupRemoteCommandCenter() {
+        let commandCenter = MPRemoteCommandCenter.shared()
+        
+        commandCenter.nextTrackCommand.isEnabled = true
+        commandCenter.nextTrackCommand.addTarget { [weak self] _ in
+            self?.logCallback?("🎮 Handlebar AVRCP Key: Next Track -> DOWN (Zoom Out)")
+            self?.dispatchKey(.down)
+            return .success
+        }
+        
+        commandCenter.previousTrackCommand.isEnabled = true
+        commandCenter.previousTrackCommand.addTarget { [weak self] _ in
+            self?.logCallback?("🎮 Handlebar AVRCP Key: Prev Track -> UP (Zoom In)")
+            self?.dispatchKey(.up)
+            return .success
+        }
+        
+        commandCenter.togglePlayPauseCommand.isEnabled = true
+        commandCenter.togglePlayPauseCommand.addTarget { [weak self] _ in
+            self?.logCallback?("🎮 Handlebar AVRCP Key: Play/Pause -> ENTER (Recenter)")
+            self?.dispatchKey(.enter)
+            return .success
+        }
+        
+        commandCenter.playCommand.isEnabled = true
+        commandCenter.playCommand.addTarget { [weak self] _ in
+            self?.logCallback?("🎮 Handlebar AVRCP Key: Play -> ENTER (Recenter)")
+            self?.dispatchKey(.enter)
+            return .success
+        }
+        
+        commandCenter.pauseCommand.isEnabled = true
+        commandCenter.pauseCommand.addTarget { [weak self] _ in
+            self?.logCallback?("🎮 Handlebar AVRCP Key: Pause -> ESC (Back)")
+            self?.dispatchKey(.esc)
+            return .success
+        }
+    }
     
     /// Parses incoming raw JSON text received from BLE notifications or TCP Port 17818
     /// Example: {"msg_id": 27, "func": "MUSIC", "act": "control", "status": 2}
@@ -43,50 +85,42 @@ class HandlebarKeyManager: ObservableObject {
             
             let funcName = (json["func"] as? String)?.uppercased() ?? ""
             let actName = (json["act"] as? String)?.lowercased() ?? ""
+            let msgId = json["msg_id"] as? Int ?? -1
+            let item = json["item"] as? Int ?? -1
+            
+            // Exclude periodic telemetry heartbeat packets (msg_id: 10 item: 4 or msg_id: 25 msg_type: 24)
+            let isTelemetryHeartbeat = (msgId == 10 && item == 4) || (msgId == 25 && json["msg_type"] as? Int == 24)
             
             let isMusicOrKey = funcName == "MUSIC" || funcName == "KEY" || funcName == "MEDIA" ||
                                funcName == "MOTOR_SIGNAL" || funcName == "HANDLEBAR" ||
-                               funcName == "KEY_SIGNAL" || funcName == "NAVI_KEY" || funcName == "CONTROL"
+                               funcName == "KEY_SIGNAL" || funcName == "NAVI_KEY" || funcName == "CONTROL" ||
+                               actName == "send_signal" || actName == "control" || actName == "key" ||
+                               (json["value"] != nil && !isTelemetryHeartbeat) ||
+                               json["key"] != nil || json["button"] != nil
             
-            if isMusicOrKey {
-                logCallback?("📥 Handlebar Parser received: \(jsonString)")
-                print("📥 Handlebar Parser received: \(jsonString)")
+            if isMusicOrKey && !isTelemetryHeartbeat {
+                logCallback?("📥 Handlebar JSON received: \(jsonString)")
+                print("📥 Handlebar JSON received: \(jsonString)")
                 
                 var detectedKey: HandlebarKey? = nil
                 
-                // Kove MOTOR_SIGNAL format: value = key code (2=UP, 3=DOWN, 1=ENTER, 0=ESC), status = 1 (pressed) / 0 (released)
-                if funcName == "MOTOR_SIGNAL" || actName == "send_signal" {
-                    let keyVal = json["value"] as? Int ?? json["status"] as? Int ?? -1
-                    let pressStatus = json["status"] as? Int ?? 1
-                    
-                    logCallback?("🔍 MOTOR_SIGNAL keyVal: \(keyVal), pressStatus: \(pressStatus)")
-                    print("🔍 MOTOR_SIGNAL keyVal: \(keyVal), pressStatus: \(pressStatus)")
-                    
-                    // Only dispatch key on press down (status == 1)
-                    if pressStatus == 1 || json["value"] != nil {
-                        switch keyVal {
-                        case 3: detectedKey = .down  // Zoom In
-                        case 2: detectedKey = .up    // Zoom Out
-                        case 1: detectedKey = .enter // Recenter
-                        case 0: detectedKey = .esc   // Back/Exit
-                        default:
-                            logCallback?("⚠️ Unhandled MOTOR_SIGNAL keyVal: \(keyVal)")
-                        }
-                    } else {
-                        logCallback?("ℹ️ Handlebar key release event ignored (status=0)")
+                let keyVal = json["value"] as? Int ?? json["key"] as? Int ?? json["button"] as? Int ?? json["status"] as? Int ?? -1
+                let pressStatus = json["status"] as? Int ?? 1
+                
+                logCallback?("🔍 Key Extractor -> func: '\(funcName)', act: '\(actName)', keyVal: \(keyVal), pressStatus: \(pressStatus)")
+                print("🔍 Key Extractor -> func: '\(funcName)', act: '\(actName)', keyVal: \(keyVal), pressStatus: \(pressStatus)")
+                
+                if pressStatus == 1 || json["value"] != nil || json["key"] != nil {
+                    switch keyVal {
+                    case 3: detectedKey = .down  // Zoom In
+                    case 2: detectedKey = .up    // Zoom Out
+                    case 1: detectedKey = .enter // Recenter / Play
+                    case 0: detectedKey = .esc   // Back / Pause / Exit
+                    default:
+                        logCallback?("⚠️ Unhandled keyVal: \(keyVal)")
                     }
                 } else {
-                    // Standard MUSIC / KEY control format: status or key property
-                    let statusVal = json["status"] as? Int ?? json["key"] as? Int ?? json["button"] as? Int ?? json["value"] as? Int ?? -1
-                    logCallback?("🔍 Control key statusVal: \(statusVal)")
-                    switch statusVal {
-                    case 3: detectedKey = .down
-                    case 2: detectedKey = .up
-                    case 1: detectedKey = .enter
-                    case 0: detectedKey = .esc
-                    default:
-                        logCallback?("⚠️ Unhandled statusVal: \(statusVal)")
-                    }
+                    logCallback?("ℹ️ Key release event ignored (status=0)")
                 }
                 
                 if let key = detectedKey {

@@ -312,11 +312,11 @@ struct MapView: View {
     
     private func handleHandlebarKey(_ key: HandlebarKey) {
         switch key {
-        case .down:
-            // Handlebar DOWN (status 3 / Next) -> Zoom In closer
-            zoomIn()
         case .up:
-            // Handlebar UP (status 2 / Prev) -> Zoom Out wider
+            // Handlebar UP (Prev / Key code 2) -> Zoom In
+            zoomIn()
+        case .down:
+            // Handlebar DOWN (Next / Key code 3) -> Zoom Out
             zoomOut()
         case .enter:
             // Handlebar ENTER (status 1 / Play) -> Recenter on rider location

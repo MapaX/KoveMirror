@@ -27,22 +27,16 @@ class TelemetrySyncManager: ObservableObject {
         syncTimer?.invalidate()
         weatherFetchTimer?.invalidate()
         
-        // Initial weather fetch & telemetry sync
+        // Local weather fetch for in-app UI display only
         fetchWeatherIfNeeded()
-        sendTelemetryPackets()
         
-        // Sync telemetry to motorcycle TFT every 15 seconds
-        syncTimer = Timer.scheduledTimer(withTimeInterval: 15.0, repeats: true) { [weak self] _ in
-            self?.sendTelemetryPackets()
-        }
-        
-        // Refresh weather API data every 10 minutes
+        // Refresh weather API data every 10 minutes for in-app display
         weatherFetchTimer = Timer.scheduledTimer(withTimeInterval: 600.0, repeats: true) { [weak self] _ in
             self?.fetchWeatherIfNeeded()
         }
         
-        print("🌡️ Telemetry Sync Manager started (Altitude & Weather).")
-        bleController.log("🌡️ Telemetry Sync Manager started (Altitude & Weather sync every 15s).")
+        print("🌡️ Telemetry Manager active (Local display only, BLE packets disabled).")
+        bleController.log("ℹ️ Weather BLE packet sending is disabled.")
     }
     
     func stopSync() {
@@ -90,13 +84,9 @@ class TelemetrySyncManager: ObservableObject {
         let urlStr = "https://api.open-meteo.com/v1/forecast?latitude=\(lat)&longitude=\(lon)&current=temperature_2m,weather_code"
         guard let url = URL(string: urlStr) else { return }
         
-        bleController?.log("🌐 Fetching weather for coordinates: (\(String(format: "%.4f", lat)), \(String(format: "%.4f", lon)))...")
-        print("🌐 Fetching weather for coordinates: (\(lat), \(lon))...")
-        
         URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
             guard let self = self else { return }
             if let error = error {
-                self.bleController?.log("❌ Weather API network error: \(error.localizedDescription)")
                 print("❌ Weather API network error: \(error.localizedDescription)")
                 return
             }
@@ -116,54 +106,19 @@ class TelemetrySyncManager: ObservableObject {
                         self.currentTemperatureCelsius = tempInt
                         self.currentWeatherCode = mappedKoveWeather
                         self.weatherIconName = icon
-                        self.bleController?.log("🌡️ Weather fetched: \(tempInt)°C (Kove code: \(mappedKoveWeather))")
                         print("🌡️ Weather fetched: \(tempInt)°C, Weather Code: \(mappedKoveWeather)")
-                        self.sendTelemetryPackets()
                     }
                 }
             } catch {
-                self.bleController?.log("❌ Weather API JSON parsing error: \(error.localizedDescription)")
                 print("❌ Weather parsing error: \(error.localizedDescription)")
             }
         }.resume()
     }
     
-    // MARK: - Telemetry JSON Packet Formatting
+    // MARK: - Telemetry JSON Packet Formatting (Disabled)
     
     func sendTelemetryPackets() {
-        guard let ble = bleController, ble.connectionState == .connected else {
-            bleController?.log("⚠️ Telemetry sync skipped: BLE is not connected.")
-            return
-        }
-        
-        let alt = currentAltitudeMeters
-        let tempStr = currentTemperatureCelsius.map { "\($0)°C" } ?? "--°C"
-        let wCode = currentWeatherCode
-        let speed = LocationAndNavigationManager.shared.currentSpeedKmH
-        
-        let tempVal = currentTemperatureCelsius ?? 20
-        
-        // 1. Weather & Temperature Packets (msg_id: 8 and msg_id: 27 WEATHER)
-        let weatherJson1 = "{\"msg_id\":8,\"weather\":\(wCode),\"temperature\":\"\(tempStr)\"}"
-        let weatherJson2 = "{\"msg_id\":27,\"func\":\"WEATHER\",\"act\":\"send_weather_info\",\"weather\":\(wCode),\"temp\":\(tempVal),\"temp_unit\":0}"
-        ble.sendJsonPacket(weatherJson1)
-        ble.sendJsonPacket(weatherJson2)
-        
-        // 2. Location & Altitude Telemetry Packets (msg_id: 27 CAR_INFO and ALTITUDE)
-        if let loc = LocationAndNavigationManager.shared.userLocation {
-            let latStr = String(format: "%.5f", loc.coordinate.latitude)
-            let lonStr = String(format: "%.5f", loc.coordinate.longitude)
-            let carInfoJson = "{\"msg_id\":27,\"func\":\"CAR_INFO\",\"act\":\"set_location_info\",\"altitude\":\(alt),\"lat\":\(latStr),\"lon\":\(lonStr),\"speed\":\(speed)}"
-            let altJson = "{\"msg_id\":27,\"func\":\"ALTITUDE\",\"act\":\"send_alt_info\",\"altitude\":\(alt)}"
-            ble.sendJsonPacket(carInfoJson)
-            ble.sendJsonPacket(altJson)
-        } else {
-            let altJson = "{\"msg_id\":27,\"func\":\"ALTITUDE\",\"act\":\"send_alt_info\",\"altitude\":\(alt)}"
-            ble.sendJsonPacket(altJson)
-        }
-        
-        ble.log("📤 Telemetry Synced to TFT -> Altitude: \(alt)m | Temp: \(tempStr) | Weather: \(wCode)")
-        print("📤 Telemetry Synced to TFT -> Altitude: \(alt)m | Temp: \(tempStr)")
+        // Disabled per user request - no weather BLE packets are sent to motorcycle TFT
     }
     
     // MARK: - Weather Code Mapping

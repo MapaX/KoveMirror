@@ -46,6 +46,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     let notifyCharUUID = CBUUID(string: "0000ffe2-0000-1000-8000-00805f9b34fb")
     
     private var heartbeatTimer: Timer?
+    private var hasSentHandshake = false
     private let appGroupSuiteName = "group.com.mustcode.KoveMirror"
     
     private let logQueue = DispatchQueue(label: "com.kove.mirror.log", qos: .utility)
@@ -155,6 +156,10 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     func startTcpServers() {
         let preset = KoveScreenPreset.current
         log("🔌 Starting TCP Servers for \(preset.displayName)...")
+        
+        tcpServerManager.onLog = { [weak self] msg in
+            self?.log(msg)
+        }
         
         tcpServerManager.onControlPacketReceived = { text in
             HandlebarKeyManager.shared.processJsonText(text)
@@ -301,6 +306,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         clearWriteQueue()
+        hasSentHandshake = false
         TelemetrySyncManager.shared.stopSync()
         log("🔴 Disconnected: \(error?.localizedDescription ?? "Clean disconnect")")
         connectionState = .disconnected
@@ -341,10 +347,9 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
             return
         }
         
-        // Dynamic Fallback: discover characteristics on ALL available services
-        log("⚠️ Primary service UUIDs not matched. Attempting dynamic characteristic discovery...")
+        // Discover ALL characteristics across services
         for service in services {
-            peripheral.discoverCharacteristics([writeCharUUID, notifyCharUUID], for: service)
+            peripheral.discoverCharacteristics(nil, for: service)
         }
     }
     
@@ -357,12 +362,15 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         guard let characteristics = service.characteristics else { return }
         
         for char in characteristics {
-            if char.uuid == writeCharUUID {
-                writeCharacteristic = char
-                log("📝 Write Characteristic ready.")
-            } else if char.uuid == notifyCharUUID {
+            if char.properties.contains(.write) || char.properties.contains(.writeWithoutResponse) || char.uuid == writeCharUUID {
+                if writeCharacteristic == nil {
+                    writeCharacteristic = char
+                    log("📝 Write Characteristic ready (\(char.uuid.uuidString)).")
+                }
+            }
+            if char.properties.contains(.notify) || char.properties.contains(.indicate) || char.uuid == notifyCharUUID {
                 peripheral.setNotifyValue(true, for: char)
-                log("🔔 Enabling notifications on Notify Characteristic...")
+                log("🔔 Enabling notifications on Characteristic (\(char.uuid.uuidString))...")
             }
         }
     }
@@ -373,17 +381,12 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
             return
         }
         
-        if characteristic.uuid == notifyCharUUID {
-            if characteristic.isNotifying {
-                log("✅ BLE Handshake (Notification) active!")
-                if writeCharacteristic != nil {
-                    sendInitHandshake()
-                    startHeartbeat()
-                } else {
-                    log("⚠️ Write Characteristic not ready yet.")
-                }
-            } else {
-                log("🔔 Notifications disabled on Notify Characteristic.")
+        if characteristic.isNotifying {
+            log("✅ BLE Notification active on \(characteristic.uuid.uuidString)!")
+            if writeCharacteristic != nil && !hasSentHandshake {
+                hasSentHandshake = true
+                sendInitHandshake()
+                startHeartbeat()
             }
         }
     }
@@ -426,6 +429,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
                 self.log("📤 BLE Write: \(str)")
                 peripheral.writeValue(data, for: char, type: .withoutResponse)
                 
+                // 150ms pacing delay matching Android Thread.sleep(150) to prevent MCU buffer overrun
                 self.queueAccessQueue.asyncAfter(deadline: .now() + 0.15) { [weak self] in
                     self?.processNextWriteItem()
                 }
@@ -455,10 +459,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         log("📤 Manual Start Mirroring requested. Sending Mirror Status packets...")
         
         writeString("{\"msg_id\":25,\"msg_type\":23,\"msg_source\":2,\"status\":1}")
-        
-        DispatchQueue.global().asyncAfter(deadline: .now() + 0.15) { [weak self] in
-            self?.writeString("{\"msg_id\":25,\"msg_type\":21,\"msg_source\":2,\"status\":1}")
-        }
+        writeString("{\"msg_id\":25,\"msg_type\":21,\"msg_source\":2,\"status\":1}")
     }
     
     func stopMirroring() {
@@ -473,9 +474,16 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         
         // Notify TFT that mirroring has stopped
         writeString("{\"msg_id\":25,\"msg_type\":23,\"msg_source\":2,\"status\":0}")
-        DispatchQueue.global().asyncAfter(deadline: .now() + 0.15) { [weak self] in
-            self?.writeString("{\"msg_id\":25,\"msg_type\":21,\"msg_source\":2,\"status\":0}")
+        writeString("{\"msg_id\":25,\"msg_type\":21,\"msg_source\":2,\"status\":0}")
+    }
+    
+    private func extractJsonText(from data: Data) -> String {
+        if let text = String(data: data, encoding: .utf8), text.contains("{") {
+            return text
         }
+        // Filter printable ASCII characters (codes 32..126 plus newlines)
+        let printableBytes = data.filter { ($0 >= 32 && $0 <= 126) || $0 == 10 || $0 == 13 || $0 == 9 }
+        return String(bytes: printableBytes, encoding: .ascii) ?? ""
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
@@ -484,9 +492,10 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
             return
         }
         
-        if characteristic.uuid == notifyCharUUID, let data = characteristic.value {
-            if let text = String(data: data, encoding: .utf8) {
-                log("📥 TFT -> BLE: \(text)")
+        if let data = characteristic.value {
+            let text = extractJsonText(from: data)
+            if !text.isEmpty && text.contains("{") {
+                log("📥 TFT -> BLE (\(characteristic.uuid.uuidString)): \(text)")
                 
                 // Check for handlebar key press events over BLE
                 HandlebarKeyManager.shared.processJsonText(text)
@@ -519,7 +528,8 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
                     startMirroring()
                 }
             } else {
-                log("📥 TFT -> BLE (Binary): \(data.map { String(format: "%02X", $0) }.joined(separator: " "))")
+                let hexStr = data.map { String(format: "%02X", $0) }.joined(separator: " ")
+                log("📥 TFT -> BLE (\(characteristic.uuid.uuidString)) Binary: [\(hexStr)] (\(data.count)B)")
             }
         }
     }
@@ -534,7 +544,9 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
             "{\"msg_id\":27,\"func\":\"PAIR\",\"act\":\"get_pairinfo\"}",
             "{\"msg_id\":13}",
             "{\"msg_id\":25,\"msg_type\":18,\"msg_source\":2,\"language\":2}",
-            "{\"msg_id\":11,\"time\":\"\(getCurrentTimeString())\",\"tag\":-1}"
+            "{\"msg_id\":11,\"time\":\"\(getCurrentTimeString())\",\"tag\":-1}",
+            "{\"msg_id\":25,\"msg_type\":23,\"msg_source\":2,\"status\":1}",
+            "{\"msg_id\":25,\"msg_type\":21,\"msg_source\":2,\"status\":1}"
         ]
         
         // Android version sends packets in sequence with a 150ms delay
