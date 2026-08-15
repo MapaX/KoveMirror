@@ -12,5 +12,7 @@
 	<string>LaunchScreen</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSCameraUsageDescription</key>
+	<string>Camera access is required for non-disruptive proximity detection to dim the screen without turning it off or interrupting video streaming.</string>
 </dict>
 </plist>

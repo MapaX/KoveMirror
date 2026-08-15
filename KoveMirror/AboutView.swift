@@ -82,11 +82,11 @@ struct AboutView: View {
                                         .background(Color.orange.opacity(0.1))
                                         .cornerRadius(6)
                                     VStack(alignment: .leading, spacing: 4) {
-                                        Text("Proximity Screen Dimming")
+                                        Text("Smart Screen Dimming (Stream-Safe)")
                                             .font(.subheadline)
                                             .fontWeight(.semibold)
                                             .foregroundColor(.white)
-                                        Text("Turns off screen and disables touch when phone is placed in a pocket or near ear.")
+                                        Text("Dims screen brightness when covered or placed in pocket. Keeps screen visible and video stream active without powering off.")
                                             .font(.caption)
                                             .foregroundColor(.white.opacity(0.6))
                                             .lineLimit(nil)
@@ -96,7 +96,8 @@ struct AboutView: View {
                             }
                             .toggleStyle(SwitchToggleStyle(tint: .orange))
                             .onChange(of: enableProximitySensor) { newValue in
-                                UIDevice.current.isProximityMonitoringEnabled = newValue
+                                UIDevice.current.isProximityMonitoringEnabled = false
+                                CameraProximityManager.shared.isEnabled = newValue
                             }
                         }
                         .padding()

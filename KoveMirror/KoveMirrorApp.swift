@@ -12,15 +12,16 @@ struct KoveMirrorApp: App {
     @AppStorage("enableProximitySensor") private var enableProximitySensor = false
     
     init() {
-        let enabled = UserDefaults.standard.bool(forKey: "enableProximitySensor")
-        UIDevice.current.isProximityMonitoringEnabled = enabled
+        // Disable system UIDevice proximity monitoring so iOS never forces screen off
+        UIDevice.current.isProximityMonitoringEnabled = false
     }
     
     var body: some Scene {
         WindowGroup {
             ConnectionStatusView()
                 .onAppear {
-                    UIDevice.current.isProximityMonitoringEnabled = enableProximitySensor
+                    UIDevice.current.isProximityMonitoringEnabled = false
+                    CameraProximityManager.shared.setup()
                 }
         }
     }

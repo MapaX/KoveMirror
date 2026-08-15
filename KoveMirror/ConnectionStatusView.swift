@@ -67,6 +67,9 @@ struct ConnectionStatusView: View {
                     Spacer()
                 }
                 .padding(.top)
+                
+                // Transparent screen overlay & pill status when proximity dimming is active
+                ProximityTransparentOverlay()
             }
             .navigationBarTitleDisplayMode(.inline)
         }
