@@ -448,6 +448,29 @@ struct ActiveNavigationHUD: View {
                     }
                 }
                 
+                // Telemetry Badges (Altitude & Outdoor Temp)
+                VStack(alignment: .trailing, spacing: 4) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "mountain.2.fill")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(.cyan)
+                        Text("\(TelemetrySyncManager.shared.currentAltitudeMeters)m")
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                    }
+                    
+                    HStack(spacing: 4) {
+                        Image(systemName: TelemetrySyncManager.shared.weatherIconName)
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(.orange)
+                        Text(TelemetrySyncManager.shared.currentTemperatureCelsius.map { "\($0)°C" } ?? "--°C")
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                    }
+                }
+                
                 Spacer()
                 
                 // End Navigation Button

@@ -423,11 +423,17 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         }
     }
 
+    func sendJsonPacket(_ jsonStr: String) {
+        writeString(jsonStr)
+    }
+
     func startMirroring() {
         guard connectionState == .connected else {
             log("⚠️ Cannot start mirroring: BLE is not connected to motorcycle.")
             return
         }
+        
+        TelemetrySyncManager.shared.startSync(bleController: self)
         
         log("📤 Manual Start Mirroring requested. Sending Mirror Status packets...")
         

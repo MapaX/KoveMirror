@@ -60,6 +60,9 @@ struct ConnectionStatusView: View {
                         showMapView = true
                     }
                     
+                    // Live Telemetry Card (Altitude & Temperature)
+                    TelemetryCard()
+                    
                     // Instruction Section
                     InstructionsCard()
                     
@@ -635,6 +638,60 @@ struct MapNavigationCardButton: View {
             )
             .padding(.horizontal)
         }
+    }
+}
+
+struct TelemetryCard: View {
+    @ObservedObject var telemetryManager = TelemetrySyncManager.shared
+    
+    var body: some View {
+        HStack(spacing: 20) {
+            // Altitude Indicator
+            HStack(spacing: 8) {
+                Image(systemName: "mountain.2.fill")
+                    .foregroundColor(.cyan)
+                    .font(.system(size: 16, weight: .bold))
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Altitude")
+                        .font(.caption2)
+                        .foregroundColor(.white.opacity(0.6))
+                    Text("\(telemetryManager.currentAltitudeMeters) m")
+                        .font(.subheadline)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            
+            Divider().background(Color.white.opacity(0.1))
+            
+            // Outdoor Temperature & Weather
+            HStack(spacing: 8) {
+                Image(systemName: telemetryManager.weatherIconName)
+                    .foregroundColor(.orange)
+                    .font(.system(size: 16, weight: .bold))
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Temperature")
+                        .font(.caption2)
+                        .foregroundColor(.white.opacity(0.6))
+                    Text(telemetryManager.currentTemperatureCelsius.map { "\($0)°C" } ?? "--°C")
+                        .font(.subheadline)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(12)
+        .background(Color.white.opacity(0.04))
+        .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.white.opacity(0.06), lineWidth: 1)
+        )
+        .padding(.horizontal)
     }
 }
 
