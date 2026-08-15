@@ -2,7 +2,7 @@ import UIKit
 import AVFoundation
 import Combine
 
-class CameraProximityManager: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleBufferDelegate {
+class CameraProximityManager: NSObject, ObservableObject {
     static let shared = CameraProximityManager()
     
     @Published var isProximityTriggered: Bool = false
@@ -109,10 +109,54 @@ class CameraProximityManager: NSObject, ObservableObject, AVCaptureVideoDataOutp
         }
     }
     
-    // MARK: - AVCaptureVideoDataOutputSampleBufferDelegate
+    @MainActor
+    private var activeScreen: UIScreen? {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first { $0.activationState == .foregroundActive }?.screen
+            ?? UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first?.screen
+    }
     
-    func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-        guard isEnabled, let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
+    @MainActor
+    fileprivate func dimScreen() {
+        guard !isDimmed else { return }
+        isDimmed = true
+        isProximityTriggered = true
+        originalBrightness = activeScreen?.brightness ?? 0.5
+        
+        // Dim screen to minimal brightness while keeping screen powered ON
+        activeScreen?.brightness = 0.01
+        print("🌙 Proximity covered: Dimmed screen to 1% (Screen & Stream remain active).")
+    }
+    
+    @MainActor
+    fileprivate func undimScreen() {
+        guard isDimmed else { return }
+        restoreBrightnessIfNeeded()
+        isProximityTriggered = false
+        print("☀️ Proximity cleared: Restored screen brightness.")
+    }
+    
+    @MainActor
+    fileprivate func restoreBrightnessIfNeeded() {
+        if isDimmed {
+            isDimmed = false
+            activeScreen?.brightness = max(originalBrightness, 0.3)
+        }
+    }
+}
+
+// MARK: - AVCaptureVideoDataOutputSampleBufferDelegate (Swift 6 Nonisolated)
+
+extension CameraProximityManager: AVCaptureVideoDataOutputSampleBufferDelegate {
+    nonisolated func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+        Task { @MainActor in
+            guard self.isEnabled else { return }
+        }
+        
+        guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         
         CVPixelBufferLockBaseAddress(pixelBuffer, .readOnly)
         defer { CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly) }
@@ -132,7 +176,6 @@ class CameraProximityManager: NSObject, ObservableObject, AVCaptureVideoDataOutp
         for y in stride(from: 0, to: height, by: sampleStep) {
             let rowOffset = y * bytesPerRow
             for x in stride(from: 0, to: width, by: sampleStep) {
-                // Assuming BGRA or YUV format; first byte / Y channel represents luminance
                 let pixelIndex = rowOffset + (x * 4)
                 let luma = Double(buffer[pixelIndex])
                 totalLuminance += luma
@@ -141,58 +184,23 @@ class CameraProximityManager: NSObject, ObservableObject, AVCaptureVideoDataOutp
         }
         
         let avgLuminance = sampleCount > 0 ? (totalLuminance / Double(sampleCount)) : 255.0
-        let isDark = avgLuminance < darknessLuminanceThreshold
+        let isDark = avgLuminance < 18.0
         
-        if isDark {
-            darkFrameCount += 1
-            lightFrameCount = 0
-        } else {
-            lightFrameCount += 1
-            darkFrameCount = 0
-        }
-        
-        if darkFrameCount >= requiredConsecutiveFrames && !isDimmed {
-            DispatchQueue.main.async {
-                self.dimScreen()
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
+            if isDark {
+                self.darkFrameCount += 1
+                self.lightFrameCount = 0
+            } else {
+                self.lightFrameCount += 1
+                self.darkFrameCount = 0
             }
-        } else if lightFrameCount >= requiredConsecutiveFrames && isDimmed {
-            DispatchQueue.main.async {
+            
+            if self.darkFrameCount >= 3 && !self.isDimmed {
+                self.dimScreen()
+            } else if self.lightFrameCount >= 3 && self.isDimmed {
                 self.undimScreen()
             }
-        }
-    }
-    
-    private var activeScreen: UIScreen? {
-        UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .first { $0.activationState == .foregroundActive }?.screen
-            ?? UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .first?.screen
-    }
-    
-    private func dimScreen() {
-        guard !isDimmed else { return }
-        isDimmed = true
-        isProximityTriggered = true
-        originalBrightness = activeScreen?.brightness ?? 0.5
-        
-        // Dim screen to minimal brightness while keeping screen powered ON
-        activeScreen?.brightness = 0.01
-        print("🌙 Proximity covered: Dimmed screen to 1% (Screen & Stream remain active).")
-    }
-    
-    private func undimScreen() {
-        guard isDimmed else { return }
-        restoreBrightnessIfNeeded()
-        isProximityTriggered = false
-        print("☀️ Proximity cleared: Restored screen brightness.")
-    }
-    
-    private func restoreBrightnessIfNeeded() {
-        if isDimmed {
-            isDimmed = false
-            activeScreen?.brightness = max(originalBrightness, 0.3)
         }
     }
 }
