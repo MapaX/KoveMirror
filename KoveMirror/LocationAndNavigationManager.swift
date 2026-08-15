@@ -84,7 +84,7 @@ class LocationAndNavigationManager: NSObject, ObservableObject, CLLocationManage
         }
         
         let request = MKDirections.Request()
-        request.source = MKMapItem(placemark: MKPlacemark(coordinate: originLocation.coordinate))
+        request.source = MKMapItem(location: originLocation, address: nil)
         request.destination = destination
         request.transportType = .automobile // Default to road routing suitable for motorcycles
         request.requestsAlternateRoutes = true
@@ -179,7 +179,7 @@ class LocationAndNavigationManager: NSObject, ObservableObject, CLLocationManage
         guard let route = currentRoute else { return }
         
         // Check distance to destination
-        if let destLocation = destinationItem?.placemark.location {
+        if let destLocation = destinationItem?.location {
             let totalRemaining = currentLocation.distance(from: destLocation)
             self.distanceRemainingMeters = totalRemaining
             
@@ -227,7 +227,7 @@ class LocationAndNavigationManager: NSObject, ObservableObject, CLLocationManage
     private func speakInstruction(_ text: String) {
         guard !isAudioMuted else { return }
         let utterance = AVSpeechUtterance(string: text)
-        utterance.voice = AVSpeechSynthesisVoice(language: Locale.current.languageCode ?? "en-US")
+        utterance.voice = AVSpeechSynthesisVoice(language: Locale.current.language.languageCode?.identifier ?? "en-US")
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate
         
         if speechSynthesizer.isSpeaking {

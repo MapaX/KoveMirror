@@ -18,7 +18,7 @@ class CameraProximityManager: NSObject, ObservableObject, AVCaptureVideoDataOutp
     
     private var captureSession: AVCaptureSession?
     private var sessionQueue = DispatchQueue(label: "com.kovemirror.cameraProximityQueue")
-    private var originalBrightness: CGFloat = UIScreen.main.brightness
+    private var originalBrightness: CGFloat = 0.5
     private var darkFrameCount = 0
     private var lightFrameCount = 0
     private var isDimmed = false
@@ -162,14 +162,23 @@ class CameraProximityManager: NSObject, ObservableObject, AVCaptureVideoDataOutp
         }
     }
     
+    private var activeScreen: UIScreen? {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first { $0.activationState == .foregroundActive }?.screen
+            ?? UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first?.screen
+    }
+    
     private func dimScreen() {
         guard !isDimmed else { return }
         isDimmed = true
         isProximityTriggered = true
-        originalBrightness = UIScreen.main.brightness
+        originalBrightness = activeScreen?.brightness ?? 0.5
         
         // Dim screen to minimal brightness while keeping screen powered ON
-        UIScreen.main.brightness = 0.01
+        activeScreen?.brightness = 0.01
         print("🌙 Proximity covered: Dimmed screen to 1% (Screen & Stream remain active).")
     }
     
@@ -183,7 +192,7 @@ class CameraProximityManager: NSObject, ObservableObject, AVCaptureVideoDataOutp
     private func restoreBrightnessIfNeeded() {
         if isDimmed {
             isDimmed = false
-            UIScreen.main.brightness = max(originalBrightness, 0.3)
+            activeScreen?.brightness = max(originalBrightness, 0.3)
         }
     }
 }

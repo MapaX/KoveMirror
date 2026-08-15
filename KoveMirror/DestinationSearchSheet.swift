@@ -261,7 +261,7 @@ struct MapItemRow: View {
                         .fontWeight(.semibold)
                         .foregroundColor(.white)
                     
-                    if let address = item.placemark.title {
+                    if let address = item.name ?? item.address?.shortAddress {
                         Text(address)
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.6))

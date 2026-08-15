@@ -28,7 +28,7 @@ struct MapViewContainer: UIViewRepresentable {
             if let destItem = navManager.destinationItem {
                 uiView.removeAnnotations(uiView.annotations.filter { !($0 is MKUserLocation) })
                 let anno = MKPointAnnotation()
-                anno.coordinate = destItem.placemark.coordinate
+                anno.coordinate = destItem.location.coordinate
                 anno.title = destItem.name
                 uiView.addAnnotation(anno)
             }
