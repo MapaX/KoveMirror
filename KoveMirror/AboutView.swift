@@ -67,11 +67,50 @@ struct AboutView: View {
                                 .foregroundColor(.white.opacity(0.5))
                         }
                         
-                        // Settings Card (Proximity Sensor)
+                        // Settings Card (Proximity Sensor & Screen Model)
                         VStack(alignment: .leading, spacing: 16) {
                             Text("Settings")
                                 .font(.headline)
                                 .foregroundColor(.white)
+                            
+                            // Motorcycle Model & Screen Preset Selector
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack(spacing: 12) {
+                                    Image(systemName: "display")
+                                        .font(.system(size: 16, weight: .bold))
+                                        .foregroundColor(.cyan)
+                                        .frame(width: 24, height: 24)
+                                        .background(Color.cyan.opacity(0.1))
+                                        .cornerRadius(6)
+                                    
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Kove Model / Screen Resolution")
+                                            .font(.subheadline)
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(.white)
+                                        Text("Select your motorcycle TFT screen profile for optimal streaming aspect ratio.")
+                                            .font(.caption)
+                                            .foregroundColor(.white.opacity(0.6))
+                                    }
+                                }
+                                
+                                Picker("TFT Resolution", selection: Binding(
+                                    get: { KoveScreenPreset.current },
+                                    set: { newPreset in KoveScreenPreset.current = newPreset }
+                                )) {
+                                    ForEach(KoveScreenPreset.allCases) { preset in
+                                        Text(preset.displayName).tag(preset)
+                                    }
+                                }
+                                .pickerStyle(.menu)
+                                .tint(.cyan)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.white.opacity(0.06))
+                                .cornerRadius(8)
+                            }
+                            
+                            Divider().background(Color.white.opacity(0.1))
                             
                             Toggle(isOn: $enableProximitySensor) {
                                 HStack(spacing: 12) {

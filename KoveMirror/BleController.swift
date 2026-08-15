@@ -34,13 +34,19 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
             .first { $0.isKeyWindow }
     }
     
-    // Service and Characteristic UUIDs matching the ThinkerRide / Kove protocol
+    // Service and Characteristic UUIDs matching the ThinkerRide / Kove protocol across models
     let serviceUUID = CBUUID(string: "0000e0ff-3c17-d293-8e48-14fe2e4da212")
+    let allSupportedServiceUUIDs = [
+        CBUUID(string: "0000e0ff-3c17-d293-8e48-14fe2e4da212"),
+        CBUUID(string: "0000e0ff-3c17-d293-8e48-14fe2e4da213"),
+        CBUUID(string: "0000e0ff-3e17-d293-8e48-14fe2e4da212"),
+        CBUUID(string: "0000e0ff-4017-d293-8e48-14fe2e4da212")
+    ]
     let writeCharUUID = CBUUID(string: "0000ffe1-0000-1000-8000-00805f9b34fb")
     let notifyCharUUID = CBUUID(string: "0000ffe2-0000-1000-8000-00805f9b34fb")
     
     private var heartbeatTimer: Timer?
-    private let appGroupSuiteName = "group.com.kove.mirror" // Update with your actual App Group
+    private let appGroupSuiteName = "group.com.mustcode.KoveMirror"
     
     private let logQueue = DispatchQueue(label: "com.kove.mirror.log", qos: .utility)
     private let dateFormatter: DateFormatter = {
@@ -144,19 +150,20 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     }
     
     func startTcpServers() {
-        log("🔌 Starting TCP Servers in main app...")
+        let preset = KoveScreenPreset.current
+        log("🔌 Starting TCP Servers for \(preset.displayName)...")
         
         tcpServerManager.onControlPacketReceived = { text in
             HandlebarKeyManager.shared.processJsonText(text)
         }
         
-        tcpServerManager.startServers(width: 600, height: 1024) { [weak self] in
+        tcpServerManager.startServers(width: preset.width, height: preset.height) { [weak self] in
             guard let self = self else { return }
             self.log("📺 TCP Video stream connected.")
             DispatchQueue.main.async {
                 self.isStreaming = true
-                self.log("📺 Starting local in-app screen capture...")
-                self.captureManager.startCapture(window: self.activeWindow)
+                self.log("📺 Starting local in-app screen capture (\(preset.width)x\(preset.height))...")
+                self.captureManager.startCapture(window: self.activeWindow, width: preset.width, height: preset.height)
                 BackgroundKeepAliveManager.shared.start()
             }
         }
@@ -305,13 +312,23 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
             return
         }
         
-        guard let service = peripheral.services?.first(where: { $0.uuid == serviceUUID }) else {
-            log("❌ Target mirroring service not found on device.")
+        guard let services = peripheral.services, !services.isEmpty else {
+            log("❌ No GATT services found on device.")
             return
         }
         
-        log("🔓 Discovered Mirroring Service. Discovering characteristics...")
-        peripheral.discoverCharacteristics([writeCharUUID, notifyCharUUID], for: service)
+        // Match against known ThinkerRide / Kove service UUIDs
+        if let matchedService = services.first(where: { allSupportedServiceUUIDs.contains($0.uuid) }) {
+            log("🔓 Discovered Kove Mirroring Service (\(matchedService.uuid)). Discovering characteristics...")
+            peripheral.discoverCharacteristics([writeCharUUID, notifyCharUUID], for: matchedService)
+            return
+        }
+        
+        // Dynamic Fallback: discover characteristics on ALL available services
+        log("⚠️ Primary service UUIDs not matched. Attempting dynamic characteristic discovery...")
+        for service in services {
+            peripheral.discoverCharacteristics([writeCharUUID, notifyCharUUID], for: service)
+        }
     }
     
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {

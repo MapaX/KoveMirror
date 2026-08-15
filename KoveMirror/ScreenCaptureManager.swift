@@ -17,9 +17,14 @@ class ScreenCaptureManager: NSObject {
         self.encoder.delegate = self
     }
     
-    func startCapture(window: UIWindow?) {
+    private var targetWidth: Int = 600
+    private var targetHeight: Int = 1024
+    
+    func startCapture(window: UIWindow?, width: Int = 600, height: Int = 1024) {
         guard !isStreaming else { return }
         self.targetWindow = window
+        self.targetWidth = width
+        self.targetHeight = height
         self.isStreaming = true
         
         setupEncoderAndDisplayLink()
@@ -37,15 +42,15 @@ class ScreenCaptureManager: NSObject {
         // Ensure any previous session is fully cleaned up first
         teardownEncoderAndDisplayLink()
         
-        // Start H.264 Encoder (600x1024, matching Android version)
-        encoder.start(width: 600, height: 1024, fps: 30)
+        // Start H.264 Encoder at target preset resolution
+        encoder.start(width: Int32(targetWidth), height: Int32(targetHeight), fps: 30)
         
         // Start display link at 30 FPS
         displayLink = CADisplayLink(target: self, selector: #selector(captureFrame))
         displayLink?.preferredFrameRateRange = CAFrameRateRange(minimum: 30, maximum: 30, preferred: 30)
         displayLink?.add(to: .main, forMode: .common)
         
-        print("🎬 Direct Screen Capture loop started at 30 FPS.")
+        print("🎬 Direct Screen Capture loop started at 30 FPS (\(targetWidth)x\(targetHeight)).")
     }
     
     private func teardownEncoderAndDisplayLink() {
@@ -104,8 +109,8 @@ class ScreenCaptureManager: NSObject {
             return nil
         }
         
-        let width = 600
-        let height = 1024
+        let width = targetWidth
+        let height = targetHeight
         
         var pixelBuffer: CVPixelBuffer? = nil
         let attrs = [

@@ -6,10 +6,28 @@ class SampleHandler: RPBroadcastSampleHandler, H264EncoderDelegate {
     private var encoder = H264Encoder()
     private var isEncoderStarted = false
     
-    // Screen mirroring resolution configuration (Portrait)
-    // Matches the default high quality configuration tested on Kove 800 dashboard.
-    let targetWidth: Int = 600
-    let targetHeight: Int = 1024
+    // Screen mirroring resolution configuration dynamically synced with main app preset
+    var targetWidth: Int {
+        if let suite = UserDefaults(suiteName: "group.com.mustcode.KoveMirror"),
+           let presetRaw = suite.string(forKey: "selected_kove_screen_preset") {
+            if presetRaw.contains("480 × 800") { return 480 }
+            if presetRaw.contains("640 × 1284") { return 640 }
+            if presetRaw.contains("1280 × 720") { return 1280 }
+            if presetRaw.contains("800 × 800") { return 800 }
+        }
+        return 600
+    }
+    
+    var targetHeight: Int {
+        if let suite = UserDefaults(suiteName: "group.com.mustcode.KoveMirror"),
+           let presetRaw = suite.string(forKey: "selected_kove_screen_preset") {
+            if presetRaw.contains("480 × 800") { return 800 }
+            if presetRaw.contains("640 × 1284") { return 1284 }
+            if presetRaw.contains("1280 × 720") { return 720 }
+            if presetRaw.contains("800 × 800") { return 800 }
+        }
+        return 1024
+    }
     let targetFps: Int = 30
     
     override func broadcastStarted(withSetupInfo setupInfo: [String : NSObject]?) {
