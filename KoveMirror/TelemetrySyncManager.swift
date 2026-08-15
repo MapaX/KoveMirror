@@ -42,6 +42,7 @@ class TelemetrySyncManager: ObservableObject {
         }
         
         print("🌡️ Telemetry Sync Manager started (Altitude & Weather).")
+        bleController.log("🌡️ Telemetry Sync Manager started (Altitude & Weather sync every 15s).")
     }
     
     func stopSync() {
@@ -50,6 +51,7 @@ class TelemetrySyncManager: ObservableObject {
         syncTimer = nil
         weatherFetchTimer = nil
         print("🌡️ Telemetry Sync Manager stopped.")
+        bleController?.log("🌡️ Telemetry Sync Manager stopped.")
     }
     
     private func setupLocationObserver() {
@@ -88,8 +90,17 @@ class TelemetrySyncManager: ObservableObject {
         let urlStr = "https://api.open-meteo.com/v1/forecast?latitude=\(lat)&longitude=\(lon)&current=temperature_2m,weather_code"
         guard let url = URL(string: urlStr) else { return }
         
+        bleController?.log("🌐 Fetching weather for coordinates: (\(String(format: "%.4f", lat)), \(String(format: "%.4f", lon)))...")
+        print("🌐 Fetching weather for coordinates: (\(lat), \(lon))...")
+        
         URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
-            guard let self = self, let data = data, error == nil else { return }
+            guard let self = self else { return }
+            if let error = error {
+                self.bleController?.log("❌ Weather API network error: \(error.localizedDescription)")
+                print("❌ Weather API network error: \(error.localizedDescription)")
+                return
+            }
+            guard let data = data else { return }
             
             do {
                 if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -105,11 +116,13 @@ class TelemetrySyncManager: ObservableObject {
                         self.currentTemperatureCelsius = tempInt
                         self.currentWeatherCode = mappedKoveWeather
                         self.weatherIconName = icon
+                        self.bleController?.log("🌡️ Weather fetched: \(tempInt)°C (Kove code: \(mappedKoveWeather))")
                         print("🌡️ Weather fetched: \(tempInt)°C, Weather Code: \(mappedKoveWeather)")
                         self.sendTelemetryPackets()
                     }
                 }
             } catch {
+                self.bleController?.log("❌ Weather API JSON parsing error: \(error.localizedDescription)")
                 print("❌ Weather parsing error: \(error.localizedDescription)")
             }
         }.resume()
@@ -118,7 +131,10 @@ class TelemetrySyncManager: ObservableObject {
     // MARK: - Telemetry JSON Packet Formatting
     
     func sendTelemetryPackets() {
-        guard let ble = bleController, ble.connectionState == .connected else { return }
+        guard let ble = bleController, ble.connectionState == .connected else {
+            bleController?.log("⚠️ Telemetry sync skipped: BLE is not connected.")
+            return
+        }
         
         let alt = currentAltitudeMeters
         let tempStr = currentTemperatureCelsius.map { "\($0)°C" } ?? "--°C"
@@ -146,6 +162,7 @@ class TelemetrySyncManager: ObservableObject {
             ble.sendJsonPacket(altJson)
         }
         
+        ble.log("📤 Telemetry Synced to TFT -> Altitude: \(alt)m | Temp: \(tempStr) | Weather: \(wCode)")
         print("📤 Telemetry Synced to TFT -> Altitude: \(alt)m | Temp: \(tempStr)")
     }
     

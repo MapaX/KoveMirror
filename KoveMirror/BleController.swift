@@ -110,6 +110,9 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
             locationManager.requestWhenInUseAuthorization()
             setupLocalConnectionCallback()
             checkLogFileSizeLimit()
+            HandlebarKeyManager.shared.logCallback = { [weak self] msg in
+                self?.log(msg)
+            }
         }
     }
     

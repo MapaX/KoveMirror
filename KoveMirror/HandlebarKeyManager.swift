@@ -17,6 +17,8 @@ class HandlebarKeyManager: ObservableObject {
     let keySubject = PassthroughSubject<HandlebarKey, Never>()
     private var toastTimer: Timer?
     
+    var logCallback: ((String) -> Void)?
+    
     private init() {}
     
     /// Parses incoming raw JSON text received from BLE notifications or TCP Port 17818
@@ -47,12 +49,18 @@ class HandlebarKeyManager: ObservableObject {
                                funcName == "KEY_SIGNAL" || funcName == "NAVI_KEY" || funcName == "CONTROL"
             
             if isMusicOrKey {
+                logCallback?("📥 Handlebar Parser received: \(jsonString)")
+                print("📥 Handlebar Parser received: \(jsonString)")
+                
                 var detectedKey: HandlebarKey? = nil
                 
                 // Kove MOTOR_SIGNAL format: value = key code (2=UP, 3=DOWN, 1=ENTER, 0=ESC), status = 1 (pressed) / 0 (released)
                 if funcName == "MOTOR_SIGNAL" || actName == "send_signal" {
                     let keyVal = json["value"] as? Int ?? json["status"] as? Int ?? -1
                     let pressStatus = json["status"] as? Int ?? 1
+                    
+                    logCallback?("🔍 MOTOR_SIGNAL keyVal: \(keyVal), pressStatus: \(pressStatus)")
+                    print("🔍 MOTOR_SIGNAL keyVal: \(keyVal), pressStatus: \(pressStatus)")
                     
                     // Only dispatch key on press down (status == 1)
                     if pressStatus == 1 || json["value"] != nil {
@@ -61,18 +69,23 @@ class HandlebarKeyManager: ObservableObject {
                         case 2: detectedKey = .up    // Zoom Out
                         case 1: detectedKey = .enter // Recenter
                         case 0: detectedKey = .esc   // Back/Exit
-                        default: break
+                        default:
+                            logCallback?("⚠️ Unhandled MOTOR_SIGNAL keyVal: \(keyVal)")
                         }
+                    } else {
+                        logCallback?("ℹ️ Handlebar key release event ignored (status=0)")
                     }
                 } else {
                     // Standard MUSIC / KEY control format: status or key property
                     let statusVal = json["status"] as? Int ?? json["key"] as? Int ?? json["button"] as? Int ?? json["value"] as? Int ?? -1
+                    logCallback?("🔍 Control key statusVal: \(statusVal)")
                     switch statusVal {
                     case 3: detectedKey = .down
                     case 2: detectedKey = .up
                     case 1: detectedKey = .enter
                     case 0: detectedKey = .esc
-                    default: break
+                    default:
+                        logCallback?("⚠️ Unhandled statusVal: \(statusVal)")
                     }
                 }
                 
@@ -92,6 +105,7 @@ class HandlebarKeyManager: ObservableObject {
             self.lastPressedKey = key
             self.keySubject.send(key)
             self.showToast("🎮 Handlebar Button: \(key.rawValue)")
+            self.logCallback?("🎮 Handlebar Key Dispatched: \(key.rawValue)")
             print("🎮 Handlebar Key Dispatched: \(key)")
         }
     }
