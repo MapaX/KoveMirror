@@ -32,56 +32,57 @@ struct ConnectionStatusView: View {
                 )
                 .ignoresSafeArea()
                 
-                VStack(spacing: 20) {
-                    // Header Status card
-                    HeaderStatusCard(
-                        connectionState: bleController.connectionState,
-                        statusColor: statusColor
-                    )
-                    
-                    // Wi-Fi Connection Status Card
-                    if let targetSSID = bleController.connectedDeviceName {
-                        WifiStatusCard(
-                            targetSSID: targetSSID,
-                            isWifiCorrect: isWifiCorrect,
-                            onScanQR: { showScanner = true }
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 20) {
+                        // Header Status card
+                        HeaderStatusCard(
+                            connectionState: bleController.connectionState,
+                            statusColor: statusColor
                         )
+                        
+                        // Wi-Fi Connection Status Card
+                        if let targetSSID = bleController.connectedDeviceName {
+                            WifiStatusCard(
+                                targetSSID: targetSSID,
+                                isWifiCorrect: isWifiCorrect,
+                                onScanQR: { showScanner = true }
+                            )
+                        }
+                        
+                        // Control Actions card
+                        ControlActionsCard(
+                            bleController: bleController,
+                            isWifiCorrect: isWifiCorrect,
+                            isPulsing: $isPulsing
+                        )
+                        
+                        // Map & Navigation Card Button
+                        MapNavigationCardButton {
+                            showMapView = true
+                        }
+                        
+                        // Live Telemetry Card (Altitude & Temperature)
+                        TelemetryCard()
+                        
+                        // Instruction Section
+                        InstructionsCard()
+                        
+                        // Event Log Button (opens dedicated EventLogView)
+                        EventLogCardButton(
+                            logCount: bleController.logMessages.count,
+                            latestLog: bleController.logMessages.first
+                        ) {
+                            showLogSheet = true
+                        }
+                        
+                        // About Button
+                        AboutButton {
+                            showAboutSheet = true
+                        }
                     }
-                    
-                    // Control Actions card
-                    ControlActionsCard(
-                        bleController: bleController,
-                        isWifiCorrect: isWifiCorrect,
-                        isPulsing: $isPulsing
-                    )
-                    
-                    // Map & Navigation Card Button
-                    MapNavigationCardButton {
-                        showMapView = true
-                    }
-                    
-                    // Live Telemetry Card (Altitude & Temperature)
-                    TelemetryCard()
-                    
-                    // Instruction Section
-                    InstructionsCard()
-                    
-                    // Event Log Button (opens dedicated EventLogView)
-                    EventLogCardButton(
-                        logCount: bleController.logMessages.count,
-                        latestLog: bleController.logMessages.first
-                    ) {
-                        showLogSheet = true
-                    }
-                    
-                    // About Button
-                    AboutButton {
-                        showAboutSheet = true
-                    }
-                    
-                    Spacer()
+                    .padding(.top)
+                    .padding(.bottom, 32)
                 }
-                .padding(.top)
                 
                 // Transparent screen overlay & pill status when proximity dimming is active
                 ProximityTransparentOverlay()

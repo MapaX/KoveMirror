@@ -6,6 +6,7 @@ class CameraProximityManager: NSObject, ObservableObject {
     static let shared = CameraProximityManager()
     
     @Published var isProximityTriggered: Bool = false
+    @Published var currentLuminance: Double = 255.0
     @Published var isEnabled: Bool = false {
         didSet {
             if isEnabled {
@@ -22,11 +23,16 @@ class CameraProximityManager: NSObject, ObservableObject {
     private var darkFrameCount = 0
     private var lightFrameCount = 0
     private var isDimmed = false
+    private var lastDimmedTimestamp: Date = Date.distantPast
     
-    // Threshold for detecting coverage (pocket/hand/face down).
-    // Luminance values range 0 (pitch black) to 255 (bright white).
-    private let darknessLuminanceThreshold: Double = 18.0
-    private let requiredConsecutiveFrames = 3
+    // Dual-threshold Hysteresis to prevent feedback loop between screen brightness and camera auto-exposure
+    // Dimming occurs when luminance is low (covered by hand/pocket/table)
+    private let dimLuminanceThreshold: Double = 30.0
+    // Undimming requires significantly brighter light so auto-exposure bounce never clears proximity
+    private let undimLuminanceThreshold: Double = 65.0
+    
+    private let requiredDarkFrames = 5
+    private let requiredLightFrames = 15
     
     override private init() {
         super.init()
@@ -79,6 +85,7 @@ class CameraProximityManager: NSObject, ObservableObject {
                 }
                 
                 let output = AVCaptureVideoDataOutput()
+                output.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32BGRA)]
                 output.alwaysDiscardsLateVideoFrames = true
                 output.setSampleBufferDelegate(self, queue: self.sessionQueue)
                 
@@ -88,7 +95,7 @@ class CameraProximityManager: NSObject, ObservableObject {
                 
                 session.startRunning()
                 self.captureSession = session
-                print("👁️ Camera Proximity Monitoring started (Screen-Safe).")
+                print("👁️ Camera Proximity Monitoring started (Screen-Safe, Dim < \(self.dimLuminanceThreshold), Undim > \(self.undimLuminanceThreshold)).")
             } catch {
                 print("❌ Failed to initialize camera input for proximity: \(error)")
             }
@@ -124,6 +131,7 @@ class CameraProximityManager: NSObject, ObservableObject {
         guard !isDimmed else { return }
         isDimmed = true
         isProximityTriggered = true
+        lastDimmedTimestamp = Date()
         originalBrightness = activeScreen?.brightness ?? 0.5
         
         // Dim screen to minimal brightness while keeping screen powered ON
@@ -152,10 +160,6 @@ class CameraProximityManager: NSObject, ObservableObject {
 
 extension CameraProximityManager: AVCaptureVideoDataOutputSampleBufferDelegate {
     nonisolated func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-        Task { @MainActor in
-            guard self.isEnabled else { return }
-        }
-        
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         
         CVPixelBufferLockBaseAddress(pixelBuffer, .readOnly)
@@ -168,37 +172,49 @@ extension CameraProximityManager: AVCaptureVideoDataOutputSampleBufferDelegate {
         let bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer)
         let buffer = baseAddress.assumingMemoryBound(to: UInt8.self)
         
-        // Compute average luminance across sampled pixels
+        // Compute average perceived RGB luminance across sampled pixels
         var totalLuminance: Double = 0
-        let sampleStep = 8 // Subsample for fast processing
+        let sampleStep = 8 // Subsample for fast, lightweight processing
         var sampleCount = 0
         
         for y in stride(from: 0, to: height, by: sampleStep) {
             let rowOffset = y * bytesPerRow
             for x in stride(from: 0, to: width, by: sampleStep) {
                 let pixelIndex = rowOffset + (x * 4)
-                let luma = Double(buffer[pixelIndex])
+                let b = Double(buffer[pixelIndex])
+                let g = Double(buffer[pixelIndex + 1])
+                let r = Double(buffer[pixelIndex + 2])
+                let luma = 0.299 * r + 0.587 * g + 0.114 * b
                 totalLuminance += luma
                 sampleCount += 1
             }
         }
         
         let avgLuminance = sampleCount > 0 ? (totalLuminance / Double(sampleCount)) : 255.0
-        let isDark = avgLuminance < 18.0
         
         Task { @MainActor [weak self] in
             guard let self = self else { return }
-            if isDark {
+            self.currentLuminance = avgLuminance
+            
+            let isCovered = avgLuminance < self.dimLuminanceThreshold
+            let isClear = avgLuminance > self.undimLuminanceThreshold
+            
+            if isCovered {
                 self.darkFrameCount += 1
                 self.lightFrameCount = 0
-            } else {
+            } else if isClear {
                 self.lightFrameCount += 1
                 self.darkFrameCount = 0
+            } else {
+                // In hysteresis gap (30.0 - 65.0): maintain current state without resetting counts
             }
             
-            if self.darkFrameCount >= 3 && !self.isDimmed {
+            // Allow 1.0 second settling window after dimming so camera auto-exposure settles
+            let timeSinceDimming = Date().timeIntervalSince(self.lastDimmedTimestamp)
+            
+            if self.darkFrameCount >= self.requiredDarkFrames && !self.isDimmed {
                 self.dimScreen()
-            } else if self.lightFrameCount >= 3 && self.isDimmed {
+            } else if self.lightFrameCount >= self.requiredLightFrames && self.isDimmed && timeSinceDimming > 1.0 {
                 self.undimScreen()
             }
         }
