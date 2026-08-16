@@ -77,7 +77,7 @@ class TcpServerManager {
             switch state {
             case .ready:
                 print("🔌 Control connection ready.")
-                self.sendTucGet(connection)
+                self.sendControlInitSequence(connection)
                 self.readControlData(connection)
             case .failed(let error):
                 print("❌ Control connection failed: \(error.localizedDescription)")
@@ -90,10 +90,21 @@ class TcpServerManager {
         connection.start(queue: networkQueue)
     }
     
-    private func sendTucGet(_ connection: NWConnection) {
-        let json = "{\"msg_id\":27,\"func\":\"TUC\",\"act\":\"GET\"}"
-        print("📤 Sending TUC GET query...")
-        sendFramedJson(connection, json)
+    private func sendControlInitSequence(_ connection: NWConnection) {
+        print("📤 Sending Control 17818 Handshake Sequence...")
+        // 1. Binary Firmware Version Request: [0x01, 0x01, 0x00, 0x00, 0x00, 0x00]
+        let versionBytes = Data([0x01, 0x01, 0x00, 0x00, 0x00, 0x00])
+        connection.send(content: versionBytes, completion: .contentProcessed({ _ in }))
+        
+        // 2. Binary MAC Request: [0x01, 0x11, 0x00, 0x00, 0x00, 0x00]
+        let macBytes = Data([0x01, 0x11, 0x00, 0x00, 0x00, 0x00])
+        connection.send(content: macBytes, completion: .contentProcessed({ _ in }))
+        
+        // 3. Framed JSON Queries
+        sendFramedJson(connection, "{\"msg_id\":27,\"func\":\"INSIDENAVI\",\"query\":1}")
+        sendFramedJson(connection, "{\"msg_id\":27,\"func\":\"INSIDENAVI\",\"query\":2}")
+        sendFramedJson(connection, "{\"msg_id\":27,\"func\":\"CAR_INFO\",\"act\":\"get_car_info\"}")
+        sendFramedJson(connection, "{\"msg_id\":27,\"func\":\"TUC\",\"act\":\"GET\"}")
     }
     
     private func sendFramedJson(_ connection: NWConnection, _ jsonStr: String) {

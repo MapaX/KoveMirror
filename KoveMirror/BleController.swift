@@ -582,7 +582,11 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
             "{\"msg_id\":25,\"msg_type\":18,\"msg_source\":2,\"language\":2}",
             "{\"msg_id\":11,\"time\":\"\(getCurrentTimeString())\",\"tag\":-1}",
             "{\"msg_id\":25,\"msg_type\":23,\"msg_source\":2,\"status\":1}",
-            "{\"msg_id\":25,\"msg_type\":21,\"msg_source\":2,\"status\":1}"
+            "{\"msg_id\":25,\"msg_type\":21,\"msg_source\":2,\"status\":1}",
+            "{\"msg_id\":27,\"func\":\"INSIDENAVI\",\"query\":1}",
+            "{\"msg_id\":27,\"func\":\"INSIDENAVI\",\"query\":2}",
+            "{\"msg_id\":27,\"func\":\"CAR_INFO\",\"act\":\"get_car_info\"}",
+            "{\"msg_id\":27,\"func\":\"TUC\",\"act\":\"get\"}"
         ]
         
         // Android version sends packets in sequence with a 150ms delay
