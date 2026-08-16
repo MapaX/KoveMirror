@@ -94,6 +94,7 @@ class HandlebarKeyManager: ObservableObject {
             let isMusicOrKey = funcName == "MUSIC" || funcName == "KEY" || funcName == "MEDIA" ||
                                funcName == "MOTOR_SIGNAL" || funcName == "HANDLEBAR" ||
                                funcName == "KEY_SIGNAL" || funcName == "NAVI_KEY" || funcName == "CONTROL" ||
+                               funcName == "BT_KEY" ||
                                actName == "send_signal" || actName == "control" || actName == "key" ||
                                (json["value"] != nil && !isTelemetryHeartbeat) ||
                                json["key"] != nil || json["button"] != nil
