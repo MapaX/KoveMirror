@@ -20,6 +20,13 @@ class ScreenCaptureManager: NSObject {
     private var targetWidth: Int = 600
     private var targetHeight: Int = 1024
     
+    func setTargetWindow(_ window: UIWindow?) {
+        DispatchQueue.main.async { [weak self] in
+            self?.targetWindow = window
+            print("🎬 Capture target window updated: \(String(describing: window))")
+        }
+    }
+    
     func startCapture(window: UIWindow?, width: Int = 600, height: Int = 1024) {
         guard !isStreaming else { return }
         self.targetWindow = window

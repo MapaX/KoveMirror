@@ -134,9 +134,9 @@ class CameraProximityManager: NSObject, ObservableObject {
         lastDimmedTimestamp = Date()
         originalBrightness = activeScreen?.brightness ?? 0.5
         
-        // Dim screen to minimal brightness while keeping screen powered ON
-        activeScreen?.brightness = 0.01
-        print("🌙 Proximity covered: Dimmed screen to 1% (Screen & Stream remain active).")
+        // Dim screen to 0.0 brightness (pure black/darkness on OLED displays)
+        activeScreen?.brightness = 0.0
+        print("🌙 Proximity covered: Dimmed screen brightness to 0.0 (OLED Stealth Mode active).")
     }
     
     @MainActor

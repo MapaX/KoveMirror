@@ -104,6 +104,9 @@ struct ConnectionStatusView: View {
         .fullScreenCover(isPresented: $showMapView) {
             MapView()
         }
+        .onChange(of: showMapView) { oldValue, newValue in
+            bleController.isMapViewVisible = newValue
+        }
         .alert("Bluetooth is Turned Off", isPresented: $bleController.isBluetoothPoweredOff) {
             Button("Open Settings") {
                 if let url = URL(string: "App-Prefs:root=Bluetooth"), UIApplication.shared.canOpenURL(url) {

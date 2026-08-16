@@ -4,6 +4,7 @@ struct AboutView: View {
     @Environment(\.dismiss) var dismiss
     @AppStorage("enableFileLogging") var enableFileLogging = false
     @AppStorage("enableProximitySensor") var enableProximitySensor = false
+    @AppStorage("enableProximitySecondScreen") var enableProximitySecondScreen = false
     @State private var showShareSheet = false
     @State private var isLogFileAvailable = false
     
@@ -138,6 +139,31 @@ struct AboutView: View {
                                 UIDevice.current.isProximityMonitoringEnabled = false
                                 CameraProximityManager.shared.isEnabled = newValue
                             }
+                            
+                            Divider().background(Color.white.opacity(0.1))
+                            
+                            Toggle(isOn: $enableProximitySecondScreen) {
+                                HStack(spacing: 12) {
+                                    Image(systemName: "square.on.square.fill")
+                                        .font(.system(size: 16, weight: .bold))
+                                        .foregroundColor(.cyan)
+                                        .frame(width: 24, height: 24)
+                                        .background(Color.cyan.opacity(0.1))
+                                        .cornerRadius(6)
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Proximity 2nd Screen Offscreen Mode")
+                                            .font(.subheadline)
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(.white)
+                                        Text("When MapView is visible and proximity is covered, video streaming seamlessly moves to an offscreen 600x1024 MapView window.")
+                                            .font(.caption)
+                                            .foregroundColor(.white.opacity(0.6))
+                                            .lineLimit(nil)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    }
+                                }
+                            }
+                            .toggleStyle(SwitchToggleStyle(tint: .cyan))
                         }
                         .padding()
                         .background(Color.white.opacity(0.03))

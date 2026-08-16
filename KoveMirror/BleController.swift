@@ -19,6 +19,40 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     
     @Published var isBroadcasting = false
     @Published var isBluetoothPoweredOff = false
+    @Published var isMapViewVisible: Bool = false {
+        didSet {
+            updateCaptureWindowForProximity(isTriggered: CameraProximityManager.shared.isProximityTriggered)
+        }
+    }
+    
+    private var cancellables = Set<AnyCancellable>()
+    
+    private func setupProximityObserver() {
+        CameraProximityManager.shared.$isProximityTriggered
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isTriggered in
+                self?.updateCaptureWindowForProximity(isTriggered: isTriggered)
+            }
+            .store(in: &cancellables)
+    }
+    
+    func updateCaptureWindowForProximity(isTriggered: Bool) {
+        let enableSecondScreen = UserDefaults.standard.bool(forKey: "enableProximitySecondScreen")
+        
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self, self.isStreaming else { return }
+            
+            if enableSecondScreen && self.isMapViewVisible && isTriggered {
+                let offscreenWin = OffscreenMapWindowManager.shared.getOrCreateOffscreenWindow()
+                self.captureManager.setTargetWindow(offscreenWin)
+                self.log("🖥️ Proximity covered & MapView active: Switched video stream to 600x1024 offscreen MapView window.")
+            } else {
+                self.captureManager.setTargetWindow(self.activeWindow)
+                OffscreenMapWindowManager.shared.destroyOffscreenWindow()
+                self.log("📱 Switched video stream back to main phone window.")
+            }
+        }
+    }
     
     private var centralManager: CBCentralManager!
     private var targetPeripheral: CBPeripheral?
@@ -100,6 +134,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         centralManager = CBCentralManager(delegate: self, queue: nil, options: [CBCentralManagerOptionRestoreIdentifierKey: "KoveMirrorRestoreID"])
         locationManager.requestWhenInUseAuthorization()
         setupLocalConnectionCallback()
+        setupProximityObserver()
         checkLogFileSizeLimit()
     }
     
@@ -110,6 +145,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
             centralManager = CBCentralManager(delegate: self, queue: nil, options: [CBCentralManagerOptionRestoreIdentifierKey: "KoveMirrorRestoreID"])
             locationManager.requestWhenInUseAuthorization()
             setupLocalConnectionCallback()
+            setupProximityObserver()
             checkLogFileSizeLimit()
             HandlebarKeyManager.shared.logCallback = { [weak self] msg in
                 self?.log(msg)

@@ -110,6 +110,7 @@ struct MapViewContainer: UIViewRepresentable {
 }
 
 struct MapView: View {
+    var isOffscreen: Bool = false
     @Environment(\.dismiss) private var dismiss
     @StateObject private var navManager = LocationAndNavigationManager.shared
     @ObservedObject private var keyManager = HandlebarKeyManager.shared
@@ -272,6 +273,11 @@ struct MapView: View {
                         }
                     )
                 }
+            }
+            
+            // Transparent screen overlay & pill status when proximity dimming / offscreen 2nd window mode is active
+            if !isOffscreen {
+                ProximityTransparentOverlay()
             }
         }
         .preferredColorScheme(.dark)

@@ -32,6 +32,9 @@
     "%lldm" : {
 
     },
+    "• Phone Screen Blacked Out" : {
+
+    },
     "• Screen Visible & Stream Running" : {
 
     },
@@ -1369,6 +1372,9 @@
         }
       }
     },
+    "Offscreen 2nd Window Streaming Active" : {
+
+    },
     "OK" : {
 
     },
@@ -1476,6 +1482,9 @@
           }
         }
       }
+    },
+    "Proximity 2nd Screen Offscreen Mode" : {
+
     },
     "Proximity Dimming Active" : {
 
@@ -2005,6 +2014,9 @@
           }
         }
       }
+    },
+    "When MapView is visible and proximity is covered, video streaming seamlessly moves to an offscreen 600x1024 MapView window." : {
+
     },
     "Wi-Fi Mismatch Warning" : {
       "extractionState" : "manual",
