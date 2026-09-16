@@ -291,6 +291,9 @@ struct HeaderStatusCard: View {
                     .font(.headline)
                     .foregroundColor(statusColor)
             }
+            if connectionState == .scanning || connectionState == .connecting {
+                Text(LocalizedStringKey("If the ble is not connecting, remove the old pairing from Bluetooth Settings and pair Ble again.")).font(.footnote).tint(.secondary)
+            }
         }
         .padding(.vertical, 24)
         .frame(maxWidth: .infinity)
