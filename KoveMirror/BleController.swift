@@ -12,6 +12,8 @@ enum BleState: String {
 }
 
 class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeripheralDelegate {
+    static weak var shared: BleController?
+    
     @Published var connectionState: BleState = .disconnected
     @Published var logMessages: [String] = []
     @Published var connectedDeviceName: String? = nil
@@ -131,6 +133,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     override init() {
         self.isPreview = false
         super.init()
+        BleController.shared = self
         centralManager = CBCentralManager(delegate: self, queue: nil, options: [CBCentralManagerOptionRestoreIdentifierKey: "KoveMirrorRestoreID"])
         locationManager.requestWhenInUseAuthorization()
         setupLocalConnectionCallback()
@@ -142,6 +145,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         self.isPreview = isPreview
         super.init()
         if !isPreview {
+            BleController.shared = self
             centralManager = CBCentralManager(delegate: self, queue: nil, options: [CBCentralManagerOptionRestoreIdentifierKey: "KoveMirrorRestoreID"])
             locationManager.requestWhenInUseAuthorization()
             setupLocalConnectionCallback()
@@ -232,6 +236,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         heartbeatTimer?.invalidate()
         heartbeatTimer = nil
         connectedDeviceName = nil
+        NavigationSyncManager.shared.stopSync()
         
         log("🎬 Stopping screen capture...")
         isStreaming = false
@@ -344,6 +349,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         clearWriteQueue()
         hasSentHandshake = false
         TelemetrySyncManager.shared.stopSync()
+        NavigationSyncManager.shared.stopSync()
         log("🔴 Disconnected: \(error?.localizedDescription ?? "Clean disconnect")")
         connectionState = .disconnected
         heartbeatTimer?.invalidate()
@@ -491,11 +497,47 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         }
         
         TelemetrySyncManager.shared.startSync(bleController: self)
+        NavigationSyncManager.shared.startSync(bleController: self)
         
         log("📤 Manual Start Mirroring requested. Sending Mirror Status packets...")
         
         writeString("{\"msg_id\":25,\"msg_type\":23,\"msg_source\":2,\"status\":1}")
         writeString("{\"msg_id\":25,\"msg_type\":21,\"msg_source\":2,\"status\":1}")
+    }
+    
+    // MARK: - Turn-by-Turn Navigation BLE API
+    
+    func sendNavigationDestination(_ destination: String) {
+        let sanitized = KoveTextSanitizer.sanitize(destination)
+        let json = "{\"msg_id\":27,\"func\":\"NAVI\",\"act\":1,\"dest\":\"\(sanitized)\"}"
+        log("🧭 Dashboard Nav Destination: \(sanitized)")
+        sendJsonPacket(json)
+    }
+    
+    func sendNavigationManeuver(
+        icon: Int,
+        nextRoad: String,
+        curRoad: String = "",
+        retainRate: Int,
+        curRetainDistance: String,
+        curUnitType: Int,
+        pathRetainDistance: String,
+        pathCurUnitType: Int,
+        curRetainTime: Int,
+        remainTime: Int64
+    ) {
+        let nextSanitized = KoveTextSanitizer.sanitize(nextRoad)
+        let curSanitized = KoveTextSanitizer.sanitize(curRoad)
+        let rate = max(0, min(100, retainRate))
+        
+        let json = "{\"msg_id\":27,\"func\":\"NAVI\",\"act\":3,\"icon\":\(icon),\"next_road\":\"\(nextSanitized)\",\"cur_road\":\"\(curSanitized)\",\"retain_rate\":\(rate),\"cur_retain_distance\":\"\(curRetainDistance)\",\"cur_unittype\":\(curUnitType),\"path_retain_distance\":\"\(pathRetainDistance)\",\"path_cur_unittype\":\(pathCurUnitType),\"cur_retain_time\":\(curRetainTime),\"remain_time\":\(remainTime)}"
+        log("🧭 Dashboard Nav Maneuver: icon \(icon), next: '\(nextSanitized)', dist: \(curRetainDistance)\(curUnitType == 0 ? "m" : "km")")
+        sendJsonPacket(json)
+    }
+    
+    func sendNavigationEnd() {
+        log("🧭 Dashboard Nav End: Sending msg_id 15")
+        sendJsonPacket("{\"msg_id\":15}")
     }
     
     func stopMirroring() {
@@ -575,6 +617,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     private func sendInitHandshake() {
         log("📤 Sending initial BLE handshake sequence...")
         TelemetrySyncManager.shared.startSync(bleController: self)
+        NavigationSyncManager.shared.startSync(bleController: self)
         
         let packets = [
             "{\"msg_id\":27,\"func\":\"PAIR\",\"act\":\"get_pairinfo\"}",

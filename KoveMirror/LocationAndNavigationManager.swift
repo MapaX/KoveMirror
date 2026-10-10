@@ -126,6 +126,9 @@ class LocationAndNavigationManager: NSObject, ObservableObject, CLLocationManage
         let destName = destination.name ?? "destination"
         speakInstruction("Starting route to \(destName). Ride safely.")
         
+        // Sync turn-by-turn navigation with Kove TFT Dashboard over BLE
+        NavigationSyncManager.shared.startNavigation(route: route, destination: destination)
+        
         if let firstStep = currentStep {
             updateStepInfo(step: firstStep)
         }
@@ -137,6 +140,9 @@ class LocationAndNavigationManager: NSObject, ObservableObject, CLLocationManage
         destinationItem = nil
         currentStepIndex = 0
         speakInstruction("Navigation ended.")
+        
+        // Notify Kove TFT Dashboard that navigation ended
+        NavigationSyncManager.shared.stopNavigation()
     }
     
     // MARK: - CLLocationManagerDelegate
@@ -179,16 +185,23 @@ class LocationAndNavigationManager: NSObject, ObservableObject, CLLocationManage
         guard let route = currentRoute else { return }
         
         // Check distance to destination
+        let totalRemaining: CLLocationDistance
         if let destLocation = destinationItem?.location {
-            let totalRemaining = currentLocation.distance(from: destLocation)
+            totalRemaining = currentLocation.distance(from: destLocation)
             self.distanceRemainingMeters = totalRemaining
+            
+            // Proportionally update remaining travel time
+            let routeTotalDist = max(1.0, route.distance)
+            self.timeRemainingSeconds = max(0, route.expectedTravelTime * (totalRemaining / routeTotalDist))
             
             // Arrival threshold (30 meters)
             if totalRemaining < 30 {
+                NavigationSyncManager.shared.triggerArrival()
                 speakInstruction("You have arrived at your destination.")
-                stopNavigation()
                 return
             }
+        } else {
+            totalRemaining = distanceRemainingMeters
         }
         
         guard currentStepIndex < route.steps.count else { return }
@@ -206,6 +219,15 @@ class LocationAndNavigationManager: NSObject, ObservableObject, CLLocationManage
                 updateStepInfo(step: newStep)
             }
         }
+        
+        // Sync live progress with Kove Dashboard Navigation Manager
+        NavigationSyncManager.shared.updateProgress(
+            stepIndex: currentStepIndex,
+            distanceToStep: distanceToStepEnd,
+            totalRemainingDistance: totalRemaining,
+            timeRemaining: self.timeRemainingSeconds,
+            speedKmH: self.currentSpeedKmH
+        )
     }
     
     private func updateStepInfo(step: MKRoute.Step) {

@@ -1112,6 +1112,9 @@
         }
       }
     },
+    "If the ble is not connecting, remove the old pairing from Bluetooth Settings and pair Ble again." : {
+
+    },
     "Instructions:" : {
       "extractionState" : "manual",
       "localizations" : {
