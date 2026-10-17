@@ -1,11 +1,11 @@
 import Foundation
 
 enum KoveScreenPreset: String, CaseIterable, Identifiable {
-    case kove800X      = "600 × 1024 (Kove 800X / 510 Rally)"
-    case kove450Rally  = "480 × 800 (Kove 450 Rally / 500X / 400X)"
-    case portraitLarge = "640 × 1284 (Portrait Large)"
-    case landscape720p = "1280 × 720 (Landscape 720p)"
-    case square800     = "800 × 800 (Square TFT)"
+    case kove800X = "Kove 800X (600 × 1024)"
+    case kove450Rally = "Kove 450 Rally (480 × 800)"
+    case kove510X = "Kove 510X / Colove (640 × 1284)"
+    case koveLandscape = "Landscape Display (1280 × 720)"
+    case koveSquare = "Square Display (800 × 800)"
     
     var id: String { rawValue }
     
@@ -13,9 +13,9 @@ enum KoveScreenPreset: String, CaseIterable, Identifiable {
         switch self {
         case .kove800X: return 600
         case .kove450Rally: return 480
-        case .portraitLarge: return 640
-        case .landscape720p: return 1280
-        case .square800: return 800
+        case .kove510X: return 640
+        case .koveLandscape: return 1280
+        case .koveSquare: return 800
         }
     }
     
@@ -23,9 +23,9 @@ enum KoveScreenPreset: String, CaseIterable, Identifiable {
         switch self {
         case .kove800X: return 1024
         case .kove450Rally: return 800
-        case .portraitLarge: return 1284
-        case .landscape720p: return 720
-        case .square800: return 800
+        case .kove510X: return 1284
+        case .koveLandscape: return 720
+        case .koveSquare: return 800
         }
     }
     
@@ -35,6 +35,7 @@ enum KoveScreenPreset: String, CaseIterable, Identifiable {
     static let presetKey = "selected_kove_screen_preset"
     static let topPaddingKey = "screen_top_padding"
     static let bottomPaddingKey = "screen_bottom_padding"
+    static let configChangedNotification = Notification.Name("KoveScreenPresetConfigChanged")
     
     static var current: KoveScreenPreset {
         get {
@@ -50,17 +51,17 @@ enum KoveScreenPreset: String, CaseIterable, Identifiable {
             suiteDefaults.set(newValue.rawValue, forKey: presetKey)
             suiteDefaults.synchronize()
             UserDefaults.standard.set(newValue.rawValue, forKey: presetKey)
+            NotificationCenter.default.post(name: configChangedNotification, object: nil)
         }
     }
     
     static var topPadding: Int {
         get {
             let suiteDefaults = UserDefaults(suiteName: appGroupSuiteName) ?? UserDefaults.standard
-            let val = suiteDefaults.integer(forKey: topPaddingKey)
-            if val == 0 {
-                return UserDefaults.standard.integer(forKey: topPaddingKey)
+            if suiteDefaults.object(forKey: topPaddingKey) != nil {
+                return max(0, min(suiteDefaults.integer(forKey: topPaddingKey), 300))
             }
-            return val
+            return max(0, min(UserDefaults.standard.integer(forKey: topPaddingKey), 300))
         }
         set {
             let clamped = max(0, min(newValue, 300))
@@ -68,17 +69,17 @@ enum KoveScreenPreset: String, CaseIterable, Identifiable {
             suiteDefaults.set(clamped, forKey: topPaddingKey)
             suiteDefaults.synchronize()
             UserDefaults.standard.set(clamped, forKey: topPaddingKey)
+            NotificationCenter.default.post(name: configChangedNotification, object: nil)
         }
     }
     
     static var bottomPadding: Int {
         get {
             let suiteDefaults = UserDefaults(suiteName: appGroupSuiteName) ?? UserDefaults.standard
-            let val = suiteDefaults.integer(forKey: bottomPaddingKey)
-            if val == 0 {
-                return UserDefaults.standard.integer(forKey: bottomPaddingKey)
+            if suiteDefaults.object(forKey: bottomPaddingKey) != nil {
+                return max(0, min(suiteDefaults.integer(forKey: bottomPaddingKey), 300))
             }
-            return val
+            return max(0, min(UserDefaults.standard.integer(forKey: bottomPaddingKey), 300))
         }
         set {
             let clamped = max(0, min(newValue, 300))
@@ -86,6 +87,7 @@ enum KoveScreenPreset: String, CaseIterable, Identifiable {
             suiteDefaults.set(clamped, forKey: bottomPaddingKey)
             suiteDefaults.synchronize()
             UserDefaults.standard.set(clamped, forKey: bottomPaddingKey)
+            NotificationCenter.default.post(name: configChangedNotification, object: nil)
         }
     }
 }

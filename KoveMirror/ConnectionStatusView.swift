@@ -7,6 +7,7 @@ struct ConnectionStatusView: View {
     @State private var currentWifiSSID: String?
     @State private var isPulsing = false
     @State private var showScanner = false
+    @State private var showSettingsSheet = false
     @State private var showAboutSheet = false
     @State private var showHelpSheet = false
     @State private var showLogSheet = false
@@ -78,8 +79,12 @@ struct ConnectionStatusView: View {
                             showLogSheet = true
                         }
                         
-                        // Help & Guide and About Buttons
+                        // Settings, Help & Guide and About Buttons
                         VStack(spacing: 12) {
+                            SettingsButton {
+                                showSettingsSheet = true
+                            }
+                            
                             HelpButton {
                                 showHelpSheet = true
                             }
@@ -101,14 +106,25 @@ struct ConnectionStatusView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        showHelpSheet = true
-                    }) {
-                        Image(systemName: "questionmark.circle")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.85))
+                    HStack(spacing: 16) {
+                        Button(action: {
+                            showSettingsSheet = true
+                        }) {
+                            Image(systemName: "gearshape")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.85))
+                        }
+                        .accessibilityLabel("Settings")
+                        
+                        Button(action: {
+                            showHelpSheet = true
+                        }) {
+                            Image(systemName: "questionmark.circle")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.85))
+                        }
+                        .accessibilityLabel("Help & Guide")
                     }
-                    .accessibilityLabel("Help & Guide")
                 }
             }
         }
@@ -117,6 +133,9 @@ struct ConnectionStatusView: View {
             QRScannerSheet(showScanner: $showScanner) { scannedCode in
                 handleQRCodeScan(scannedCode)
             }
+        }
+        .sheet(isPresented: $showSettingsSheet) {
+            SettingsView()
         }
         .sheet(isPresented: $showAboutSheet) {
             AboutView()
@@ -743,6 +762,25 @@ struct TelemetryCard: View {
                 .stroke(Color.white.opacity(0.06), lineWidth: 1)
         )
         .padding(.horizontal)
+    }
+}
+
+struct SettingsButton: View {
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                Image(systemName: "gearshape.fill")
+                Text("Settings")
+            }
+            .font(.headline)
+            .foregroundColor(.black)
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(Color.yellow)
+            .cornerRadius(12)
+        }
     }
 }
 

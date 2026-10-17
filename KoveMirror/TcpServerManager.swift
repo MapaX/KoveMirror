@@ -25,6 +25,23 @@ class TcpServerManager {
     var onLog: ((String) -> Void)?
     private var onVideoConnectCallback: (() -> Void)?
     
+    init() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleScreenConfigChanged),
+            name: KoveScreenPreset.configChangedNotification,
+            object: nil
+        )
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc private func handleScreenConfigChanged() {
+        sendConfigToExtension()
+    }
+    
     func startServers(width: Int, height: Int, onVideoConnect: @escaping () -> Void) {
         onVideoConnectCallback = onVideoConnect
         handshakeCompleted = false
@@ -377,6 +394,7 @@ class TcpServerManager {
             case .ready:
                 print("🔌 Local video client connected.")
                 self.onLocalConnectionChanged?(true)
+                self.sendConfigToExtension()
                 self.readLocalVideoData(connection)
             case .failed, .cancelled:
                 print("🔌 Local video client disconnected.")
@@ -404,6 +422,30 @@ class TcpServerManager {
                 self?.readLocalVideoData(connection)
             }
         }
+    }
+    
+    func sendConfigToExtension() {
+        guard let connection = localVideoConnection else { return }
+        let top = KoveScreenPreset.topPadding
+        let bottom = KoveScreenPreset.bottomPadding
+        let preset = KoveScreenPreset.current
+        let configDict: [String: Any] = [
+            "type": "config",
+            "top": top,
+            "bottom": bottom,
+            "width": preset.width,
+            "height": preset.height
+        ]
+        guard let data = try? JSONSerialization.data(withJSONObject: configDict) else { return }
+        var packet = data
+        packet.append(0x0A) // Newline delimiter
+        connection.send(content: packet, completion: .contentProcessed({ error in
+            if let error = error {
+                print("⚠️ Failed sending config to extension: \(error.localizedDescription)")
+            } else {
+                print("📡 Sent screen config to extension: \(preset.width)x\(preset.height), top=\(top), bottom=\(bottom)")
+            }
+        }))
     }
     
     // MARK: - Lifecycle Management

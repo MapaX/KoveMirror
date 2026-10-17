@@ -260,4 +260,84 @@ struct KoveMirrorTests {
         let secondChunkSize = totalPayloadLen - 100
         #expect(frames[1][secondChunkSize + 3] == 0xFF)
     }
+    @Test func testFrameLetterboxerAppliesBlackLetterboxing() {
+        let letterboxer = FrameLetterboxer()
+        
+        let srcWidth = 400
+        let srcHeight = 800
+        var srcBuffer: CVPixelBuffer?
+        let attrs = [
+            kCVPixelBufferCGImageCompatibilityKey: kCFBooleanTrue,
+            kCVPixelBufferCGBitmapContextCompatibilityKey: kCFBooleanTrue
+        ] as CFDictionary
+        
+        let status = CVPixelBufferCreate(
+            kCFAllocatorDefault,
+            srcWidth,
+            srcHeight,
+            kCVPixelFormatType_32BGRA,
+            attrs,
+            &srcBuffer
+        )
+        #expect(status == kCVReturnSuccess)
+        guard let inputBuffer = srcBuffer else { return }
+        
+        // Fill input buffer with solid red
+        CVPixelBufferLockBaseAddress(inputBuffer, [])
+        let basePtr = CVPixelBufferGetBaseAddress(inputBuffer)!.assumingMemoryBound(to: UInt8.self)
+        let bytesPerRow = CVPixelBufferGetBytesPerRow(inputBuffer)
+        for y in 0..<srcHeight {
+            for x in 0..<srcWidth {
+                let offset = y * bytesPerRow + x * 4
+                basePtr[offset] = 0     // B
+                basePtr[offset + 1] = 0   // G
+                basePtr[offset + 2] = 255 // R
+                basePtr[offset + 3] = 255 // A
+            }
+        }
+        CVPixelBufferUnlockBaseAddress(inputBuffer, [])
+        
+        let targetWidth = 600
+        let targetHeight = 1000
+        let topPadding = 120
+        let bottomPadding = 80
+        
+        let outputBuffer = letterboxer.letterbox(
+            pixelBuffer: inputBuffer,
+            targetWidth: targetWidth,
+            targetHeight: targetHeight,
+            topPadding: topPadding,
+            bottomPadding: bottomPadding
+        )
+        
+        #expect(outputBuffer != nil)
+        guard let out = outputBuffer else { return }
+        
+        #expect(CVPixelBufferGetWidth(out) == targetWidth)
+        #expect(CVPixelBufferGetHeight(out) == targetHeight)
+        
+        CVPixelBufferLockBaseAddress(out, .readOnly)
+        defer { CVPixelBufferUnlockBaseAddress(out, .readOnly) }
+        
+        let outPtr = CVPixelBufferGetBaseAddress(out)!.assumingMemoryBound(to: UInt8.self)
+        let outBytesPerRow = CVPixelBufferGetBytesPerRow(out)
+        
+        // Helper to sample pixel at (x, y)
+        func pixelAt(x: Int, y: Int) -> (b: UInt8, g: UInt8, r: UInt8, a: UInt8) {
+            let offset = y * outBytesPerRow + x * 4
+            return (outPtr[offset], outPtr[offset + 1], outPtr[offset + 2], outPtr[offset + 3])
+        }
+        
+        // 1. Check top letterbox area (row 20 is well inside 0..<topPadding)
+        let topPixel = pixelAt(x: targetWidth / 2, y: 20)
+        #expect(topPixel.r == 0 && topPixel.g == 0 && topPixel.b == 0)
+        
+        // 2. Check content area (row 500 is well inside topPadding..<(targetHeight - bottomPadding))
+        let midPixel = pixelAt(x: targetWidth / 2, y: 500)
+        #expect(midPixel.r > 200 && midPixel.g < 50 && midPixel.b < 50)
+        
+        // 3. Check bottom letterbox area (row 960 is well inside (targetHeight - bottomPadding)..<targetHeight)
+        let bottomPixel = pixelAt(x: targetWidth / 2, y: 960)
+        #expect(bottomPixel.r == 0 && bottomPixel.g == 0 && bottomPixel.b == 0)
+    }
 }
