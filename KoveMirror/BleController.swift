@@ -95,6 +95,8 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     private let queueAccessQueue = DispatchQueue(label: "com.kove.mirror.bleWriteQueue")
     private var bleWriteQueue: [Data] = []
     private var isWritingPackets = false
+    private var bleSequenceNumber: UInt16 = 0
+    private var rxBuffer: String = ""
     
     private var logFilePath: URL {
         let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
@@ -232,10 +234,12 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     }
     
     func disconnect() {
+        rxBuffer = ""
         clearWriteQueue()
         heartbeatTimer?.invalidate()
         heartbeatTimer = nil
         connectedDeviceName = nil
+        TelemetrySyncManager.shared.stopSync()
         NavigationSyncManager.shared.stopSync()
         
         log("🎬 Stopping screen capture...")
@@ -335,6 +339,8 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         log("✅ Connected to \(peripheral.name ?? "TFT Device"). Discovering services...")
         connectionState = .connected
         connectedDeviceName = peripheral.name
+        rxBuffer = ""
+        clearWriteQueue()
         peripheral.delegate = self
         peripheral.discoverServices(nil)
     }
@@ -346,6 +352,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     }
     
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+        rxBuffer = ""
         clearWriteQueue()
         hasSentHandshake = false
         TelemetrySyncManager.shared.stopSync()
@@ -433,12 +440,72 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         }
     }
     
-    private func writeString(_ str: String) {
-        guard let data = str.data(using: .utf8) else { return }
+    /// Frames a JSON string into 104-byte binary packets expected by the Kove TFT MCU.
+    /// Framing algorithm (from KoveGo KoveService.java and TinkerAPP WriteThread.java / ByteUtils.java):
+    /// - Payload = UTF-8(jsonString) + 2 checksum bytes + 0x00 (null terminator)
+    /// - Checksum = sum of all bytes in UTF-8(jsonString) modulo 256, split into two nibbles with 0x80 bit set:
+    ///     chk0 = ((sum >> 4) & 0x0F) | 0x80
+    ///     chk1 = (sum & 0x0F) | 0x80
+    /// - Chunking: payload is partitioned into slices of up to 100 bytes each.
+    /// - Each frame is fixed 104 bytes:
+    ///     frame[0] = 0xFE (Packet start delimiter)
+    ///     frame[1] = (seq >> 8) & 0xFF (Sequence counter MSB)
+    ///     frame[2] = seq & 0xFF (Sequence counter LSB)
+    ///     frame[3 ..< 3 + chunkSize] = payload slice
+    ///     frame[chunkSize + 3] = 0xFF (Packet end delimiter)
+    ///     frame[(chunkSize + 4) ..< 104] = 0x00 (Zero padding)
+    func frameJsonPacket(_ jsonString: String) -> [Data] {
+        guard let jsonBytes = jsonString.data(using: .utf8) else { return [] }
         
+        var sum: UInt32 = 0
+        for byte in jsonBytes {
+            sum = (sum + UInt32(byte)) & 0xFF
+        }
+        let chk0 = UInt8(((sum >> 4) & 0x0F) | 0x80)
+        let chk1 = UInt8((sum & 0x0F) | 0x80)
+        
+        var payload = Data()
+        payload.reserveCapacity(jsonBytes.count + 3)
+        payload.append(jsonBytes)
+        payload.append(chk0)
+        payload.append(chk1)
+        payload.append(0x00)
+        
+        var frames: [Data] = []
+        var offset = 0
+        let totalLength = payload.count
+        
+        while offset < totalLength {
+            let chunkSize = min(totalLength - offset, 100)
+            var frame = Data(count: 104)
+            
+            let seq = bleSequenceNumber
+            bleSequenceNumber = (bleSequenceNumber &+ 1) & 0xFFFF
+            
+            frame[0] = 0xFE
+            frame[1] = UInt8((seq >> 8) & 0xFF)
+            frame[2] = UInt8(seq & 0xFF)
+            
+            let slice = payload.subdata(in: offset ..< (offset + chunkSize))
+            frame.replaceSubrange(3 ..< (3 + chunkSize), with: slice)
+            frame[chunkSize + 3] = 0xFF
+            
+            frames.append(frame)
+            offset += chunkSize
+        }
+        
+        return frames
+    }
+    
+    private func writeString(_ str: String) {
         queueAccessQueue.async { [weak self] in
             guard let self = self else { return }
-            self.bleWriteQueue.append(data)
+            let frames = self.frameJsonPacket(str)
+            guard !frames.isEmpty else { return }
+            
+            self.bleWriteQueue.append(contentsOf: frames)
+            self.log("📤 BLE Send JSON (\(frames.count) frame\(frames.count == 1 ? "" : "s")): \(str)")
+            
             if !self.isWritingPackets {
                 self.isWritingPackets = true
                 self.processNextWriteItem()
@@ -467,12 +534,11 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
                     return
                 }
                 
-                let str = String(data: data, encoding: .utf8) ?? ""
-                self.log("📤 BLE Write: \(str)")
-                peripheral.writeValue(data, for: char, type: .withoutResponse)
+                let writeType: CBCharacteristicWriteType = char.properties.contains(.writeWithoutResponse) ? .withoutResponse : .withResponse
+                peripheral.writeValue(data, for: char, type: writeType)
                 
-                // 150ms pacing delay matching Android Thread.sleep(150) to prevent MCU buffer overrun
-                self.queueAccessQueue.asyncAfter(deadline: .now() + 0.15) { [weak self] in
+                // 50ms pacing delay between 104-byte packets to prevent MCU buffer overrun
+                self.queueAccessQueue.asyncAfter(deadline: .now() + 0.05) { [weak self] in
                     self?.processNextWriteItem()
                 }
             }
@@ -483,6 +549,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         queueAccessQueue.async { [weak self] in
             self?.bleWriteQueue.removeAll()
             self?.isWritingPackets = false
+            self?.bleSequenceNumber = 0
         }
     }
 
@@ -555,60 +622,109 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         writeString("{\"msg_id\":25,\"msg_type\":21,\"msg_source\":2,\"status\":0}")
     }
     
-    private func extractJsonText(from data: Data) -> String {
-        if let text = String(data: data, encoding: .utf8), text.contains("{") {
-            return text
-        }
-        // Filter printable ASCII characters (codes 32..126 plus newlines)
-        let printableBytes = data.filter { ($0 >= 32 && $0 <= 126) || $0 == 10 || $0 == 13 || $0 == 9 }
-        return String(bytes: printableBytes, encoding: .ascii) ?? ""
-    }
-    
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         if let error = error {
             log("❌ Error reading characteristic value: \(error.localizedDescription)")
             return
         }
         
-        if let data = characteristic.value {
-            let text = extractJsonText(from: data)
-            if !text.isEmpty && text.contains("{") {
-                log("📥 TFT -> BLE (\(characteristic.uuid.uuidString)): \(text)")
-                
-                // Check for handlebar key press events over BLE
-                HandlebarKeyManager.shared.processJsonText(text)
-                
-                // Parse for send_pairresult confirmation (supporting concatenated JSON payloads)
-                var pairingConfirmed = false
-                
-                if text.contains("send_pairresult") && (text.contains("\"result\":1") || text.contains("\"result\": 1")) {
-                    pairingConfirmed = true
-                } else {
-                    let sanitizedText = text.replacingOccurrences(of: "}{", with: "}\n{")
-                    let lines = sanitizedText.components(separatedBy: "\n")
-                    for line in lines {
-                        guard let jsonData = line.trimmingCharacters(in: .whitespacesAndNewlines).data(using: .utf8),
-                              let json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else {
-                            continue
-                        }
-                        
-                        if let msgId = json["msg_id"] as? Int, msgId == 27,
-                           let act = json["act"] as? String, act == "send_pairresult",
-                           let result = json["result"] as? Int, result == 1 {
-                            pairingConfirmed = true
-                            break
-                        }
+        guard let data = characteristic.value, !data.isEmpty else { return }
+        
+        let chunk: String
+        if let utf8 = String(data: data, encoding: .utf8) {
+            chunk = utf8
+        } else if let latin1 = String(data: data, encoding: .isoLatin1) {
+            chunk = latin1
+        } else {
+            let printableBytes = data.filter { ($0 >= 32 && $0 <= 126) || $0 == 10 || $0 == 13 || $0 == 9 }
+            chunk = String(bytes: printableBytes, encoding: .ascii) ?? ""
+        }
+        
+        guard !chunk.isEmpty else { return }
+        
+        if !chunk.contains("{") && rxBuffer.isEmpty {
+            let hexStr = data.map { String(format: "%02X", $0) }.joined(separator: " ")
+            log("📥 TFT -> BLE (\(characteristic.uuid.uuidString)) Binary: [\(hexStr)] (\(data.count)B)")
+            return
+        }
+        
+        rxBuffer.append(chunk)
+        
+        // Balanced brace JSON object parser (matching Android KoveService / r0.java)
+        while true {
+            guard let startIndex = rxBuffer.firstIndex(of: "{") else {
+                rxBuffer.removeAll()
+                break
+            }
+            
+            var depth = 0
+            var endIndex: String.Index? = nil
+            var currIndex = startIndex
+            
+            while currIndex < rxBuffer.endIndex {
+                let ch = rxBuffer[currIndex]
+                if ch == "{" {
+                    depth += 1
+                } else if ch == "}" {
+                    depth -= 1
+                    if depth == 0 {
+                        endIndex = currIndex
+                        break
                     }
                 }
-                
-                if pairingConfirmed {
-                    log("✅ BLE pairing confirmed by TFT (send_pairresult=1)! Automatically starting mirroring.")
-                    startMirroring()
-                }
-            } else {
-                let hexStr = data.map { String(format: "%02X", $0) }.joined(separator: " ")
-                log("📥 TFT -> BLE (\(characteristic.uuid.uuidString)) Binary: [\(hexStr)] (\(data.count)B)")
+                currIndex = rxBuffer.index(after: currIndex)
             }
+            
+            if let end = endIndex {
+                let jsonString = String(rxBuffer[startIndex...end])
+                rxBuffer.removeSubrange(rxBuffer.startIndex...end)
+                handleIncomingJsonText(jsonString)
+            } else {
+                // Incomplete JSON in buffer - trim leading garbage before startIndex
+                if startIndex > rxBuffer.startIndex {
+                    rxBuffer.removeSubrange(rxBuffer.startIndex..<startIndex)
+                }
+                break
+            }
+        }
+    }
+    
+    private func handleIncomingJsonText(_ text: String) {
+        log("📥 TFT -> BLE: \(text)")
+        
+        // Process handlebar controls over BLE
+        HandlebarKeyManager.shared.processJsonText(text)
+        
+        guard let jsonData = text.data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else {
+            return
+        }
+        
+        // Respond to TFT periodic ping: msg_id 10, item 4
+        // Android p0.java replies with: {"msg_id":11,"time":"yyyy-MM-dd HH:mm:ss","tag":tag}
+        if let msgId = json["msg_id"] as? Int, msgId == 10 {
+            let item = json["item"] as? Int ?? 0
+            if item == 4 {
+                let tag = json["tag"] as? Int ?? 0
+                let reply = "{\"msg_id\":11,\"time\":\"\(getCurrentTimeString())\",\"tag\":\(tag)}"
+                log("📥 TFT Ping received (msg_id: 10, item: 4, tag: \(tag)) -> Replying with msg_id: 11")
+                writeString(reply)
+            }
+        }
+        
+        // Parse for send_pairresult confirmation (supporting concatenated JSON payloads)
+        var pairingConfirmed = false
+        if let msgId = json["msg_id"] as? Int, msgId == 27,
+           let act = json["act"] as? String, act == "send_pairresult",
+           let result = json["result"] as? Int, result == 1 {
+            pairingConfirmed = true
+        } else if text.contains("send_pairresult") && (text.contains("\"result\":1") || text.contains("\"result\": 1")) {
+            pairingConfirmed = true
+        }
+        
+        if pairingConfirmed {
+            log("✅ BLE pairing confirmed by TFT (send_pairresult=1)! Automatically starting mirroring.")
+            startMirroring()
         }
     }
     
@@ -623,7 +739,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
             "{\"msg_id\":27,\"func\":\"PAIR\",\"act\":\"get_pairinfo\"}",
             "{\"msg_id\":13}",
             "{\"msg_id\":25,\"msg_type\":18,\"msg_source\":2,\"language\":2}",
-            "{\"msg_id\":11,\"time\":\"\(getCurrentTimeString())\",\"tag\":-1}",
+            "{\"msg_id\":11,\"time\":\"\(getCurrentTimeString())\",\"tag\":0}",
             "{\"msg_id\":25,\"msg_type\":23,\"msg_source\":2,\"status\":1}",
             "{\"msg_id\":25,\"msg_type\":21,\"msg_source\":2,\"status\":1}",
             "{\"msg_id\":27,\"func\":\"INSIDENAVI\",\"query\":1}",

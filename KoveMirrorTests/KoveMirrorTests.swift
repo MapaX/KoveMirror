@@ -196,4 +196,68 @@ struct KoveMirrorTests {
         
         encoder.stop()
     }
+
+    @Test func testBleFrameJsonPacketSingleFrame() {
+        let controller = BleController(isPreview: true)
+        let json = "{\"msg_id\":13}"
+        let frames = controller.frameJsonPacket(json)
+        
+        #expect(frames.count == 1)
+        let frame = frames[0]
+        #expect(frame.count == 104)
+        
+        // Start delimiter
+        #expect(frame[0] == 0xFE)
+        
+        // Sequence number (starts at 0)
+        let seq = (UInt16(frame[1]) << 8) | UInt16(frame[2])
+        #expect(seq == 0)
+        
+        // Payload slice
+        let jsonBytes = Array(json.utf8)
+        let payloadSlice = Array(frame[3 ..< (3 + jsonBytes.count)])
+        #expect(payloadSlice == jsonBytes)
+        
+        // Checksum calculation: sum of UTF-8 bytes modulo 256
+        let sum = jsonBytes.reduce(0) { ($0 + Int($1)) & 0xFF }
+        let expectedChk0 = UInt8(((sum >> 4) & 0x0F) | 0x80)
+        let expectedChk1 = UInt8((sum & 0x0F) | 0x80)
+        
+        #expect(frame[3 + jsonBytes.count] == expectedChk0)
+        #expect(frame[3 + jsonBytes.count + 1] == expectedChk1)
+        #expect(frame[3 + jsonBytes.count + 2] == 0x00) // null terminator
+        
+        // End delimiter: chunkSize is (jsonBytes.count + 3), delimiter at chunkSize + 3
+        let chunkSize = jsonBytes.count + 3
+        #expect(frame[chunkSize + 3] == 0xFF)
+        
+        // Remaining bytes should be zero padding
+        for i in (chunkSize + 4) ..< 104 {
+            #expect(frame[i] == 0x00)
+        }
+    }
+    
+    @Test func testBleFrameJsonPacketMultiFrame() {
+        let controller = BleController(isPreview: true)
+        let dummyDest = String(repeating: "A", count: 120)
+        let json = "{\"msg_id\":27,\"func\":\"NAVI\",\"act\":1,\"dest\":\"\(dummyDest)\"}"
+        let frames = controller.frameJsonPacket(json)
+        
+        #expect(frames.count == 2)
+        
+        for (idx, frame) in frames.enumerated() {
+            #expect(frame.count == 104)
+            #expect(frame[0] == 0xFE)
+            let seq = (UInt16(frame[1]) << 8) | UInt16(frame[2])
+            #expect(seq == UInt16(idx))
+        }
+        
+        // First frame end delimiter is at 100 + 3 = 103
+        #expect(frames[0][103] == 0xFF)
+        
+        // Second frame has remaining payload and 0xFF end delimiter
+        let totalPayloadLen = json.utf8.count + 3
+        let secondChunkSize = totalPayloadLen - 100
+        #expect(frames[1][secondChunkSize + 3] == 0xFF)
+    }
 }
