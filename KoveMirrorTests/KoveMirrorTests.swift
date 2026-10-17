@@ -340,4 +340,80 @@ struct KoveMirrorTests {
         let bottomPixel = pixelAt(x: targetWidth / 2, y: 960)
         #expect(bottomPixel.r == 0 && bottomPixel.g == 0 && bottomPixel.b == 0)
     }
+    @Test func testFrameLetterboxerPreservesAspectRatio() {
+        let letterboxer = FrameLetterboxer()
+        
+        // Very tall aspect ratio: 200 x 1000 (1:5)
+        let srcWidth = 200
+        let srcHeight = 1000
+        var srcBuffer: CVPixelBuffer?
+        let attrs = [
+            kCVPixelBufferCGImageCompatibilityKey: kCFBooleanTrue,
+            kCVPixelBufferCGBitmapContextCompatibilityKey: kCFBooleanTrue
+        ] as CFDictionary
+        
+        let status = CVPixelBufferCreate(
+            kCFAllocatorDefault,
+            srcWidth,
+            srcHeight,
+            kCVPixelFormatType_32BGRA,
+            attrs,
+            &srcBuffer
+        )
+        #expect(status == kCVReturnSuccess)
+        guard let inputBuffer = srcBuffer else { return }
+        
+        // Fill input buffer with solid blue
+        CVPixelBufferLockBaseAddress(inputBuffer, [])
+        let basePtr = CVPixelBufferGetBaseAddress(inputBuffer)!.assumingMemoryBound(to: UInt8.self)
+        let bytesPerRow = CVPixelBufferGetBytesPerRow(inputBuffer)
+        for y in 0..<srcHeight {
+            for x in 0..<srcWidth {
+                let offset = y * bytesPerRow + x * 4
+                basePtr[offset] = 255   // B
+                basePtr[offset + 1] = 0 // G
+                basePtr[offset + 2] = 0 // R
+                basePtr[offset + 3] = 255
+            }
+        }
+        CVPixelBufferUnlockBaseAddress(inputBuffer, [])
+        
+        let targetWidth = 600
+        let targetHeight = 1000
+        
+        // Case 1: keepAspectRatio = true -> Content scaled to 200x1000 in center, left/right margins should be black!
+        let aspectBuffer = letterboxer.letterbox(
+            pixelBuffer: inputBuffer,
+            targetWidth: targetWidth,
+            targetHeight: targetHeight,
+            topPadding: 0,
+            bottomPadding: 0,
+            keepAspectRatio: true
+        )
+        #expect(aspectBuffer != nil)
+        guard let outAspect = aspectBuffer else { return }
+        
+        CVPixelBufferLockBaseAddress(outAspect, .readOnly)
+        defer { CVPixelBufferUnlockBaseAddress(outAspect, .readOnly) }
+        
+        let outPtr = CVPixelBufferGetBaseAddress(outAspect)!.assumingMemoryBound(to: UInt8.self)
+        let outBytesPerRow = CVPixelBufferGetBytesPerRow(outAspect)
+        
+        func pixelAt(x: Int, y: Int) -> (b: UInt8, g: UInt8, r: UInt8) {
+            let offset = y * outBytesPerRow + x * 4
+            return (outPtr[offset], outPtr[offset + 1], outPtr[offset + 2])
+        }
+        
+        // Left pillarbox area (x = 50 is outside 200px centered content [200..400])
+        let leftPixel = pixelAt(x: 50, y: 500)
+        #expect(leftPixel.b == 0 && leftPixel.g == 0 && leftPixel.r == 0)
+        
+        // Center content area (x = 300 is inside content)
+        let centerPixel = pixelAt(x: 300, y: 500)
+        #expect(centerPixel.b > 200 && centerPixel.g < 50 && centerPixel.r < 50)
+        
+        // Right pillarbox area (x = 550 is outside 200px centered content)
+        let rightPixel = pixelAt(x: 550, y: 500)
+        #expect(rightPixel.b == 0 && rightPixel.g == 0 && rightPixel.r == 0)
+    }
 }

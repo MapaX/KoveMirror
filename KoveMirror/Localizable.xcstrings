@@ -1404,6 +1404,9 @@
     "Learn how Bluetooth and Wi-Fi power the features on your motorcycle TFT display." : {
 
     },
+    "Maintains the phone screen aspect ratio instead of stretching to fill the motorcycle display." : {
+
+    },
     "Map & Navigation" : {
 
     },
@@ -1608,6 +1611,9 @@
           }
         }
       }
+    },
+    "Preserve Aspect Ratio" : {
+
     },
     "Press the **ENT** button for **5 seconds** to open **Full screen navigation**." : {
 

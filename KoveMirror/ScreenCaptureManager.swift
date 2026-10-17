@@ -158,8 +158,18 @@ class ScreenCaptureManager: NSObject {
             ctx.scaleBy(x: 1.0, y: -1.0)
             
             // 3. Offset and scale context to fit the window into content area with black margins
-            ctx.translateBy(x: 0, y: topPadding)
-            ctx.scaleBy(x: CGFloat(width) / window.bounds.width, y: availableHeight / window.bounds.height)
+            if KoveScreenPreset.keepAspectRatio {
+                let scale = min(CGFloat(width) / window.bounds.width, availableHeight / window.bounds.height)
+                let contentWidth = window.bounds.width * scale
+                let contentHeight = window.bounds.height * scale
+                let offsetX = (CGFloat(width) - contentWidth) / 2.0
+                let extraY = (availableHeight - contentHeight) / 2.0
+                ctx.translateBy(x: offsetX, y: topPadding + extraY)
+                ctx.scaleBy(x: scale, y: scale)
+            } else {
+                ctx.translateBy(x: 0, y: topPadding)
+                ctx.scaleBy(x: CGFloat(width) / window.bounds.width, y: availableHeight / window.bounds.height)
+            }
             
             // 4. Clip to window bounds so contents don't bleed into padding area
             ctx.clip(to: window.bounds)

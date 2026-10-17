@@ -16,6 +16,7 @@ class SampleHandler: RPBroadcastSampleHandler, H264EncoderDelegate {
     let targetFps: Int = 30
     var topPadding: Int = 0
     var bottomPadding: Int = 0
+    var keepAspectRatio: Bool = false
     
     override func broadcastStarted(withSetupInfo setupInfo: [String : NSObject]?) {
         print("📺 Broadcast started inside Kove broadcast extension.")
@@ -27,7 +28,8 @@ class SampleHandler: RPBroadcastSampleHandler, H264EncoderDelegate {
         self.targetHeight = preset.height
         self.topPadding = KoveScreenPreset.topPadding
         self.bottomPadding = KoveScreenPreset.bottomPadding
-        print("📺 Initial broadcast settings: \(targetWidth)x\(targetHeight), padding top=\(topPadding), bottom=\(bottomPadding)")
+        self.keepAspectRatio = KoveScreenPreset.keepAspectRatio
+        print("📺 Initial broadcast settings: \(targetWidth)x\(targetHeight), padding top=\(topPadding), bottom=\(bottomPadding), keepAspect=\(keepAspectRatio)")
         
         // Connect to the main app's local video receiver on port 15455
         let connection = NWConnection(host: "127.0.0.1", port: 15455, using: .tcp)
@@ -91,6 +93,9 @@ class SampleHandler: RPBroadcastSampleHandler, H264EncoderDelegate {
             if let bottom = json["bottom"] as? Int {
                 self.bottomPadding = max(0, min(bottom, 300))
             }
+            if let keepAspect = json["keepAspect"] as? Bool {
+                self.keepAspectRatio = keepAspect
+            }
             if let w = json["width"] as? Int, let h = json["height"] as? Int {
                 if w != self.targetWidth || h != self.targetHeight {
                     self.targetWidth = w
@@ -101,7 +106,7 @@ class SampleHandler: RPBroadcastSampleHandler, H264EncoderDelegate {
             if needsReconfigure && self.isEncoderStarted {
                 self.startOrReconfigureEncoder()
             }
-            print("📺 Broadcast extension updated config: \(targetWidth)x\(targetHeight), top=\(topPadding), bottom=\(bottomPadding)")
+            print("📺 Broadcast extension updated config: \(targetWidth)x\(targetHeight), top=\(topPadding), bottom=\(bottomPadding), keepAspect=\(keepAspectRatio)")
         }
     }
     
@@ -116,14 +121,16 @@ class SampleHandler: RPBroadcastSampleHandler, H264EncoderDelegate {
             
             let top = topPadding
             let bottom = bottomPadding
+            let keepAspect = keepAspectRatio
             
-            if top > 0 || bottom > 0 {
+            if top > 0 || bottom > 0 || keepAspect {
                 if let letterboxedBuffer = letterboxer.letterbox(
                     pixelBuffer: pixelBuffer,
                     targetWidth: targetWidth,
                     targetHeight: targetHeight,
                     topPadding: top,
-                    bottomPadding: bottom
+                    bottomPadding: bottom,
+                    keepAspectRatio: keepAspect
                 ) {
                     encoder.encode(pixelBuffer: letterboxedBuffer, pts: pts)
                     return

@@ -35,6 +35,7 @@ enum KoveScreenPreset: String, CaseIterable, Identifiable {
     static let presetKey = "selected_kove_screen_preset"
     static let topPaddingKey = "screen_top_padding"
     static let bottomPaddingKey = "screen_bottom_padding"
+    static let keepAspectRatioKey = "screen_keep_aspect_ratio"
     static let configChangedNotification = Notification.Name("KoveScreenPresetConfigChanged")
     
     static var current: KoveScreenPreset {
@@ -87,6 +88,23 @@ enum KoveScreenPreset: String, CaseIterable, Identifiable {
             suiteDefaults.set(clamped, forKey: bottomPaddingKey)
             suiteDefaults.synchronize()
             UserDefaults.standard.set(clamped, forKey: bottomPaddingKey)
+            NotificationCenter.default.post(name: configChangedNotification, object: nil)
+        }
+    }
+    
+    static var keepAspectRatio: Bool {
+        get {
+            let suiteDefaults = UserDefaults(suiteName: appGroupSuiteName) ?? UserDefaults.standard
+            if suiteDefaults.object(forKey: keepAspectRatioKey) != nil {
+                return suiteDefaults.bool(forKey: keepAspectRatioKey)
+            }
+            return UserDefaults.standard.bool(forKey: keepAspectRatioKey)
+        }
+        set {
+            let suiteDefaults = UserDefaults(suiteName: appGroupSuiteName) ?? UserDefaults.standard
+            suiteDefaults.set(newValue, forKey: keepAspectRatioKey)
+            suiteDefaults.synchronize()
+            UserDefaults.standard.set(newValue, forKey: keepAspectRatioKey)
             NotificationCenter.default.post(name: configChangedNotification, object: nil)
         }
     }

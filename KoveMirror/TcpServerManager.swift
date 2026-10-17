@@ -428,11 +428,13 @@ class TcpServerManager {
         guard let connection = localVideoConnection else { return }
         let top = KoveScreenPreset.topPadding
         let bottom = KoveScreenPreset.bottomPadding
+        let keepAspect = KoveScreenPreset.keepAspectRatio
         let preset = KoveScreenPreset.current
         let configDict: [String: Any] = [
             "type": "config",
             "top": top,
             "bottom": bottom,
+            "keepAspect": keepAspect,
             "width": preset.width,
             "height": preset.height
         ]

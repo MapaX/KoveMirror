@@ -7,6 +7,7 @@ struct SettingsView: View {
     @AppStorage("enableProximitySecondScreen") var enableProximitySecondScreen = false
     @AppStorage(KoveScreenPreset.topPaddingKey) var topPadding: Int = 0
     @AppStorage(KoveScreenPreset.bottomPaddingKey) var bottomPadding: Int = 0
+    @AppStorage(KoveScreenPreset.keepAspectRatioKey) var keepAspectRatio = false
     @State private var showShareSheet = false
     @State private var isLogFileAvailable = false
     
@@ -240,6 +241,39 @@ struct SettingsView: View {
                                     .padding(.top, 2)
                                 }
                             }
+                            
+                            Divider().background(Color.white.opacity(0.1))
+                            
+                            // Screen Aspect Ratio Option
+                            Toggle(isOn: Binding(
+                                get: { keepAspectRatio },
+                                set: {
+                                    keepAspectRatio = $0
+                                    KoveScreenPreset.keepAspectRatio = $0
+                                }
+                            )) {
+                                HStack(spacing: 12) {
+                                    Image(systemName: "aspectratio")
+                                        .font(.system(size: 16, weight: .bold))
+                                        .foregroundColor(.cyan)
+                                        .frame(width: 24, height: 24)
+                                        .background(Color.cyan.opacity(0.1))
+                                        .cornerRadius(6)
+                                    
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Preserve Aspect Ratio")
+                                            .font(.subheadline)
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(.white)
+                                        Text("Maintains the phone screen aspect ratio instead of stretching to fill the motorcycle display.")
+                                            .font(.caption)
+                                            .foregroundColor(.white.opacity(0.6))
+                                            .lineLimit(nil)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    }
+                                }
+                            }
+                            .tint(.cyan)
                         }
                         .padding()
                         .background(Color.white.opacity(0.03))

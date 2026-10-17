@@ -7,6 +7,7 @@ import VideoToolbox
 /// Adds configurable top and bottom black margins to full-screen video captures
 /// so that motorcycle instrument clusters (speedometer, indicators, etc.)
 /// do not obscure the mirrored screen content.
+/// Also optionally preserves the phone's native screen aspect ratio to eliminate distortion.
 final class FrameLetterboxer {
     private let ciContext: CIContext
     private var pixelBufferPool: CVPixelBufferPool?
@@ -24,12 +25,14 @@ final class FrameLetterboxer {
     
     /// Scales and letterboxes `pixelBuffer` into a target frame buffer of size `targetWidth` x `targetHeight`
     /// with solid black margins at the top (height `topPadding`) and bottom (height `bottomPadding`).
+    /// If `keepAspectRatio` is true, maintains the aspect ratio of the phone screen and centers it within the available area.
     func letterbox(
         pixelBuffer: CVPixelBuffer,
         targetWidth: Int,
         targetHeight: Int,
         topPadding: Int,
-        bottomPadding: Int
+        bottomPadding: Int,
+        keepAspectRatio: Bool = false
     ) -> CVPixelBuffer? {
         let top = max(0, min(topPadding, targetHeight / 2))
         let bottom = max(0, min(bottomPadding, targetHeight / 2))
@@ -41,17 +44,39 @@ final class FrameLetterboxer {
         }
         
         let availableHeight = max(10, CGFloat(targetHeight - top - bottom))
-        let scaleX = CGFloat(targetWidth) / CGFloat(srcWidth)
-        let scaleY = availableHeight / CGFloat(srcHeight)
+        
+        let scaleX: CGFloat
+        let scaleY: CGFloat
+        let offsetX: CGFloat
+        let extraY: CGFloat
+        
+        if keepAspectRatio {
+            let scale = min(CGFloat(targetWidth) / CGFloat(srcWidth), availableHeight / CGFloat(srcHeight))
+            scaleX = scale
+            scaleY = scale
+            let contentWidth = CGFloat(srcWidth) * scale
+            let contentHeight = CGFloat(srcHeight) * scale
+            offsetX = (CGFloat(targetWidth) - contentWidth) / 2.0
+            extraY = (availableHeight - contentHeight) / 2.0
+        } else {
+            scaleX = CGFloat(targetWidth) / CGFloat(srcWidth)
+            scaleY = availableHeight / CGFloat(srcHeight)
+            offsetX = 0
+            extraY = 0
+        }
         
         // 1. Wrap source pixel buffer in Core Image representation (zero-copy GPU texture)
         let inputImage = CIImage(cvPixelBuffer: pixelBuffer)
         
-        // 2. Scale image content to fit target width and available height
+        // 2. Scale image content
         let scaledImage = inputImage.transformed(by: CGAffineTransform(scaleX: scaleX, y: scaleY))
         
-        // 3. Shift content upward by bottomPadding in Core Image coordinate space (origin at bottom-left)
-        let translatedImage = scaledImage.transformed(by: CGAffineTransform(translationX: 0, y: CGFloat(bottom)))
+        // 3. Shift content to its destination position:
+        // In Core Image coordinate space (origin at bottom-left):
+        // X shifts by offsetX (centers horizontally)
+        // Y shifts by bottom + extraY (respects bottomPadding + centers vertically within availableHeight)
+        let offsetY = CGFloat(bottom) + extraY
+        let translatedImage = scaledImage.transformed(by: CGAffineTransform(translationX: offsetX, y: offsetY))
         
         // 4. Create solid black background covering the complete destination frame
         let targetRect = CGRect(x: 0, y: 0, width: CGFloat(targetWidth), height: CGFloat(targetHeight))
