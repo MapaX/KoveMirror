@@ -33,6 +33,8 @@ enum KoveScreenPreset: String, CaseIterable, Identifiable {
     
     static let appGroupSuiteName = "group.com.mustcode.KoveMirror"
     static let presetKey = "selected_kove_screen_preset"
+    static let topPaddingKey = "screen_top_padding"
+    static let bottomPaddingKey = "screen_bottom_padding"
     
     static var current: KoveScreenPreset {
         get {
@@ -48,6 +50,42 @@ enum KoveScreenPreset: String, CaseIterable, Identifiable {
             suiteDefaults.set(newValue.rawValue, forKey: presetKey)
             suiteDefaults.synchronize()
             UserDefaults.standard.set(newValue.rawValue, forKey: presetKey)
+        }
+    }
+    
+    static var topPadding: Int {
+        get {
+            let suiteDefaults = UserDefaults(suiteName: appGroupSuiteName) ?? UserDefaults.standard
+            let val = suiteDefaults.integer(forKey: topPaddingKey)
+            if val == 0 {
+                return UserDefaults.standard.integer(forKey: topPaddingKey)
+            }
+            return val
+        }
+        set {
+            let clamped = max(0, min(newValue, 300))
+            let suiteDefaults = UserDefaults(suiteName: appGroupSuiteName) ?? UserDefaults.standard
+            suiteDefaults.set(clamped, forKey: topPaddingKey)
+            suiteDefaults.synchronize()
+            UserDefaults.standard.set(clamped, forKey: topPaddingKey)
+        }
+    }
+    
+    static var bottomPadding: Int {
+        get {
+            let suiteDefaults = UserDefaults(suiteName: appGroupSuiteName) ?? UserDefaults.standard
+            let val = suiteDefaults.integer(forKey: bottomPaddingKey)
+            if val == 0 {
+                return UserDefaults.standard.integer(forKey: bottomPaddingKey)
+            }
+            return val
+        }
+        set {
+            let clamped = max(0, min(newValue, 300))
+            let suiteDefaults = UserDefaults(suiteName: appGroupSuiteName) ?? UserDefaults.standard
+            suiteDefaults.set(clamped, forKey: bottomPaddingKey)
+            suiteDefaults.synchronize()
+            UserDefaults.standard.set(clamped, forKey: bottomPaddingKey)
         }
     }
 }

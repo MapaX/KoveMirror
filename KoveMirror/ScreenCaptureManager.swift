@@ -149,17 +149,25 @@ class ScreenCaptureManager: NSObject {
             ctx.setFillColor(UIColor.black.cgColor)
             ctx.fill(CGRect(x: 0, y: 0, width: CGFloat(width), height: CGFloat(height)))
             
+            let topPadding = CGFloat(KoveScreenPreset.topPadding)
+            let bottomPadding = CGFloat(KoveScreenPreset.bottomPadding)
+            let availableHeight = max(10, CGFloat(height) - topPadding - bottomPadding)
+            
             // 2. Flip Y-axis to convert CoreGraphics (bottom-left) to UIKit (top-left) coordinate space
             ctx.translateBy(x: 0, y: CGFloat(height))
             ctx.scaleBy(x: 1.0, y: -1.0)
             
-            // 3. Scale context to fit the window into 600x1024 dimensions
-            ctx.scaleBy(x: CGFloat(width) / window.bounds.width, y: CGFloat(height) / window.bounds.height)
+            // 3. Offset and scale context to fit the window into content area with black margins
+            ctx.translateBy(x: 0, y: topPadding)
+            ctx.scaleBy(x: CGFloat(width) / window.bounds.width, y: availableHeight / window.bounds.height)
             
-            // 4. Render raw layer tree (robust fallback)
+            // 4. Clip to window bounds so contents don't bleed into padding area
+            ctx.clip(to: window.bounds)
+            
+            // 5. Render raw layer tree (robust fallback)
             window.layer.render(in: ctx)
             
-            // 5. Draw SwiftUI view hierarchy
+            // 6. Draw SwiftUI view hierarchy
             window.drawHierarchy(in: window.bounds, afterScreenUpdates: false)
             
             UIGraphicsPopContext()

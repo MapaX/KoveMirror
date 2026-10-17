@@ -5,6 +5,8 @@ struct AboutView: View {
     @AppStorage("enableFileLogging") var enableFileLogging = false
     @AppStorage("enableProximitySensor") var enableProximitySensor = false
     @AppStorage("enableProximitySecondScreen") var enableProximitySecondScreen = false
+    @AppStorage(KoveScreenPreset.topPaddingKey) var topPadding: Int = 0
+    @AppStorage(KoveScreenPreset.bottomPaddingKey) var bottomPadding: Int = 0
     @State private var showShareSheet = false
     @State private var showHelpSheet = false
     @State private var isLogFileAvailable = false
@@ -110,6 +112,132 @@ struct AboutView: View {
                                 .padding(.vertical, 4)
                                 .background(Color.white.opacity(0.06))
                                 .cornerRadius(8)
+                            }
+                            
+                            Divider().background(Color.white.opacity(0.1))
+                            
+                            // TFT Screen Vertical Padding / Black Area
+                            VStack(alignment: .leading, spacing: 10) {
+                                HStack(spacing: 12) {
+                                    Image(systemName: "arrow.up.and.down")
+                                        .font(.system(size: 16, weight: .bold))
+                                        .foregroundColor(.green)
+                                        .frame(width: 24, height: 24)
+                                        .background(Color.green.opacity(0.1))
+                                        .cornerRadius(6)
+                                    
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Screen Top & Bottom Padding")
+                                            .font(.subheadline)
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(.white)
+                                        Text("Adds black letterbox margins at the top and bottom of the mirrored window to prevent motorcycle instrument panel indicators from obscuring the content.")
+                                            .font(.caption)
+                                            .foregroundColor(.white.opacity(0.6))
+                                            .lineLimit(nil)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    }
+                                }
+                                
+                                // Top Padding Control
+                                VStack(alignment: .leading, spacing: 4) {
+                                    HStack {
+                                        Text("Top Black Area:")
+                                            .font(.caption)
+                                            .foregroundColor(.white.opacity(0.8))
+                                        Spacer()
+                                        Text("\(topPadding) px")
+                                            .font(.caption)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.green)
+                                    }
+                                    
+                                    HStack(spacing: 12) {
+                                        Slider(
+                                            value: Binding(
+                                                get: { Double(topPadding) },
+                                                set: {
+                                                    let val = Int($0)
+                                                    topPadding = val
+                                                    KoveScreenPreset.topPadding = val
+                                                }
+                                            ),
+                                            in: 0...250,
+                                            step: 5
+                                        )
+                                        .tint(.green)
+                                        
+                                        Stepper("", value: Binding(
+                                            get: { topPadding },
+                                            set: {
+                                                topPadding = $0
+                                                KoveScreenPreset.topPadding = $0
+                                            }
+                                        ), in: 0...250, step: 5)
+                                        .labelsHidden()
+                                    }
+                                }
+                                
+                                // Bottom Padding Control
+                                VStack(alignment: .leading, spacing: 4) {
+                                    HStack {
+                                        Text("Bottom Black Area:")
+                                            .font(.caption)
+                                            .foregroundColor(.white.opacity(0.8))
+                                        Spacer()
+                                        Text("\(bottomPadding) px")
+                                            .font(.caption)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.green)
+                                    }
+                                    
+                                    HStack(spacing: 12) {
+                                        Slider(
+                                            value: Binding(
+                                                get: { Double(bottomPadding) },
+                                                set: {
+                                                    let val = Int($0)
+                                                    bottomPadding = val
+                                                    KoveScreenPreset.bottomPadding = val
+                                                }
+                                            ),
+                                            in: 0...250,
+                                            step: 5
+                                        )
+                                        .tint(.green)
+                                        
+                                        Stepper("", value: Binding(
+                                            get: { bottomPadding },
+                                            set: {
+                                                bottomPadding = $0
+                                                KoveScreenPreset.bottomPadding = $0
+                                            }
+                                        ), in: 0...250, step: 5)
+                                        .labelsHidden()
+                                    }
+                                }
+                                
+                                if topPadding > 0 || bottomPadding > 0 {
+                                    Button(action: {
+                                        topPadding = 0
+                                        bottomPadding = 0
+                                        KoveScreenPreset.topPadding = 0
+                                        KoveScreenPreset.bottomPadding = 0
+                                    }) {
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "arrow.counterclockwise")
+                                                .font(.caption2)
+                                            Text("Reset Margins")
+                                                .font(.caption2)
+                                        }
+                                        .foregroundColor(.white.opacity(0.6))
+                                        .padding(.vertical, 4)
+                                        .padding(.horizontal, 8)
+                                        .background(Color.white.opacity(0.08))
+                                        .cornerRadius(6)
+                                    }
+                                    .padding(.top, 2)
+                                }
                             }
                             
                             Divider().background(Color.white.opacity(0.1))

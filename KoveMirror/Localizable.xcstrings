@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "" : {
+
+    },
     "--°C" : {
 
     },
@@ -30,6 +33,9 @@
 
     },
     "%lld m" : {
+
+    },
+    "%lld px" : {
 
     },
     "%lld°C" : {
@@ -295,6 +301,9 @@
         }
       }
     },
+    "Adds black letterbox margins at the top and bottom of the mirrored window to prevent motorcycle instrument panel indicators from obscuring the content." : {
+
+    },
     "After mirroring starts, use the \"Broadcast Entire Screen\" button to display third-party navigation apps (Google Maps, OsmAnd, etc.) on the TFT screen." : {
 
     },
@@ -489,6 +498,9 @@
 
     },
     "Bluetooth, Wi-Fi, and Thinkerride fix" : {
+
+    },
+    "Bottom Black Area:" : {
 
     },
     "Broadcast Entire Screen" : {
@@ -1682,6 +1694,9 @@
     "Remove Old Pairing in iOS Settings" : {
 
     },
+    "Reset Margins" : {
+
+    },
     "Return to Kove Mirror and tap \"Connect BLE\" to establish a fresh pairing handshake." : {
 
     },
@@ -1866,6 +1881,9 @@
         }
       }
     },
+    "Screen Top & Bottom Padding" : {
+
+    },
     "Search destination or address..." : {
 
     },
@@ -2026,6 +2044,9 @@
 
     },
     "To launch navigation on your motorcycle's TFT screen, use the handlebar buttons for your specific model:" : {
+
+    },
+    "Top Black Area:" : {
 
     },
     "Transmits real-time GPS altitude and outdoor temperature to the motorcycle TFT display." : {
