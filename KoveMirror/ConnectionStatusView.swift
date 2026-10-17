@@ -78,27 +78,18 @@ struct ConnectionStatusView: View {
                             showLogSheet = true
                         }
                         
-                        // Bottom Links: Help & Guide and About
-                        HStack(spacing: 20) {
-                            Button(action: {
+                        // Help & Guide and About Buttons
+                        VStack(spacing: 12) {
+                            HelpButton {
                                 showHelpSheet = true
-                            }) {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "questionmark.circle.fill")
-                                    Text("Help & Guide")
-                                }
-                                .font(.footnote)
-                                .foregroundColor(.blue.opacity(0.85))
                             }
-                            
-                            Text("•")
-                                .foregroundColor(.white.opacity(0.3))
                             
                             AboutButton {
                                 showAboutSheet = true
                             }
                         }
-                        .padding(.vertical, 8)
+                        .padding(.horizontal)
+                        .padding(.top, 4)
                     }
                     .padding(.top)
                     .padding(.bottom, 32)
@@ -755,20 +746,41 @@ struct TelemetryCard: View {
     }
 }
 
+struct HelpButton: View {
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                Image(systemName: "questionmark.circle.fill")
+                Text("Help & Guide")
+            }
+            .font(.headline)
+            .foregroundColor(.black)
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(Color.yellow)
+            .cornerRadius(12)
+        }
+    }
+}
+
 struct AboutButton: View {
     let action: () -> Void
     
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 8) {
+            HStack {
                 Image(systemName: "info.circle.fill")
                 Text("About Kove Mirror")
             }
-            .font(.footnote)
-            .foregroundColor(.blue.opacity(0.8))
-            .padding(.vertical, 8)
+            .font(.headline)
+            .foregroundColor(.black)
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(Color.yellow)
+            .cornerRadius(12)
         }
-        .padding(.bottom, 8)
     }
 }
 

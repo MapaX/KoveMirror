@@ -77,7 +77,7 @@ struct HelpView: View {
                                     icon: "mountain.2.fill",
                                     iconColor: .cyan,
                                     title: "Altitude & Temperature",
-                                    description: "Transmits real-time GPS altitude and weather temperature to the motorcycle TFT display."
+                                    description: "Transmits real-time GPS altitude and outdoor temperature to the motorcycle TFT display."
                                 )
                                 
                                 HelpPointRow(
@@ -104,7 +104,7 @@ struct HelpView: View {
                             badge: "Thinkerride Fix"
                         ) {
                             VStack(alignment: .leading, spacing: 14) {
-                                Text("If the Bluetooth connection is not established correctly or gets stuck scanning, the official Tinkerride (Thinkerride) app might be holding the connection.")
+                                Text("If the Bluetooth connection is not established correctly or gets stuck scanning, the official Tinkerride (Thinkerride) app might be taking or holding the connection.")
                                     .font(.caption)
                                     .foregroundColor(.white.opacity(0.8))
                                     .lineSpacing(2)
@@ -164,7 +164,126 @@ struct HelpView: View {
                             }
                         }
                         
-                        // 3. Wi-Fi Connection Card
+                        // 3. Handlebar Navigation Controls Card (800X Rally & 800X Pro)
+                        HelpCard(
+                            title: "Handlebar Navigation Shortcuts",
+                            icon: "motorcycle.fill",
+                            iconColor: .purple,
+                            badge: "800X Models"
+                        ) {
+                            VStack(alignment: .leading, spacing: 14) {
+                                Text("To launch navigation on your motorcycle's TFT screen, use the handlebar buttons for your specific model:")
+                                    .font(.caption)
+                                    .foregroundColor(.white.opacity(0.7))
+                                    .lineSpacing(2)
+                                
+                                // 800X Rally Model Card
+                                HStack(alignment: .top, spacing: 12) {
+                                    VStack(alignment: .center, spacing: 4) {
+                                        Text("SET")
+                                            .font(.system(size: 11, weight: .black))
+                                            .foregroundColor(.orange)
+                                            .frame(width: 44, height: 32)
+                                            .background(Color.orange.opacity(0.18))
+                                            .cornerRadius(8)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 8)
+                                                    .stroke(Color.orange.opacity(0.4), lineWidth: 1)
+                                            )
+                                        
+                                        Text("5 sec")
+                                            .font(.system(size: 10, weight: .semibold))
+                                            .foregroundColor(.orange.opacity(0.8))
+                                    }
+                                    .padding(.top, 2)
+                                    
+                                    VStack(alignment: .leading, spacing: 3) {
+                                        HStack {
+                                            Text("Kove 800X Rally")
+                                                .font(.subheadline)
+                                                .fontWeight(.bold)
+                                                .foregroundColor(.white)
+                                            
+                                            Spacer()
+                                            
+                                            Text("Nav Menu")
+                                                .font(.system(size: 10, weight: .bold))
+                                                .foregroundColor(.orange)
+                                                .padding(.horizontal, 6)
+                                                .padding(.vertical, 2)
+                                                .background(Color.orange.opacity(0.15))
+                                                .cornerRadius(4)
+                                        }
+                                        
+                                        Text("Press the **SET** button for **5 seconds** to open the motorcycle's navigation menu.")
+                                            .font(.caption)
+                                            .foregroundColor(.white.opacity(0.7))
+                                            .lineSpacing(2)
+                                    }
+                                }
+                                .padding(12)
+                                .background(Color.white.opacity(0.02))
+                                .cornerRadius(12)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.orange.opacity(0.25), lineWidth: 1)
+                                )
+                                
+                                // 800X Pro Model Card
+                                HStack(alignment: .top, spacing: 12) {
+                                    VStack(alignment: .center, spacing: 4) {
+                                        Text("ENT")
+                                            .font(.system(size: 11, weight: .black))
+                                            .foregroundColor(.cyan)
+                                            .frame(width: 44, height: 32)
+                                            .background(Color.cyan.opacity(0.18))
+                                            .cornerRadius(8)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 8)
+                                                    .stroke(Color.cyan.opacity(0.4), lineWidth: 1)
+                                            )
+                                        
+                                        Text("5 sec")
+                                            .font(.system(size: 10, weight: .semibold))
+                                            .foregroundColor(.cyan.opacity(0.8))
+                                    }
+                                    .padding(.top, 2)
+                                    
+                                    VStack(alignment: .leading, spacing: 3) {
+                                        HStack {
+                                            Text("Kove 800X Pro")
+                                                .font(.subheadline)
+                                                .fontWeight(.bold)
+                                                .foregroundColor(.white)
+                                            
+                                            Spacer()
+                                            
+                                            Text("Full Screen Nav")
+                                                .font(.system(size: 10, weight: .bold))
+                                                .foregroundColor(.cyan)
+                                                .padding(.horizontal, 6)
+                                                .padding(.vertical, 2)
+                                                .background(Color.cyan.opacity(0.15))
+                                                .cornerRadius(4)
+                                        }
+                                        
+                                        Text("Press the **ENT** button for **5 seconds** to open **Full screen navigation**.")
+                                            .font(.caption)
+                                            .foregroundColor(.white.opacity(0.7))
+                                            .lineSpacing(2)
+                                    }
+                                }
+                                .padding(12)
+                                .background(Color.white.opacity(0.02))
+                                .cornerRadius(12)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.cyan.opacity(0.25), lineWidth: 1)
+                                )
+                            }
+                        }
+                        
+                        // 4. Wi-Fi Connection Card
                         HelpCard(
                             title: "Wi-Fi Connection",
                             icon: "wifi",
@@ -188,7 +307,7 @@ struct HelpView: View {
                                     icon: "qrcode.viewfinder",
                                     iconColor: .cyan,
                                     title: "How to Connect Wi-Fi",
-                                    description: "Connect your iPhone to the motorcycle's Wi-Fi hotspot directly in Settings or by scanning the QR code displayed on the bike."
+                                    description: "Connect your iPhone to the motorcycle's Wi-Fi hotspot in Settings or by scanning the QR code displayed on the bike."
                                 )
                                 
                                 HelpPointRow(
@@ -200,7 +319,7 @@ struct HelpView: View {
                             }
                         }
                         
-                        // 4. Quick Feature Summary Card
+                        // 5. Quick Feature Summary Card
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Connection Overview")
                                 .font(.headline)

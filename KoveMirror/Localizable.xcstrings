@@ -38,9 +38,6 @@
     "%lldm" : {
 
     },
-    "•" : {
-
-    },
     "• Phone Screen Blacked Out" : {
 
     },
@@ -187,6 +184,9 @@
         }
       }
     },
+    "5 sec" : {
+
+    },
     "5. After the phone screen is visible, press the 'Broadcast Entire Screen' button to start whole phone mirroring." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -221,6 +221,9 @@
           }
         }
       }
+    },
+    "800X Models" : {
+
     },
     "About" : {
       "extractionState" : "manual",
@@ -634,7 +637,7 @@
         }
       }
     },
-    "Connect your iPhone to the motorcycle's Wi-Fi hotspot directly in Settings or by scanning the QR code displayed on the bike." : {
+    "Connect your iPhone to the motorcycle's Wi-Fi hotspot in Settings or by scanning the QR code displayed on the bike." : {
 
     },
     "Connected & Active" : {
@@ -938,6 +941,9 @@
     "Ensure the Thinkerride app is completely closed so it releases the motorcycle's Bluetooth connection." : {
 
     },
+    "ENT" : {
+
+    },
     "Establishes a low-power connection with the motorcycle's dashboard, performs the pairing handshake, and transmits continuous heartbeats to keep the system active." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1055,7 +1061,13 @@
     "Fix: Remove & Re-pair Bluetooth Connection" : {
 
     },
+    "Full Screen Nav" : {
+
+    },
     "Handlebar Key Controls" : {
+
+    },
+    "Handlebar Navigation Shortcuts" : {
 
     },
     "Hardware H.264 Encoder" : {
@@ -1181,7 +1193,7 @@
     "If the ble is not connecting, remove the old pairing from Bluetooth Settings and pair Ble again." : {
 
     },
-    "If the Bluetooth connection is not established correctly or gets stuck scanning, the official Tinkerride (Thinkerride) app might be holding the connection." : {
+    "If the Bluetooth connection is not established correctly or gets stuck scanning, the official Tinkerride (Thinkerride) app might be taking or holding the connection." : {
 
     },
     "Instructions:" : {
@@ -1290,6 +1302,12 @@
       }
     },
     "KM/H" : {
+
+    },
+    "Kove 800X Pro" : {
+
+    },
+    "Kove 800X Rally" : {
 
     },
     "Kove Mirror" : {
@@ -1408,6 +1426,9 @@
           }
         }
       }
+    },
+    "Nav Menu" : {
+
     },
     "Navigation Error" : {
 
@@ -1572,6 +1593,12 @@
           }
         }
       }
+    },
+    "Press the **ENT** button for **5 seconds** to open **Full screen navigation**." : {
+
+    },
+    "Press the **SET** button for **5 seconds** to open the motorcycle's navigation menu." : {
+
     },
     "Proximity 2nd Screen Offscreen Mode" : {
 
@@ -1854,6 +1881,9 @@
     "Sends turn maneuvers, distance, and road names directly to the motorcycle's built-in TFT navigation display without requiring video streaming." : {
 
     },
+    "SET" : {
+
+    },
     "Set Destination" : {
 
     },
@@ -1995,7 +2025,10 @@
     "Thinkerride Fix" : {
 
     },
-    "Transmits real-time GPS altitude and weather temperature to the motorcycle TFT display." : {
+    "To launch navigation on your motorcycle's TFT screen, use the handlebar buttons for your specific model:" : {
+
+    },
+    "Transmits real-time GPS altitude and outdoor temperature to the motorcycle TFT display." : {
 
     },
     "Turn-by-turn routing for motorcycle TFT display" : {
