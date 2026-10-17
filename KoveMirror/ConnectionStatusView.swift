@@ -775,11 +775,15 @@ struct SettingsButton: View {
                 Text("Settings")
             }
             .font(.headline)
-            .foregroundColor(.black)
+            .foregroundColor(.white)
             .padding()
             .frame(maxWidth: .infinity)
-            .background(Color.yellow)
+            .background(Color.white.opacity(0.08))
             .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.white.opacity(0.12), lineWidth: 1)
+            )
         }
     }
 }
@@ -794,11 +798,15 @@ struct HelpButton: View {
                 Text("Help & Guide")
             }
             .font(.headline)
-            .foregroundColor(.black)
+            .foregroundColor(.white)
             .padding()
             .frame(maxWidth: .infinity)
-            .background(Color.yellow)
+            .background(Color.white.opacity(0.08))
             .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.white.opacity(0.12), lineWidth: 1)
+            )
         }
     }
 }
@@ -813,11 +821,15 @@ struct AboutButton: View {
                 Text("About Kove Mirror")
             }
             .font(.headline)
-            .foregroundColor(.black)
+            .foregroundColor(.white)
             .padding()
             .frame(maxWidth: .infinity)
-            .background(Color.yellow)
+            .background(Color.white.opacity(0.08))
             .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.white.opacity(0.12), lineWidth: 1)
+            )
         }
     }
 }
