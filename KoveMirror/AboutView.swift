@@ -6,6 +6,7 @@ struct AboutView: View {
     @AppStorage("enableProximitySensor") var enableProximitySensor = false
     @AppStorage("enableProximitySecondScreen") var enableProximitySecondScreen = false
     @State private var showShareSheet = false
+    @State private var showHelpSheet = false
     @State private var isLogFileAvailable = false
     
     private var logFilePath: URL {
@@ -323,6 +324,62 @@ struct AboutView: View {
                         )
                         .padding(.horizontal)
                         
+                        // Help & Connection Guide Card
+                        VStack(alignment: .leading, spacing: 14) {
+                            Text("Connection & Feature Guide")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                            
+                            Text("Learn how BLE handles telemetry & Simple navigation, or how to resolve Bluetooth connection conflicts.")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.6))
+                            
+                            Button(action: {
+                                showHelpSheet = true
+                            }) {
+                                HStack(spacing: 12) {
+                                    Image(systemName: "questionmark.circle.fill")
+                                        .font(.system(size: 20))
+                                        .foregroundColor(.cyan)
+                                        .frame(width: 40, height: 40)
+                                        .background(Color.cyan.opacity(0.12))
+                                        .cornerRadius(10)
+                                    
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Open Help Guide")
+                                            .font(.subheadline)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.white)
+                                        
+                                        Text("Bluetooth, Wi-Fi, and Thinkerride fix")
+                                            .font(.caption2)
+                                            .foregroundColor(.white.opacity(0.4))
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 14, weight: .bold))
+                                        .foregroundColor(.white.opacity(0.4))
+                                }
+                                .padding(10)
+                                .background(Color.white.opacity(0.02))
+                                .cornerRadius(12)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.white.opacity(0.05), lineWidth: 1)
+                                )
+                            }
+                        }
+                        .padding()
+                        .background(Color.white.opacity(0.03))
+                        .cornerRadius(16)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.white.opacity(0.05), lineWidth: 1)
+                        )
+                        .padding(.horizontal)
+                        
                         // Codebase Repositories Card
                         VStack(alignment: .leading, spacing: 16) {
                             Text("Open Source Repositories")
@@ -376,6 +433,9 @@ struct AboutView: View {
             }
             .sheet(isPresented: $showShareSheet) {
                 ActivityViewController(activityItems: [logFilePath])
+            }
+            .sheet(isPresented: $showHelpSheet) {
+                HelpView()
             }
             .onAppear {
                 isLogFileAvailable = FileManager.default.fileExists(atPath: logFilePath.path)

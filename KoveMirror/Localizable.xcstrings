@@ -4,6 +4,12 @@
     "--°C" : {
 
     },
+    "\"Screen navigation\" Video Stream" : {
+
+    },
+    "\"Simple navigation\" Feature" : {
+
+    },
     "%@ • %@" : {
       "localizations" : {
         "en" : {
@@ -30,6 +36,9 @@
 
     },
     "%lldm" : {
+
+    },
+    "•" : {
 
     },
     "• Phone Screen Blacked Out" : {
@@ -283,6 +292,9 @@
         }
       }
     },
+    "After mirroring starts, use the \"Broadcast Entire Screen\" button to display third-party navigation apps (Google Maps, OsmAnd, etc.) on the TFT screen." : {
+
+    },
     "Align the Motorcycle's QR code in the frame" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -321,6 +333,9 @@
     "Altitude" : {
 
     },
+    "Altitude & Temperature" : {
+
+    },
     "Automatically streams the in-app dashboard views. When you broadcast the entire screen, it seamlessly switches to the broadcast stream, falling back dynamically on exit." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -356,6 +371,9 @@
         }
       }
     },
+    "Bluetooth (BLE)" : {
+
+    },
     "Bluetooth is Turned Off" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -390,6 +408,9 @@
           }
         }
       }
+    },
+    "Bluetooth LE (BLE) Connection" : {
+
     },
     "Bluetooth LE Pairing" : {
       "extractionState" : "manual",
@@ -461,6 +482,12 @@
         }
       }
     },
+    "Bluetooth Troubleshooting" : {
+
+    },
+    "Bluetooth, Wi-Fi, and Thinkerride fix" : {
+
+    },
     "Broadcast Entire Screen" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -495,6 +522,9 @@
           }
         }
       }
+    },
+    "Built-in Turn Arrows" : {
+
     },
     "Camera not supported on this device." : {
       "extractionState" : "manual",
@@ -566,6 +596,9 @@
         }
       }
     },
+    "Close Thinkerride App" : {
+
+    },
     "Connect BLE" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -600,6 +633,9 @@
           }
         }
       }
+    },
+    "Connect your iPhone to the motorcycle's Wi-Fi hotspot directly in Settings or by scanning the QR code displayed on the bike." : {
+
     },
     "Connected & Active" : {
       "extractionState" : "manual",
@@ -705,6 +741,12 @@
           }
         }
       }
+    },
+    "Connection & Feature Guide" : {
+
+    },
+    "Connection Overview" : {
+
     },
     "Copied!" : {
 
@@ -893,6 +935,9 @@
         }
       }
     },
+    "Ensure the Thinkerride app is completely closed so it releases the motorcycle's Bluetooth connection." : {
+
+    },
     "Establishes a low-power connection with the motorcycle's dashboard, performs the pairing handshake, and transmits continuous heartbeats to keep the system active." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1007,6 +1052,12 @@
     "Find Your Route" : {
 
     },
+    "Fix: Remove & Re-pair Bluetooth Connection" : {
+
+    },
+    "Handlebar Key Controls" : {
+
+    },
     "Hardware H.264 Encoder" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1041,6 +1092,18 @@
           }
         }
       }
+    },
+    "Help" : {
+
+    },
+    "Help & Connection Guide" : {
+
+    },
+    "Help & Guide" : {
+
+    },
+    "Help Guide" : {
+
     },
     "High-Speed Wi-Fi Bridge" : {
       "extractionState" : "manual",
@@ -1112,7 +1175,13 @@
         }
       }
     },
+    "How to Connect Wi-Fi" : {
+
+    },
     "If the ble is not connecting, remove the old pairing from Bluetooth Settings and pair Ble again." : {
+
+    },
+    "If the Bluetooth connection is not established correctly or gets stuck scanning, the official Tinkerride (Thinkerride) app might be holding the connection." : {
 
     },
     "Instructions:" : {
@@ -1296,6 +1365,12 @@
         }
       }
     },
+    "Learn how BLE handles telemetry & Simple navigation, or how to resolve Bluetooth connection conflicts." : {
+
+    },
+    "Learn how Bluetooth and Wi-Fi power the features on your motorcycle TFT display." : {
+
+    },
     "Map & Navigation" : {
 
     },
@@ -1381,6 +1456,15 @@
     "OK" : {
 
     },
+    "Open Bluetooth Settings" : {
+
+    },
+    "Open Help Guide" : {
+
+    },
+    "Open iOS Bluetooth Settings, find your motorcycle (e.g. CQKY_...), tap the ⓘ info button, and select \"Forget This Device\"." : {
+
+    },
     "Open Settings" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1450,6 +1534,9 @@
           }
         }
       }
+    },
+    "Pair Again in Kove Mirror" : {
+
     },
     "Please connect to Wi-Fi '%@'." : {
       "extractionState" : "manual",
@@ -1561,6 +1648,15 @@
           }
         }
       }
+    },
+    "Receives inputs from the motorcycle handlebar buttons (SET, navigation keys) to control playback and maps." : {
+
+    },
+    "Remove Old Pairing in iOS Settings" : {
+
+    },
+    "Return to Kove Mirror and tap \"Connect BLE\" to establish a fresh pairing handshake." : {
+
     },
     "Save event logs to a text file for troubleshooting connection errors." : {
       "extractionState" : "manual",
@@ -1702,6 +1798,12 @@
         }
       }
     },
+    "Screen Mirroring" : {
+
+    },
+    "Screen navigation" : {
+
+    },
     "SCREEN STREAMING IS ACTIVE" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1747,6 +1849,9 @@
 
     },
     "Select your motorcycle TFT screen profile for optimal streaming aspect ratio." : {
+
+    },
+    "Sends turn maneuvers, distance, and road names directly to the motorcycle's built-in TFT navigation display without requiring video streaming." : {
 
     },
     "Set Destination" : {
@@ -1822,6 +1927,9 @@
         }
       }
     },
+    "Simple navigation" : {
+
+    },
     "Smart Screen Dimming (Stream-Safe)" : {
 
     },
@@ -1863,10 +1971,31 @@
         }
       }
     },
+    "Streams your map or phone screen to the motorcycle TFT display using Apple's hardware H.264 encoder at native resolution." : {
+
+    },
+    "Telemetry & Simple Nav" : {
+
+    },
     "Temperature" : {
 
     },
+    "TFT Dashboard" : {
+
+    },
     "TFT Resolution" : {
+
+    },
+    "The high-speed Wi-Fi connection is needed for screen mirroring with the \"Screen navigation\" feature on your motorcycle." : {
+
+    },
+    "The low-power Bluetooth (BLE) connection communicates directly with your motorcycle's TFT dashboard and is required for:" : {
+
+    },
+    "Thinkerride Fix" : {
+
+    },
+    "Transmits real-time GPS altitude and weather temperature to the motorcycle TFT display." : {
 
     },
     "Turn-by-turn routing for motorcycle TFT display" : {
@@ -2019,6 +2148,12 @@
       }
     },
     "When MapView is visible and proximity is covered, video streaming seamlessly moves to an offscreen 600x1024 MapView window." : {
+
+    },
+    "Wi-Fi" : {
+
+    },
+    "Wi-Fi Connection" : {
 
     },
     "Wi-Fi Mismatch Warning" : {

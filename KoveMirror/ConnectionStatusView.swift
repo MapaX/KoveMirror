@@ -8,6 +8,7 @@ struct ConnectionStatusView: View {
     @State private var isPulsing = false
     @State private var showScanner = false
     @State private var showAboutSheet = false
+    @State private var showHelpSheet = false
     @State private var showLogSheet = false
     @State private var showMapView = false
     
@@ -65,7 +66,9 @@ struct ConnectionStatusView: View {
                         TelemetryCard()
                         
                         // Instruction Section
-                        InstructionsCard()
+                        InstructionsCard(onHelpTapped: {
+                            showHelpSheet = true
+                        })
                         
                         // Event Log Button (opens dedicated EventLogView)
                         EventLogCardButton(
@@ -75,10 +78,27 @@ struct ConnectionStatusView: View {
                             showLogSheet = true
                         }
                         
-                        // About Button
-                        AboutButton {
-                            showAboutSheet = true
+                        // Bottom Links: Help & Guide and About
+                        HStack(spacing: 20) {
+                            Button(action: {
+                                showHelpSheet = true
+                            }) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "questionmark.circle.fill")
+                                    Text("Help & Guide")
+                                }
+                                .font(.footnote)
+                                .foregroundColor(.blue.opacity(0.85))
+                            }
+                            
+                            Text("•")
+                                .foregroundColor(.white.opacity(0.3))
+                            
+                            AboutButton {
+                                showAboutSheet = true
+                            }
                         }
+                        .padding(.vertical, 8)
                     }
                     .padding(.top)
                     .padding(.bottom, 32)
@@ -88,6 +108,18 @@ struct ConnectionStatusView: View {
                 ProximityTransparentOverlay()
             }
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        showHelpSheet = true
+                    }) {
+                        Image(systemName: "questionmark.circle")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.85))
+                    }
+                    .accessibilityLabel("Help & Guide")
+                }
+            }
         }
         .preferredColorScheme(.dark)
         .sheet(isPresented: $showScanner) {
@@ -97,6 +129,9 @@ struct ConnectionStatusView: View {
         }
         .sheet(isPresented: $showAboutSheet) {
             AboutView()
+        }
+        .sheet(isPresented: $showHelpSheet) {
+            HelpView()
         }
         .sheet(isPresented: $showLogSheet) {
             EventLogView(bleController: bleController)
@@ -510,12 +545,30 @@ struct ControlActionsCard: View {
 }
 
 struct InstructionsCard: View {
+    var onHelpTapped: (() -> Void)? = nil
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Instructions:")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-                .foregroundColor(.white.opacity(0.8))
+            HStack {
+                Text("Instructions:")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white.opacity(0.8))
+                
+                Spacer()
+                
+                if let onHelpTapped = onHelpTapped {
+                    Button(action: onHelpTapped) {
+                        HStack(spacing: 4) {
+                            Text("Help Guide")
+                            Image(systemName: "chevron.right")
+                        }
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.cyan)
+                    }
+                }
+            }
             
             Text("1. Connect your iPhone to the motorcycle's Bluetooth network.")
                 .font(.caption)
