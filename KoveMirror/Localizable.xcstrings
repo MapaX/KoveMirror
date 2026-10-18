@@ -2259,6 +2259,9 @@
     "View Event Log" : {
 
     },
+    "Waiting for TFT to connect automatically..." : {
+
+    },
     "Waiting for TFT to connect..." : {
       "extractionState" : "manual",
       "localizations" : {

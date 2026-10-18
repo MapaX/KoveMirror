@@ -442,4 +442,24 @@ struct KoveMirrorTests {
         #expect(controller.connectionState == .disconnected)
         #expect(controller.connectedDeviceName == nil)
     }
+
+    @Test func testBlePairInfoConfirmation() async throws {
+        let controller = BleController(isPreview: true)
+        let pairInfoJson = "{\"msg_id\":27,\"func\":\"PAIR\",\"act\":\"send_pairinfo\",\"info\":0}"
+        controller.handleIncomingJsonText(pairInfoJson)
+        
+        try? await Task.sleep(nanoseconds: 80_000_000)
+        let foundLog = controller.logMessages.contains { $0.contains("BLE pairing confirmed by TFT") }
+        #expect(foundLog)
+    }
+
+    @Test func testBlePairResultConfirmation() async throws {
+        let controller = BleController(isPreview: true)
+        let pairResultJson = "{\"msg_id\":27,\"func\":\"PAIR\",\"act\":\"send_pairresult\",\"result\":1}"
+        controller.handleIncomingJsonText(pairResultJson)
+        
+        try? await Task.sleep(nanoseconds: 80_000_000)
+        let foundLog = controller.logMessages.contains { $0.contains("BLE pairing confirmed by TFT") }
+        #expect(foundLog)
+    }
 }

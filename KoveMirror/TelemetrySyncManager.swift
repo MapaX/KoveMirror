@@ -49,11 +49,6 @@ class TelemetrySyncManager: ObservableObject {
         if let icon = UserDefaults.standard.string(forKey: cachedWeatherIconKey) {
             self.weatherIconName = icon
         }
-        if UserDefaults.standard.object(forKey: cachedLatKey) != nil && UserDefaults.standard.object(forKey: cachedLonKey) != nil {
-            let lat = UserDefaults.standard.double(forKey: cachedLatKey)
-            let lon = UserDefaults.standard.double(forKey: cachedLonKey)
-            self.lastFetchedCoordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
-        }
     }
     
     private func saveCachedTelemetry(temp: Int, weatherCode: Int, windPower: String, icon: String, coordinate: CLLocationCoordinate2D) {
@@ -80,7 +75,6 @@ class TelemetrySyncManager: ObservableObject {
         
         // Send initial telemetry packet immediately from cached/current state
         sendTelemetryPackets()
-        bleController.requestMileage()
         
         // Fetch weather immediately if needed
         fetchWeatherIfNeeded(force: true)
@@ -248,46 +242,60 @@ class TelemetrySyncManager: ObservableObject {
             ble.log("📤 Telemetry Synced to TFT -> Alt: \(alt)m | Temp: \(tempStr)°C | Weather Code: \(wCode)")
             print("📤 Telemetry Synced to TFT -> Alt: \(alt)m | Temp: \(tempStr)°C | Weather Code: \(wCode)")
         } else {
-            ble.log("📤 Telemetry Synced to TFT -> Alt: \(alt)m (Weather pending)")
-            print("📤 Telemetry Synced to TFT -> Alt: \(alt)m (Weather pending)")
+            ble.log("📤 Telemetry Synced to TFT -> Alt: \(alt)m (Temperature pending)")
+            print("📤 Telemetry Synced to TFT -> Alt: \(alt)m (Temperature pending)")
         }
     }
     
-    // MARK: - Weather Code Mapping (Matching TinkerAPP WeatherUtil.java)
-    // 1: sunny, 2: rainy, 3: cloudy, 4: snowy, 5: cloudy_sunny, 6: thunder_rainy, 7: overcast, 8: dense_fog
+    // MARK: - Protocol Mappings
     
     private func mapOpenMeteoToKoveWeather(code: Int) -> Int {
         switch code {
-        case 0:
+        case 0, 1:
             return 1 // Sunny / Clear
-        case 1, 2:
-            return 5 // Partly Cloudy (Cloudy / Sunny)
+        case 2:
+            return 2 // Partly Cloudy
         case 3:
-            return 7 // Overcast
+            return 3 // Overcast / Cloudy
         case 45, 48:
-            return 8 // Dense Fog
-        case 51...67, 80...82:
-            return 2 // Rain / Drizzle / Showers
-        case 71...77, 85...86:
-            return 4 // Snow
-        case 95...99:
-            return 6 // Thunderstorm
+            return 18 // Fog
+        case 51, 53, 55, 56, 57:
+            return 7 // Light Rain / Drizzle
+        case 61, 63:
+            return 8 // Moderate Rain
+        case 65, 66, 67:
+            return 9 // Heavy Rain
+        case 71, 73, 75, 77, 85, 86:
+            return 14 // Snow
+        case 80, 81, 82:
+            return 10 // Showers
+        case 95, 96, 99:
+            return 4 // Thunderstorm
         default:
-            return 1 // Clear default
+            return 1 // Default to Clear
         }
     }
     
     private func mapWeatherCodeToIcon(koveCode: Int) -> String {
         switch koveCode {
-        case 1: return "sun.max.fill"
-        case 2: return "cloud.rain.fill"
-        case 3: return "cloud.fill"
-        case 4: return "snowflake"
-        case 5: return "cloud.sun.fill"
-        case 6: return "cloud.bolt.rain.fill"
-        case 7: return "smoke.fill"
-        case 8: return "cloud.fog.fill"
-        default: return "sun.max.fill"
+        case 1:
+            return "sun.max.fill"
+        case 2:
+            return "cloud.sun.fill"
+        case 3:
+            return "cloud.fill"
+        case 4:
+            return "cloud.bolt.rain.fill"
+        case 7, 8:
+            return "cloud.rain.fill"
+        case 9, 10:
+            return "cloud.heavyrain.fill"
+        case 14:
+            return "snowflake"
+        case 18:
+            return "cloud.fog.fill"
+        default:
+            return "sun.max.fill"
         }
     }
 }

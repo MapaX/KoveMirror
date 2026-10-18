@@ -23,6 +23,7 @@ class TcpServerManager {
     var onLocalConnectionChanged: ((Bool) -> Void)?
     var onControlPacketReceived: ((String) -> Void)?
     var onLog: ((String) -> Void)?
+    var onControlHandshakeCompleted: (() -> Void)?
     private var onVideoConnectCallback: (() -> Void)?
     
     init() {
@@ -226,6 +227,7 @@ class TcpServerManager {
         sendFramedJson(connection, "{\"msg_id\":27,\"func\":\"INSIDENAVI\",\"query\":2}")
         sendFramedJson(connection, "{\"msg_id\":27,\"func\":\"INSIDENAVI\",\"query\":1}")
         print("✅ Control handshake completed.")
+        onControlHandshakeCompleted?()
     }
 
     // MARK: - Port 15457 (Dedicated Heartbeat Server)

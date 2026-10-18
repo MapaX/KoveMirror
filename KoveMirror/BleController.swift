@@ -58,7 +58,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         }
     }
     
-    private var centralManager: CBCentralManager!
+    private var centralManager: CBCentralManager?
     private var targetPeripheral: CBPeripheral?
     private var writeCharacteristic: CBCharacteristic?
     private let tcpServerManager = TcpServerManager()
@@ -198,6 +198,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     }
     
     func startTcpServers() {
+        guard !isPreview else { return }
         let preset = KoveScreenPreset.current
         log("🔌 Starting TCP Servers for \(preset.displayName)...")
         
@@ -207,6 +208,14 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         
         tcpServerManager.onControlPacketReceived = { text in
             HandlebarKeyManager.shared.processJsonText(text)
+        }
+        
+        tcpServerManager.onControlHandshakeCompleted = { [weak self] in
+            guard let self = self else { return }
+            self.log("🔌 TCP Control channel active (port 17818). Triggering screen projection...")
+            if !self.isStreaming {
+                self.startMirroring()
+            }
         }
         
         tcpServerManager.startServers(width: preset.width, height: preset.height) { [weak self] in
@@ -222,7 +231,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     }
     
     func startScanning() {
-        guard centralManager.state == .poweredOn else {
+        guard !isPreview, let centralManager = centralManager, centralManager.state == .poweredOn else {
             log("⚠️ Bluetooth is not powered on.")
             return
         }
@@ -240,6 +249,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     
     @discardableResult
     func reconnectSavedPeripheralIfAvailable() -> Bool {
+        guard !isPreview, let centralManager = centralManager else { return false }
         let savedUuidString = UserDefaults(suiteName: appGroupSuiteName)?.string(forKey: "last_ble_uuid") ?? UserDefaults.standard.string(forKey: "last_ble_uuid")
         guard let savedUuidString = savedUuidString, let uuid = UUID(uuidString: savedUuidString) else {
             return false
@@ -292,7 +302,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         
         if let peripheral = targetPeripheral {
             log("🔴 Disconnecting from \(peripheral.name ?? "TFT Device")...")
-            centralManager.cancelPeripheralConnection(peripheral)
+            centralManager?.cancelPeripheralConnection(peripheral)
         } else {
             connectionState = .disconnected
         }
@@ -306,7 +316,6 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         case .poweredOn:
             isBluetoothPoweredOff = false
             log("🟢 Bluetooth is ON.")
-            startTcpServers()
             // If the saved peripheral is known, initiate non-expiring background connection
             _ = reconnectSavedPeripheralIfAvailable()
             // Always start background-friendly scanning
@@ -337,7 +346,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
                 restoredPeripheral.discoverServices(nil)
             } else {
                 connectionState = .connecting
-                centralManager.connect(restoredPeripheral, options: [
+                centralManager?.connect(restoredPeripheral, options: [
                     CBConnectPeripheralOptionNotifyOnConnectionKey: true,
                     CBConnectPeripheralOptionNotifyOnDisconnectionKey: true,
                     CBConnectPeripheralOptionNotifyOnNotificationKey: true
@@ -371,9 +380,9 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         UserDefaults.standard.set(peripheral.identifier.uuidString, forKey: "last_ble_uuid")
         
         connectionState = .connecting
-        centralManager.stopScan()
+        centralManager?.stopScan()
         log("🔌 Connecting to \(displayName)...")
-        centralManager.connect(peripheral, options: [
+        centralManager?.connect(peripheral, options: [
             CBConnectPeripheralOptionNotifyOnConnectionKey: true,
             CBConnectPeripheralOptionNotifyOnDisconnectionKey: true,
             CBConnectPeripheralOptionNotifyOnNotificationKey: true
@@ -441,7 +450,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         tcpServerManager.stop()
         
         // Keep pending connection to target peripheral without timeout so iOS auto-wakes app when bike turns on
-        centralManager.connect(peripheral, options: [
+        centralManager?.connect(peripheral, options: [
             CBConnectPeripheralOptionNotifyOnConnectionKey: true,
             CBConnectPeripheralOptionNotifyOnDisconnectionKey: true,
             CBConnectPeripheralOptionNotifyOnNotificationKey: true
@@ -640,10 +649,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
             return
         }
         
-        TelemetrySyncManager.shared.startSync(bleController: self)
-        NavigationSyncManager.shared.startSync(bleController: self)
-        
-        log("📤 Manual Start Mirroring requested. Sending Mirror Status packets...")
+        log("📤 Start Mirroring requested. Sending Mirror Status packets...")
         
         writeString("{\"msg_id\":25,\"msg_type\":23,\"msg_source\":2,\"status\":1}")
         writeString("{\"msg_id\":25,\"msg_type\":21,\"msg_source\":2,\"status\":1}")
@@ -821,18 +827,19 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
             }
         }
         
-        // Parse for send_pairresult confirmation (supporting concatenated JSON payloads)
+        // Parse for pairing confirmation (send_pairresult or send_pairinfo)
         var pairingConfirmed = false
         if let msgId = json["msg_id"] as? Int, msgId == 27,
-           let act = json["act"] as? String, act == "send_pairresult",
-           let result = json["result"] as? Int, result == 1 {
-            pairingConfirmed = true
-        } else if text.contains("send_pairresult") && (text.contains("\"result\":1") || text.contains("\"result\": 1")) {
+           let act = json["act"] as? String {
+            if act == "send_pairinfo" || (act == "send_pairresult" && (json["result"] as? Int == 1)) {
+                pairingConfirmed = true
+            }
+        } else if text.contains("send_pairinfo") || (text.contains("send_pairresult") && (text.contains("\"result\":1") || text.contains("\"result\": 1"))) {
             pairingConfirmed = true
         }
         
         if pairingConfirmed {
-            log("✅ BLE pairing confirmed by TFT (send_pairresult=1)! Automatically starting mirroring.")
+            log("✅ BLE pairing confirmed by TFT (\(json["act"] as? String ?? "pairinfo"))! Automatically starting mirroring.")
             startMirroring()
         }
     }
@@ -846,8 +853,6 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     
     private func sendInitHandshake() {
         log("📤 Sending initial BLE handshake sequence...")
-        TelemetrySyncManager.shared.startSync(bleController: self)
-        NavigationSyncManager.shared.startSync(bleController: self)
         
         let packets = [
             "{\"msg_id\":27,\"func\":\"PAIR\",\"act\":\"get_pairinfo\"}",
@@ -866,6 +871,13 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         // Android version sends packets in sequence with a 150ms delay
         for packetStr in packets {
             writeString(packetStr)
+        }
+        
+        // Defer telemetry & navigation sync slightly so handshake packets are transmitted first without congestion
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            guard let self = self, self.connectionState == .connected else { return }
+            TelemetrySyncManager.shared.startSync(bleController: self)
+            NavigationSyncManager.shared.startSync(bleController: self)
         }
     }
     
@@ -913,4 +925,3 @@ extension BleController {
         return controller
     }
 }
-

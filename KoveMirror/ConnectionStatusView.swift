@@ -557,15 +557,38 @@ struct ControlActionsCard: View {
                 }
             } else if isWifiCorrect {
                 VStack(spacing: 12) {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .blue))
-                        .scaleEffect(1.2)
-                        .padding(.top, 8)
+                    Button(action: {
+                        bleController.startMirroring()
+                    }) {
+                        HStack {
+                            Image(systemName: "tv.and.mediabox.fill")
+                            Text("Start Mirroring")
+                        }
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(
+                            LinearGradient(
+                                gradient: Gradient(colors: [Color.blue, Color.blue.opacity(0.8)]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(12)
+                    }
+                    .shadow(color: Color.blue.opacity(0.3), radius: 8)
                     
-                    Text("Waiting for TFT to connect...")
-                        .font(.subheadline)
-                        .foregroundColor(.white.opacity(0.7))
-                        .fontWeight(.semibold)
+                    HStack(spacing: 8) {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .blue))
+                            .scaleEffect(0.9)
+                        Text("Waiting for TFT to connect automatically...")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.7))
+                            .fontWeight(.medium)
+                    }
+                    .padding(.top, 4)
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
