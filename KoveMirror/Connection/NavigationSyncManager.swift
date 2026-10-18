@@ -243,8 +243,8 @@ class NavigationSyncManager: ObservableObject {
             sendDestinationPacket(destinationName)
         }
         
-        // Maneuver update: send every tick if state changed, or at least every 3 seconds as keep-alive
-        let forceSend = (tickCounter % 3 == 0)
+        // Maneuver update: send every tick if state changed, or at least every 5 seconds as keep-alive
+        let forceSend = (tickCounter % 5 == 0)
         sendManeuverUpdate(forceSend: forceSend)
     }
     

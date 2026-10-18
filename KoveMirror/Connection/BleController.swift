@@ -243,8 +243,6 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
             return
         }
         
-        startTcpServers()
-        
         connectionState = .scanning
         let isBackground = (UIApplication.shared.applicationState == .background)
         log("🔍 Scanning for Kove TFT devices (background: \(isBackground))...")
@@ -290,7 +288,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     
     func disconnect() {
         rxBuffer = ""
-        clearWriteQueue()
+        clearWriteQueue(resetSequence: true)
         heartbeatTimer?.invalidate()
         heartbeatTimer = nil
         mileageTimer?.invalidate()
@@ -403,7 +401,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         connectionState = .connected
         connectedDeviceName = peripheral.name
         rxBuffer = ""
-        clearWriteQueue()
+        clearWriteQueue(resetSequence: false)
         peripheral.delegate = self
         
         // Save UUID to App Groups & standard UserDefaults
@@ -437,7 +435,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         rxBuffer = ""
-        clearWriteQueue()
+        clearWriteQueue(resetSequence: false)
         hasSentHandshake = false
         odoDistanceKm = nil
         tripDistanceKm = nil
@@ -506,15 +504,24 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         guard let characteristics = service.characteristics else { return }
         
         for char in characteristics {
-            if char.properties.contains(.write) || char.properties.contains(.writeWithoutResponse) || char.uuid == writeCharUUID {
-                if writeCharacteristic == nil {
-                    writeCharacteristic = char
-                    log("📝 Write Characteristic ready (\(char.uuid.uuidString)).")
-                }
+            if char.uuid == writeCharUUID {
+                writeCharacteristic = char
+                log("📝 Write Characteristic ready (\(char.uuid.uuidString)).")
+            } else if writeCharacteristic == nil && (char.properties.contains(.write) || char.properties.contains(.writeWithoutResponse)) {
+                writeCharacteristic = char
+                log("📝 Fallback Write Characteristic ready (\(char.uuid.uuidString)).")
             }
-            if char.properties.contains(.notify) || char.properties.contains(.indicate) || char.uuid == notifyCharUUID {
+        }
+        
+        // Subscribe ONLY to the dedicated notification characteristic (FFE2).
+        // Avoid subscribing to binary debug streams (such as FFE3) which causes JSON receive buffer corruption.
+        if let exactNotify = characteristics.first(where: { $0.uuid == notifyCharUUID }) {
+            peripheral.setNotifyValue(true, for: exactNotify)
+            log("🔔 Enabling notifications on Characteristic (\(exactNotify.uuid.uuidString))...")
+        } else {
+            for char in characteristics where char.properties.contains(.notify) || char.properties.contains(.indicate) {
                 peripheral.setNotifyValue(true, for: char)
-                log("🔔 Enabling notifications on Characteristic (\(char.uuid.uuidString))...")
+                log("🔔 Enabling notifications on Fallback Characteristic (\(char.uuid.uuidString))...")
             }
         }
     }
@@ -618,8 +625,6 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
                 return
             }
             
-            let data = self.bleWriteQueue.removeFirst()
-            
             DispatchQueue.main.async { [weak self] in
                 guard let self = self,
                       let peripheral = self.targetPeripheral,
@@ -631,21 +636,82 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
                 }
                 
                 let writeType: CBCharacteristicWriteType = char.properties.contains(.writeWithoutResponse) ? .withoutResponse : .withResponse
-                peripheral.writeValue(data, for: char, type: writeType)
                 
-                // 50ms pacing delay between 104-byte packets to prevent MCU buffer overrun
-                self.queueAccessQueue.asyncAfter(deadline: .now() + 0.05) { [weak self] in
-                    self?.processNextWriteItem()
+                // Flow control: If writing without response and CoreBluetooth transmit buffer is full,
+                // do NOT drop packets! Suspend transmission and wait for peripheralIsReady(toSendWriteWithoutResponse:).
+                if writeType == .withoutResponse && !peripheral.canSendWriteWithoutResponse {
+                    self.log("⏳ BLE tx buffer full, pausing until peripheralIsReady...")
+                    self.queueAccessQueue.async {
+                        self.isWritingPackets = false
+                    }
+                    return
+                }
+                
+                self.queueAccessQueue.async { [weak self] in
+                    guard let self = self, !self.bleWriteQueue.isEmpty else {
+                        self?.isWritingPackets = false
+                        return
+                    }
+                    
+                    let data = self.bleWriteQueue.removeFirst()
+                    
+                    DispatchQueue.main.async { [weak self] in
+                        guard let self = self else { return }
+                        
+                        let maxLen = peripheral.maximumWriteValueLength(for: writeType)
+                        if data.count <= maxLen {
+                            peripheral.writeValue(data, for: char, type: writeType)
+                        } else {
+                            var offset = 0
+                            while offset < data.count {
+                                let chunkLen = min(data.count - offset, maxLen)
+                                let slice = data.subdata(in: offset ..< (offset + chunkLen))
+                                peripheral.writeValue(slice, for: char, type: writeType)
+                                offset += chunkLen
+                            }
+                        }
+                        
+                        if writeType == .withoutResponse {
+                            // 120ms pacing delay (matching ThinkerRide / Android 150ms pacing)
+                            // to prevent motorcycle MCU UART ring buffer overflow
+                            self.queueAccessQueue.asyncAfter(deadline: .now() + 0.12) { [weak self] in
+                                self?.processNextWriteItem()
+                            }
+                        }
+                        // For .withResponse, processNextWriteItem is resumed in peripheral(_:didWriteValueFor:error:)
+                    }
                 }
             }
         }
     }
     
-    private func clearWriteQueue() {
+    func peripheralIsReady(toSendWriteWithoutResponse peripheral: CBPeripheral) {
+        log("🔄 BLE ready to send writes without response.")
+        queueAccessQueue.async { [weak self] in
+            guard let self = self else { return }
+            if !self.isWritingPackets && !self.bleWriteQueue.isEmpty {
+                self.isWritingPackets = true
+                self.processNextWriteItem()
+            }
+        }
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
+        if let error = error {
+            log("⚠️ BLE write with response error: \(error.localizedDescription)")
+        }
+        queueAccessQueue.asyncAfter(deadline: .now() + 0.05) { [weak self] in
+            self?.processNextWriteItem()
+        }
+    }
+    
+    private func clearWriteQueue(resetSequence: Bool = false) {
         queueAccessQueue.async { [weak self] in
             self?.bleWriteQueue.removeAll()
             self?.isWritingPackets = false
-            self?.bleSequenceNumber = 0
+            if resetSequence {
+                self?.bleSequenceNumber = 0
+            }
         }
     }
 
@@ -725,7 +791,21 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         
         guard let data = characteristic.value, !data.isEmpty else { return }
         
-        let chunk: String
+        // Filter: only process incoming notifications for our notify characteristic (FFE2).
+        // Non-FFE2 characteristics (e.g. FFE3) are binary telemetry or debug logs; do not append them to rxBuffer.
+        guard characteristic.uuid == notifyCharUUID else {
+            let hexStr = data.map { String(format: "%02X", $0) }.joined(separator: " ")
+            log("📥 TFT -> BLE (\(characteristic.uuid.uuidString)) Binary: [\(hexStr)] (\(data.count)B)")
+            return
+        }
+        
+        // Handle Realtek RTL8762 BLE AT status responses (e.g. AT+Trans_Start)
+        if let ascii = String(data: data, encoding: .utf8), ascii.hasPrefix("AT+") {
+            log("📥 TFT -> BLE (FFE2) AT Command: \(ascii.trimmingCharacters(in: .whitespacesAndNewlines))")
+            return
+        }
+        
+        var chunk: String
         if let utf8 = String(data: data, encoding: .utf8) {
             chunk = utf8
         } else if let latin1 = String(data: data, encoding: .isoLatin1) {
@@ -737,10 +817,16 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         
         guard !chunk.isEmpty else { return }
         
+        // If a standalone packet is missing the leading '{' (e.g. starts with \n\t"msg_id": 10...),
+        // repair it by prepending '{' so it parses reliably instead of being discarded as binary.
         if !chunk.contains("{") && rxBuffer.isEmpty {
-            let hexStr = data.map { String(format: "%02X", $0) }.joined(separator: " ")
-            log("📥 TFT -> BLE (\(characteristic.uuid.uuidString)) Binary: [\(hexStr)] (\(data.count)B)")
-            return
+            if chunk.contains("\"msg_id\"") || chunk.contains("\"item\"") || chunk.contains("\"func\"") {
+                chunk = "{" + chunk
+            } else {
+                let hexStr = data.map { String(format: "%02X", $0) }.joined(separator: " ")
+                log("📥 TFT -> BLE (\(characteristic.uuid.uuidString)) Binary: [\(hexStr)] (\(data.count)B)")
+                return
+            }
         }
         
         rxBuffer.append(chunk)
@@ -748,6 +834,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         // Balanced brace JSON object parser (matching Android KoveService / r0.java)
         while true {
             guard let startIndex = rxBuffer.firstIndex(of: "{") else {
+                // Buffer has no opening brace, discard any leading noise
                 rxBuffer.removeAll()
                 break
             }
@@ -795,16 +882,18 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
             return
         }
         
-        // Respond to TFT periodic ping: msg_id 10, item 4
-        // Android p0.java replies with: {"msg_id":11,"time":"yyyy-MM-dd HH:mm:ss","tag":tag}
+        // Respond to TFT messages: msg_id 10
         if let msgId = json["msg_id"] as? Int, msgId == 10 {
             let item = json["item"] as? Int ?? 0
-            if item == 4 {
-                let tag = json["tag"] as? Int ?? 0
-                let reply = "{\"msg_id\":11,\"time\":\"\(getCurrentTimeString())\",\"tag\":\(tag)}"
-                log("📥 TFT Ping received (msg_id: 10, item: 4, tag: \(tag)) -> Replying with msg_id: 11")
-                writeString(reply)
-            } else if item == 2 {
+            switch item {
+            case 1:
+                // Speed & trip metrics: "current", "max", "average"
+                let current = json["current"] as? Int ?? 0
+                let maxSpeed = json["max"] as? Int ?? 0
+                let avgSpeed = json["average"] as? Int ?? 0
+                log("📊 Motorcycle Speed Stats: Current=\(current) km/h, Max=\(maxSpeed) km/h, Avg=\(avgSpeed) km/h")
+                
+            case 2:
                 // Mileage response from TFT: "total" (ODO) and "subtotal" (TRIP)
                 // In Thinkerride protocol, values are sent as integers in tenths of a kilometer (hectometers)
                 let totalRaw = (json["total"] as? NSNumber)?.doubleValue ?? Double(json["total"] as? Int ?? -1)
@@ -822,6 +911,39 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
                 let odoStr = totalRaw >= 0 ? String(format: "%.1f km", totalRaw / 10.0) : "N/A"
                 let tripStr = subtotalRaw >= 0 ? String(format: "%.1f km", subtotalRaw / 10.0) : "N/A"
                 log("📊 Motorcycle Distances received: ODO = \(odoStr), TRIP = \(tripStr)")
+                
+            case 4:
+                // Periodic ping from TFT: msg_id 10, item 4, tag: X
+                // App replies with: {"msg_id":11,"time":"yyyy-MM-dd HH:mm:ss","tag":tag}
+                let tag = json["tag"] as? Int ?? 0
+                let reply = "{\"msg_id\":11,\"time\":\"\(getCurrentTimeString())\",\"tag\":\(tag)}"
+                log("📥 TFT Ping received (msg_id: 10, item: 4, tag: \(tag)) -> Replying with msg_id: 11")
+                writeString(reply)
+                
+            case 7:
+                // TFT Current Sequence ACK: {"msg_id":10,"item":7,"cur_package_index":X}
+                if let curPkgIndex = json["cur_package_index"] as? Int {
+                    let nextSeq = UInt16((curPkgIndex + 1) & 0xFFFF)
+                    log("📥 TFT reported cur_package_index: \(curPkgIndex) -> Syncing sequence to \(nextSeq)")
+                    queueAccessQueue.async { [weak self] in
+                        self?.bleSequenceNumber = nextSeq
+                    }
+                }
+                
+            case 9:
+                // TFT Packet Loss Status: {"msg_id":10,"item":9,"packet_loss_index":X}
+                let lossIndex = json["packet_loss_index"] as? Int ?? 0
+                if lossIndex > 0 {
+                    log("⚠️ TFT reported packet loss at sequence index: \(lossIndex)! Aligning sequence counter.")
+                    queueAccessQueue.async { [weak self] in
+                        self?.bleSequenceNumber = UInt16((lossIndex + 1) & 0xFFFF)
+                    }
+                } else {
+                    log("✅ TFT reported packet_loss_index: 0 (No packet loss)")
+                }
+                
+            default:
+                break
             }
         }
         
