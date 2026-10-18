@@ -354,6 +354,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
                            name.uppercased().contains("KOVE") ||
                            name.uppercased().contains("THINKER") ||
                            name.uppercased().contains("TFT") ||
+                           name.uppercased().contains("ZFBT") ||
                            advertisedServices.contains(where: { allSupportedServiceUUIDs.contains($0) })
         
         guard isKoveDevice else { return }
