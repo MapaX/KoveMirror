@@ -260,6 +260,25 @@ struct KoveMirrorTests {
         let secondChunkSize = totalPayloadLen - 100
         #expect(frames[1][secondChunkSize + 3] == 0xFF)
     }
+
+    @Test func testBleMileagePacketParsing() async throws {
+        let controller = BleController(isPreview: true)
+        
+        #expect(controller.odoDistanceKm == nil)
+        #expect(controller.tripDistanceKm == nil)
+        
+        // Simulate motorcycle TFT sending mileage packet (msg_id: 10, item: 2)
+        // total: 12345 (1234.5 km), subtotal: 452 (45.2 km)
+        let incomingMileage = "{\"msg_id\":10,\"item\":2,\"total\":12345,\"subtotal\":452}"
+        controller.handleIncomingJsonText(incomingMileage)
+        
+        // Wait briefly for main thread published properties update
+        try? await Task.sleep(nanoseconds: 50_000_000)
+        
+        #expect(controller.odoDistanceKm == 1234.5)
+        #expect(controller.tripDistanceKm == 45.2)
+    }
+    
     @Test func testFrameLetterboxerAppliesBlackLetterboxing() {
         let letterboxer = FrameLetterboxer()
         

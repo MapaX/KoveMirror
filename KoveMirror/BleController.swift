@@ -26,6 +26,8 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
             updateCaptureWindowForProximity(isTriggered: CameraProximityManager.shared.isProximityTriggered)
         }
     }
+    @Published var odoDistanceKm: Double? = nil
+    @Published var tripDistanceKm: Double? = nil
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -239,6 +241,8 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         heartbeatTimer?.invalidate()
         heartbeatTimer = nil
         connectedDeviceName = nil
+        odoDistanceKm = nil
+        tripDistanceKm = nil
         TelemetrySyncManager.shared.stopSync()
         NavigationSyncManager.shared.stopSync()
         
@@ -355,6 +359,8 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         rxBuffer = ""
         clearWriteQueue()
         hasSentHandshake = false
+        odoDistanceKm = nil
+        tripDistanceKm = nil
         TelemetrySyncManager.shared.stopSync()
         NavigationSyncManager.shared.stopSync()
         log("🔴 Disconnected: \(error?.localizedDescription ?? "Clean disconnect")")
@@ -689,7 +695,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         }
     }
     
-    private func handleIncomingJsonText(_ text: String) {
+    func handleIncomingJsonText(_ text: String) {
         log("📥 TFT -> BLE: \(text)")
         
         // Process handlebar controls over BLE
@@ -709,6 +715,38 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
                 let reply = "{\"msg_id\":11,\"time\":\"\(getCurrentTimeString())\",\"tag\":\(tag)}"
                 log("📥 TFT Ping received (msg_id: 10, item: 4, tag: \(tag)) -> Replying with msg_id: 11")
                 writeString(reply)
+            } else if item == 2 {
+                // Mileage response from TFT: "total" (ODO) and "subtotal" (TRIP)
+                // In Thinkerride protocol, values are sent as integers in tenths of a kilometer (hectometers)
+                let totalRaw = (json["total"] as? NSNumber)?.doubleValue ?? Double(json["total"] as? Int ?? -1)
+                let subtotalRaw = (json["subtotal"] as? NSNumber)?.doubleValue ?? Double(json["subtotal"] as? Int ?? -1)
+                
+                DispatchQueue.main.async { [weak self] in
+                    if totalRaw >= 0 {
+                        self?.odoDistanceKm = totalRaw / 10.0
+                    }
+                    if subtotalRaw >= 0 {
+                        self?.tripDistanceKm = subtotalRaw / 10.0
+                    }
+                }
+                
+                let odoStr = totalRaw >= 0 ? String(format: "%.1f km", totalRaw / 10.0) : "N/A"
+                let tripStr = subtotalRaw >= 0 ? String(format: "%.1f km", subtotalRaw / 10.0) : "N/A"
+                log("📊 Motorcycle Distances received: ODO = \(odoStr), TRIP = \(tripStr)")
+            }
+        }
+        
+        // Check for standalone total / subtotal in any other JSON packet
+        if json["msg_id"] as? Int != 10 {
+            if let totalNum = (json["total"] as? NSNumber)?.doubleValue, totalNum >= 0 {
+                DispatchQueue.main.async { [weak self] in
+                    self?.odoDistanceKm = totalNum / 10.0
+                }
+            }
+            if let subtotalNum = (json["subtotal"] as? NSNumber)?.doubleValue, subtotalNum >= 0 {
+                DispatchQueue.main.async { [weak self] in
+                    self?.tripDistanceKm = subtotalNum / 10.0
+                }
             }
         }
         
@@ -730,6 +768,11 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     
     // MARK: - Handshake and Heartbeat Protocol
     
+    func requestMileage() {
+        log("📤 Requesting ODO and Trip distances from motorcycle...")
+        writeString("{\"msg_id\":10,\"item\":2}")
+    }
+    
     private func sendInitHandshake() {
         log("📤 Sending initial BLE handshake sequence...")
         TelemetrySyncManager.shared.startSync(bleController: self)
@@ -740,6 +783,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
             "{\"msg_id\":13}",
             "{\"msg_id\":25,\"msg_type\":18,\"msg_source\":2,\"language\":2}",
             "{\"msg_id\":11,\"time\":\"\(getCurrentTimeString())\",\"tag\":0}",
+            "{\"msg_id\":10,\"item\":2}",
             "{\"msg_id\":25,\"msg_type\":23,\"msg_source\":2,\"status\":1}",
             "{\"msg_id\":25,\"msg_type\":21,\"msg_source\":2,\"status\":1}",
             "{\"msg_id\":27,\"func\":\"INSIDENAVI\",\"query\":1}",
@@ -783,6 +827,8 @@ extension BleController {
         deviceName: String? = nil,
         isStreaming: Bool = false,
         isBroadcasting: Bool = false,
+        odoDistanceKm: Double? = nil,
+        tripDistanceKm: Double? = nil,
         logs: [String] = []
     ) -> BleController {
         let controller = BleController(isPreview: true)
@@ -790,6 +836,8 @@ extension BleController {
         controller.connectedDeviceName = deviceName
         controller.isStreaming = isStreaming
         controller.isBroadcasting = isBroadcasting
+        controller.odoDistanceKm = odoDistanceKm
+        controller.tripDistanceKm = tripDistanceKm
         controller.logMessages = logs
         return controller
     }

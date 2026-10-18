@@ -39,7 +39,9 @@ struct ConnectionStatusView: View {
                         // Header Status card
                         HeaderStatusCard(
                             connectionState: bleController.connectionState,
-                            statusColor: statusColor
+                            statusColor: statusColor,
+                            odoDistanceKm: bleController.odoDistanceKm,
+                            tripDistanceKm: bleController.tripDistanceKm
                         )
                         
                         // Wi-Fi Connection Status Card
@@ -311,6 +313,8 @@ struct HiddenBroadcastPicker: UIViewRepresentable {
 struct HeaderStatusCard: View {
     let connectionState: BleState
     let statusColor: Color
+    var odoDistanceKm: Double? = nil
+    var tripDistanceKm: Double? = nil
     
     var body: some View {
         VStack(spacing: 8) {
@@ -336,6 +340,77 @@ struct HeaderStatusCard: View {
                     .font(.headline)
                     .foregroundColor(statusColor)
             }
+            
+            if connectionState == .connected {
+                HStack(spacing: 12) {
+                    // Odometer Box
+                    VStack(spacing: 3) {
+                        Text("ODO")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.white.opacity(0.6))
+                            .tracking(1)
+                        
+                        HStack(alignment: .firstTextBaseline, spacing: 2) {
+                            if let odo = odoDistanceKm {
+                                Text(formatDistance(odo))
+                                    .font(.system(size: 18, weight: .semibold, design: .rounded))
+                                    .foregroundColor(.white)
+                                Text("km")
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundColor(.white.opacity(0.6))
+                            } else {
+                                Text("--")
+                                    .font(.system(size: 18, weight: .semibold, design: .rounded))
+                                    .foregroundColor(.white.opacity(0.4))
+                            }
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 10)
+                    .background(Color.white.opacity(0.06))
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                    )
+                    
+                    // Trip Meter Box
+                    VStack(spacing: 3) {
+                        Text("TRIP")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.white.opacity(0.6))
+                            .tracking(1)
+                        
+                        HStack(alignment: .firstTextBaseline, spacing: 2) {
+                            if let trip = tripDistanceKm {
+                                Text(formatDistance(trip))
+                                    .font(.system(size: 18, weight: .semibold, design: .rounded))
+                                    .foregroundColor(.white)
+                                Text("km")
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundColor(.white.opacity(0.6))
+                            } else {
+                                Text("--")
+                                    .font(.system(size: 18, weight: .semibold, design: .rounded))
+                                    .foregroundColor(.white.opacity(0.4))
+                            }
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 10)
+                    .background(Color.white.opacity(0.06))
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                    )
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 6)
+            }
+            
             if connectionState == .scanning || connectionState == .connecting {
                 Text(LocalizedStringKey("If the ble is not connecting, remove the old pairing from Bluetooth Settings and pair Ble again.")).font(.footnote).tint(.secondary)
             }
@@ -349,6 +424,14 @@ struct HeaderStatusCard: View {
                 .stroke(statusColor.opacity(0.2), lineWidth: 1)
         )
         .padding(.horizontal)
+    }
+    
+    private func formatDistance(_ km: Double) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.minimumFractionDigits = 1
+        formatter.maximumFractionDigits = 1
+        return formatter.string(from: NSNumber(value: km)) ?? String(format: "%.1f", km)
     }
 }
 
@@ -956,6 +1039,8 @@ struct ConnectionStatusView_Previews: PreviewProvider {
                 bleController: .preview(
                     state: .connected,
                     deviceName: "CQKY_Kove800X",
+                    odoDistanceKm: 12450.8,
+                    tripDistanceKm: 142.5,
                     logs: ["[08:57:03.000] ✅ BLE Handshake active!"]
                 ),
                 currentWifiSSID: "CQKY_Kove800X"
