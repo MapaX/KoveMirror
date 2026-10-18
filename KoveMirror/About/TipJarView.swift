@@ -47,7 +47,7 @@ struct TipJarView: View {
                 Spacer()
             }
 
-            Text("Kove Mirror is 100% free and open source. If the app keeps your motorcycle dashboard running smoothly, you can fuel future updates with a voluntary gas tip!")
+            Text("Kove Mirror is \(1.0, format: .percent) free and open source. If the app keeps your motorcycle dashboard running smoothly, you can fuel future updates with a voluntary gas tip!")
                 .font(.caption)
                 .foregroundColor(.white.opacity(0.7))
                 .lineSpacing(2)

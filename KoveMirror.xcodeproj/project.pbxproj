@@ -76,10 +76,10 @@
 		307A0D723014DD0300FDD68E /* Exceptions for "KoveMirror" folder in "Kove broadcast extension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				FrameLetterboxer.swift,
-				H264Encoder.swift,
-				KoveScreenPreset.swift,
-				TcpServerManager.swift,
+				Connection/FrameLetterboxer.swift,
+				Connection/H264Encoder.swift,
+				Connection/TcpServerManager.swift,
+				SetupViews/KoveScreenPreset.swift,
 			);
 			target = 30CC1EE43010C8DF00E96D54 /* Kove broadcast extension */;
 		};
