@@ -79,10 +79,9 @@ class TelemetrySyncManager: ObservableObject {
         // Fetch weather immediately if needed
         fetchWeatherIfNeeded(force: true)
         
-        // Periodic sync to refresh TFT display and query mileage every 30 seconds
+        // Periodic sync to refresh TFT altitude & weather display every 30 seconds
         syncTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in
             self?.sendTelemetryPackets()
-            self?.bleController?.requestMileage()
         }
         
         // Refresh weather API data every 10 minutes (600s)

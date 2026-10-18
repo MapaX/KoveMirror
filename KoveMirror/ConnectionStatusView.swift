@@ -41,7 +41,8 @@ struct ConnectionStatusView: View {
                             connectionState: bleController.connectionState,
                             statusColor: statusColor,
                             odoDistanceKm: bleController.odoDistanceKm,
-                            tripDistanceKm: bleController.tripDistanceKm
+                            tripDistanceKm: bleController.tripDistanceKm,
+                            onRequestMileage: { bleController.requestMileage() }
                         )
                         
                         // Wi-Fi Connection Status Card
@@ -315,6 +316,7 @@ struct HeaderStatusCard: View {
     let statusColor: Color
     var odoDistanceKm: Double? = nil
     var tripDistanceKm: Double? = nil
+    var onRequestMileage: (() -> Void)? = nil
     
     var body: some View {
         VStack(spacing: 8) {
@@ -406,6 +408,10 @@ struct HeaderStatusCard: View {
                         RoundedRectangle(cornerRadius: 12)
                             .stroke(Color.white.opacity(0.12), lineWidth: 1)
                     )
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    onRequestMileage?()
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 6)

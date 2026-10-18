@@ -84,6 +84,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     let notifyCharUUID = CBUUID(string: "0000ffe2-0000-1000-8000-00805f9b34fb")
     
     private var heartbeatTimer: Timer?
+    private var mileageTimer: Timer?
     private var hasSentHandshake = false
     private let appGroupSuiteName = "group.com.mustcode.KoveMirror"
     
@@ -216,6 +217,12 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
             if !self.isStreaming {
                 self.startMirroring()
             }
+            if self.odoDistanceKm == nil {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+                    guard let self = self, self.connectionState == .connected, self.odoDistanceKm == nil else { return }
+                    self.requestMileage()
+                }
+            }
         }
         
         tcpServerManager.startServers(width: preset.width, height: preset.height) { [weak self] in
@@ -286,6 +293,8 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         clearWriteQueue()
         heartbeatTimer?.invalidate()
         heartbeatTimer = nil
+        mileageTimer?.invalidate()
+        mileageTimer = nil
         connectedDeviceName = nil
         odoDistanceKm = nil
         tripDistanceKm = nil
@@ -438,6 +447,8 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         connectionState = .disconnected
         heartbeatTimer?.invalidate()
         heartbeatTimer = nil
+        mileageTimer?.invalidate()
+        mileageTimer = nil
         writeCharacteristic = nil
         connectedDeviceName = nil
         
@@ -520,6 +531,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
                 hasSentHandshake = true
                 sendInitHandshake()
                 startHeartbeat()
+                startMileageTimer()
             }
         }
     }
@@ -841,6 +853,12 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         if pairingConfirmed {
             log("✅ BLE pairing confirmed by TFT (\(json["act"] as? String ?? "pairinfo"))! Automatically starting mirroring.")
             startMirroring()
+            if odoDistanceKm == nil {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+                    guard let self = self, self.connectionState == .connected, self.odoDistanceKm == nil else { return }
+                    self.requestMileage()
+                }
+            }
         }
     }
     
@@ -878,6 +896,23 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
             guard let self = self, self.connectionState == .connected else { return }
             TelemetrySyncManager.shared.startSync(bleController: self)
             NavigationSyncManager.shared.startSync(bleController: self)
+        }
+    }
+    
+    private func startMileageTimer() {
+        mileageTimer?.invalidate()
+        log("⏱️ Starting periodic ODO & Trip sync timer (every 2 minutes)")
+        
+        // Initial request after 4.0s settling time
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) { [weak self] in
+            guard let self = self, self.connectionState == .connected else { return }
+            self.requestMileage()
+        }
+        
+        // Repeating every 120 seconds (2 minutes)
+        mileageTimer = Timer.scheduledTimer(withTimeInterval: 120.0, repeats: true) { [weak self] _ in
+            guard let self = self, self.connectionState == .connected else { return }
+            self.requestMileage()
         }
     }
     
