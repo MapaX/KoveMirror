@@ -58,7 +58,7 @@ class LocationAndNavigationManager: NSObject, ObservableObject, CLLocationManage
     
     func requestLocationPermission() {
         if locationManager.authorizationStatus == .notDetermined {
-            locationManager.requestWhenInUseAuthorization()
+            locationManager.requestAlwaysAuthorization()
         } else {
             startUpdating()
         }

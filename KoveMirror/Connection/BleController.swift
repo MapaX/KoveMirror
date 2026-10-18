@@ -140,7 +140,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         super.init()
         BleController.shared = self
         centralManager = CBCentralManager(delegate: self, queue: nil, options: [CBCentralManagerOptionRestoreIdentifierKey: "KoveMirrorRestoreID"])
-        locationManager.requestWhenInUseAuthorization()
+        locationManager.requestAlwaysAuthorization()
         setupLocalConnectionCallback()
         setupProximityObserver()
         checkLogFileSizeLimit()
@@ -152,7 +152,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         if !isPreview {
             BleController.shared = self
             centralManager = CBCentralManager(delegate: self, queue: nil, options: [CBCentralManagerOptionRestoreIdentifierKey: "KoveMirrorRestoreID"])
-            locationManager.requestWhenInUseAuthorization()
+            locationManager.requestAlwaysAuthorization()
             setupLocalConnectionCallback()
             setupProximityObserver()
             checkLogFileSizeLimit()
