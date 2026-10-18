@@ -1103,6 +1103,9 @@
     "Fix: Remove & Re-pair Bluetooth Connection" : {
 
     },
+    "Fuel the Development" : {
+
+    },
     "Full Screen Nav" : {
 
     },
@@ -1392,6 +1395,9 @@
           }
         }
       }
+    },
+    "Kove Mirror is 100% free and open source. If the app keeps your motorcycle dashboard running smoothly, you can fuel future updates with a voluntary gas tip!" : {
+
     },
     "Kove Model / Screen Resolution" : {
 
@@ -2124,6 +2130,16 @@
     "TFT Resolution" : {
 
     },
+    "Thank you! You've fueled development %lld %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Thank you! You've fueled development %1$lld %2$@."
+          }
+        }
+      }
+    },
     "The high-speed Wi-Fi connection is needed for screen mirroring with the \"Screen navigation\" feature on your motorcycle." : {
 
     },
@@ -2257,6 +2273,9 @@
       }
     },
     "View Event Log" : {
+
+    },
+    "Voluntary Gas Purchases (Tip Jar)" : {
 
     },
     "Waiting for TFT to connect automatically..." : {

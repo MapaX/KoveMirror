@@ -63,6 +63,9 @@
             ReferencedContainer = "container:KoveMirror.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <StoreKitConfigurationFileReference
+         identifier = "../../KoveMirror/KoveMirrorTips.storekit">
+      </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

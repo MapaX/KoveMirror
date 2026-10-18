@@ -159,6 +159,9 @@ struct AboutView: View {
                         )
                         .padding(.horizontal)
                         
+                        // Voluntary Gas Tips (Support Development)
+                        TipJarView()
+                        
                         // Codebase Repositories Card
                         VStack(alignment: .leading, spacing: 16) {
                             Text("Open Source Repositories")

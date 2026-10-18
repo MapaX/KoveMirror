@@ -1,0 +1,112 @@
+{
+  "identifier" : "KoveMirrorTips",
+  "nonRenewingSubscriptions" : [ ],
+  "products" : [
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "CUP_OF_GAS_01",
+      "localizations" : [
+        {
+          "description" : "Buy a cup of gas to support ongoing Kove Mirror development.",
+          "displayName" : "Cup of Gas",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.mustcode.KoveMirror.tip.cup",
+      "recurringSubscriptionPeriodType" : null,
+      "referenceName" : "Cup of Gas",
+      "subscriptionGroupID" : null,
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : false,
+      "internalID" : "JAR_OF_GAS_02",
+      "localizations" : [
+        {
+          "description" : "A jar of gas to fuel new features and maintenance.",
+          "displayName" : "Jar of Gas",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.mustcode.KoveMirror.tip.jar",
+      "recurringSubscriptionPeriodType" : null,
+      "referenceName" : "Jar of Gas",
+      "subscriptionGroupID" : null,
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "9.99",
+      "familyShareable" : false,
+      "internalID" : "TANK_OF_GAS_03",
+      "localizations" : [
+        {
+          "description" : "A full tank of gas! Huge support for development.",
+          "displayName" : "Tank of Gas",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.mustcode.KoveMirror.tip.tank",
+      "recurringSubscriptionPeriodType" : null,
+      "referenceName" : "Tank of Gas",
+      "subscriptionGroupID" : null,
+      "type" : "Consumable"
+    }
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Purchase"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Verification"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Store Sync"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Subscription Status"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Transaction"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Manage Subscriptions Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Refund Request Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Offer Code Redeem Sheet"
+      }
+    ]
+  },
+  "subscriptionGroups" : [ ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}
