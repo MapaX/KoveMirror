@@ -23,6 +23,16 @@ struct KoveMirrorApp: App {
                     UIDevice.current.isProximityMonitoringEnabled = false
                     CameraProximityManager.shared.setup()
                 }
+                .onOpenURL { url in
+                    print("🔗 Opened with URL: \(url.absoluteString)")
+                    if url.scheme == "kovemirror" {
+                        if url.host == "start" || url.host == "mirror" {
+                            BleController.shared?.startMirroring()
+                        } else {
+                            BleController.shared?.startScanning()
+                        }
+                    }
+                }
         }
     }
 }

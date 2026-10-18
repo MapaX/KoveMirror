@@ -319,7 +319,72 @@ struct HelpView: View {
                             }
                         }
                         
-                        // 5. Quick Feature Summary Card
+                        // 5. Automatic Screen Launch & Shortcuts Automation Card
+                        HelpCard(
+                            title: "Automatic Screen Launch",
+                            icon: "bolt.badge.automatic.fill",
+                            iconColor: .purple,
+                            badge: "Shortcuts Automation"
+                        ) {
+                            VStack(alignment: .leading, spacing: 14) {
+                                Text("You can configure your iPhone to launch Kove Mirror automatically when you turn on the motorcycle ignition:")
+                                    .font(.caption)
+                                    .foregroundColor(.white.opacity(0.8))
+                                    .lineSpacing(2)
+                                
+                                VStack(alignment: .leading, spacing: 10) {
+                                    HelpStepRow(
+                                        step: 1,
+                                        title: "Open Shortcuts Automation",
+                                        description: "Open the Apple Shortcuts app, switch to the Automation tab, and tap + to create a new automation."
+                                    )
+                                    
+                                    HelpStepRow(
+                                        step: 2,
+                                        title: "Select Bluetooth Trigger",
+                                        description: "Choose Bluetooth, select your bike's device (e.g. CQKY-... or KOVE-...), and select 'Run Immediately'."
+                                    )
+                                    
+                                    HelpStepRow(
+                                        step: 3,
+                                        title: "Add Open App Action",
+                                        description: "Choose 'Open Kove Mirror' from Shortcuts or 'Open App → Kove Mirror'. The app will launch and connect automatically."
+                                    )
+                                }
+                                
+                                Button(action: {
+                                    if let url = URL(string: "shortcuts://"), UIApplication.shared.canOpenURL(url) {
+                                        UIApplication.shared.open(url)
+                                    }
+                                }) {
+                                    HStack {
+                                        Image(systemName: "arrow.up.forward.app.fill")
+                                            .font(.system(size: 15, weight: .semibold))
+                                        Text("Open Shortcuts App")
+                                            .font(.subheadline)
+                                            .fontWeight(.bold)
+                                        Spacer()
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 13, weight: .semibold))
+                                    }
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 12)
+                                    .background(
+                                        LinearGradient(
+                                            gradient: Gradient(colors: [Color.purple, Color.purple.opacity(0.8)]),
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
+                                    )
+                                    .cornerRadius(10)
+                                    .shadow(color: Color.purple.opacity(0.3), radius: 6)
+                                }
+                                .padding(.top, 4)
+                            }
+                        }
+                        
+                        // 6. Quick Feature Summary Card
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Connection Overview")
                                 .font(.headline)

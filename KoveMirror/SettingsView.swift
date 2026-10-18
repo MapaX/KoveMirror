@@ -10,6 +10,7 @@ struct SettingsView: View {
     @AppStorage(KoveScreenPreset.keepAspectRatioKey) var keepAspectRatio = false
     @State private var showShareSheet = false
     @State private var isLogFileAvailable = false
+    @State private var copiedUrl = false
     
     private var logFilePath: URL {
         let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
@@ -284,6 +285,113 @@ struct SettingsView: View {
                         )
                         .padding(.horizontal)
                         
+                        // Automatic Screen Launch & Shortcuts Card
+                        VStack(alignment: .leading, spacing: 16) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "bolt.badge.automatic.fill")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundColor(.purple)
+                                    .frame(width: 24, height: 24)
+                                    .background(Color.purple.opacity(0.1))
+                                    .cornerRadius(6)
+                                
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Automatic Screen Launch")
+                                        .font(.headline)
+                                        .foregroundColor(.white)
+                                    Text("Start Kove Mirror automatically when connecting to your motorcycle.")
+                                        .font(.caption)
+                                        .foregroundColor(.white.opacity(0.6))
+                                }
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("How to set up iOS Personal Automation:")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.white.opacity(0.9))
+                                
+                                SettingsStepRow(
+                                    step: 1,
+                                    text: "Open the iOS Shortcuts app and select the Automation tab."
+                                )
+                                SettingsStepRow(
+                                    step: 2,
+                                    text: "Tap + and select Bluetooth as the trigger."
+                                )
+                                SettingsStepRow(
+                                    step: 3,
+                                    text: "Choose your motorcycle's Bluetooth device (e.g. CQKY-... or KOVE-...) and select 'Run Immediately'."
+                                )
+                                SettingsStepRow(
+                                    step: 4,
+                                    text: "Add the action 'Open Kove Mirror' or 'Open App → Kove Mirror'."
+                                )
+                            }
+                            .padding(12)
+                            .background(Color.white.opacity(0.02))
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.purple.opacity(0.2), lineWidth: 1)
+                            )
+                            
+                            HStack(spacing: 12) {
+                                Button(action: {
+                                    if let url = URL(string: "shortcuts://"), UIApplication.shared.canOpenURL(url) {
+                                        UIApplication.shared.open(url)
+                                    }
+                                }) {
+                                    HStack {
+                                        Image(systemName: "arrow.up.forward.app.fill")
+                                        Text("Open Shortcuts App")
+                                    }
+                                    .font(.subheadline)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                                    .padding()
+                                    .frame(maxWidth: .infinity)
+                                    .background(
+                                        LinearGradient(
+                                            gradient: Gradient(colors: [Color.purple, Color.purple.opacity(0.8)]),
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
+                                    )
+                                    .cornerRadius(12)
+                                }
+                                .shadow(color: Color.purple.opacity(0.25), radius: 6)
+                                
+                                Button(action: {
+                                    UIPasteboard.general.string = "kovemirror://start"
+                                    copiedUrl = true
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                                        copiedUrl = false
+                                    }
+                                }) {
+                                    HStack {
+                                        Image(systemName: copiedUrl ? "checkmark.circle.fill" : "doc.on.doc.fill")
+                                        Text(copiedUrl ? "Copied URL!" : "Copy URL")
+                                    }
+                                    .font(.subheadline)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                                    .padding()
+                                    .frame(maxWidth: .infinity)
+                                    .background(Color.white.opacity(0.08))
+                                    .cornerRadius(12)
+                                }
+                            }
+                        }
+                        .padding()
+                        .background(Color.white.opacity(0.03))
+                        .cornerRadius(16)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.white.opacity(0.05), lineWidth: 1)
+                        )
+                        .padding(.horizontal)
+                        
                         // Proximity Sensors Card
                         VStack(alignment: .leading, spacing: 16) {
                             Text("Proximity Sensors")
@@ -499,4 +607,26 @@ struct ActivityViewController: UIViewControllerRepresentable {
 
 #Preview {
     SettingsView()
+}
+
+private struct SettingsStepRow: View {
+    let step: Int
+    let text: LocalizedStringKey
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Text("\(step)")
+                .font(.system(size: 11, weight: .bold))
+                .foregroundColor(.purple)
+                .frame(width: 20, height: 20)
+                .background(Color.purple.opacity(0.18))
+                .clipShape(Circle())
+                .padding(.top, 1)
+            
+            Text(text)
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.7))
+                .lineSpacing(2)
+        }
+    }
 }

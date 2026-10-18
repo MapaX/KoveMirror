@@ -1,6 +1,7 @@
 import Foundation
 import CoreLocation
 import Combine
+import UIKit
 
 class TelemetrySyncManager: ObservableObject {
     static let shared = TelemetrySyncManager()
@@ -11,6 +12,14 @@ class TelemetrySyncManager: ObservableObject {
     @Published var currentWindPower: String = "0"
     @Published var weatherIconName: String = "sun.max.fill"
     
+    private let cachedAltitudeKey = "cached_altitude_meters"
+    private let cachedTempKey = "cached_temp_celsius"
+    private let cachedWeatherCodeKey = "cached_weather_code"
+    private let cachedWindPowerKey = "cached_wind_power"
+    private let cachedWeatherIconKey = "cached_weather_icon"
+    private let cachedLatKey = "cached_location_lat"
+    private let cachedLonKey = "cached_location_lon"
+    
     private var syncTimer: Timer?
     private var weatherFetchTimer: Timer?
     private var cancellables = Set<AnyCancellable>()
@@ -20,7 +29,44 @@ class TelemetrySyncManager: ObservableObject {
     weak var bleController: BleController?
     
     private init() {
+        loadCachedTelemetry()
         setupLocationObserver()
+    }
+    
+    func loadCachedTelemetry() {
+        if UserDefaults.standard.object(forKey: cachedAltitudeKey) != nil {
+            self.currentAltitudeMeters = UserDefaults.standard.integer(forKey: cachedAltitudeKey)
+        }
+        if UserDefaults.standard.object(forKey: cachedTempKey) != nil {
+            self.currentTemperatureCelsius = UserDefaults.standard.integer(forKey: cachedTempKey)
+        }
+        if UserDefaults.standard.object(forKey: cachedWeatherCodeKey) != nil {
+            self.currentWeatherCode = UserDefaults.standard.integer(forKey: cachedWeatherCodeKey)
+        }
+        if let wind = UserDefaults.standard.string(forKey: cachedWindPowerKey) {
+            self.currentWindPower = wind
+        }
+        if let icon = UserDefaults.standard.string(forKey: cachedWeatherIconKey) {
+            self.weatherIconName = icon
+        }
+        if UserDefaults.standard.object(forKey: cachedLatKey) != nil && UserDefaults.standard.object(forKey: cachedLonKey) != nil {
+            let lat = UserDefaults.standard.double(forKey: cachedLatKey)
+            let lon = UserDefaults.standard.double(forKey: cachedLonKey)
+            self.lastFetchedCoordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+        }
+    }
+    
+    private func saveCachedTelemetry(temp: Int, weatherCode: Int, windPower: String, icon: String, coordinate: CLLocationCoordinate2D) {
+        UserDefaults.standard.set(temp, forKey: cachedTempKey)
+        UserDefaults.standard.set(weatherCode, forKey: cachedWeatherCodeKey)
+        UserDefaults.standard.set(windPower, forKey: cachedWindPowerKey)
+        UserDefaults.standard.set(icon, forKey: cachedWeatherIconKey)
+        UserDefaults.standard.set(coordinate.latitude, forKey: cachedLatKey)
+        UserDefaults.standard.set(coordinate.longitude, forKey: cachedLonKey)
+    }
+    
+    private func saveCachedAltitude(_ altitude: Int) {
+        UserDefaults.standard.set(altitude, forKey: cachedAltitudeKey)
     }
     
     func startSync(bleController: BleController) {
@@ -29,12 +75,15 @@ class TelemetrySyncManager: ObservableObject {
         syncTimer?.invalidate()
         weatherFetchTimer?.invalidate()
         
-        // Fetch weather immediately if needed
-        fetchWeatherIfNeeded()
+        // Start background location updates immediately
+        LocationAndNavigationManager.shared.startUpdating()
         
-        // Send initial telemetry packet if data is already available & request bike mileage
+        // Send initial telemetry packet immediately from cached/current state
         sendTelemetryPackets()
         bleController.requestMileage()
+        
+        // Fetch weather immediately if needed
+        fetchWeatherIfNeeded(force: true)
         
         // Periodic sync to refresh TFT display and query mileage every 30 seconds
         syncTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in
@@ -48,7 +97,7 @@ class TelemetrySyncManager: ObservableObject {
         }
         
         print("🌡️ Telemetry Sync Manager started (Periodic sync every 30s).")
-        bleController.log("🌡️ Telemetry Sync Manager started (Periodic sync every 30s).")
+        bleController.log("🌡️ Telemetry Sync Manager started. Initial Alt: \(currentAltitudeMeters)m, Temp: \(currentTemperatureCelsius.map { "\($0)°C" } ?? "pending").")
     }
     
     func stopSync() {
@@ -69,6 +118,7 @@ class TelemetrySyncManager: ObservableObject {
                 if alt != self.currentAltitudeMeters {
                     DispatchQueue.main.async {
                         self.currentAltitudeMeters = alt
+                        self.saveCachedAltitude(alt)
                         // If altitude changed significantly (>= 3m) and BLE is active, sync immediately
                         if let lastAlt = self.lastSentAltitude, abs(alt - lastAlt) >= 3,
                            self.bleController?.connectionState == .connected {
@@ -83,11 +133,20 @@ class TelemetrySyncManager: ObservableObject {
     
     // MARK: - OpenMeteo Weather API (Free, zero API key required)
     
-    private func fetchWeatherIfNeeded(location: CLLocation? = LocationAndNavigationManager.shared.userLocation) {
-        guard let location = location else { return }
+    private func fetchWeatherIfNeeded(location: CLLocation? = LocationAndNavigationManager.shared.userLocation, force: Bool = false) {
+        let targetLocation: CLLocation?
+        if let loc = location {
+            targetLocation = loc
+        } else if let cachedCoord = lastFetchedCoordinate {
+            targetLocation = CLLocation(latitude: cachedCoord.latitude, longitude: cachedCoord.longitude)
+        } else {
+            targetLocation = nil
+        }
         
-        // Avoid duplicate queries if location hasn't moved significantly (> 5 km)
-        if let lastCoord = lastFetchedCoordinate {
+        guard let location = targetLocation else { return }
+        
+        // Avoid duplicate queries if location hasn't moved significantly (> 5 km) unless forced
+        if !force, let lastCoord = lastFetchedCoordinate {
             let lastLoc = CLLocation(latitude: lastCoord.latitude, longitude: lastCoord.longitude)
             if location.distance(from: lastLoc) < 5000 && currentTemperatureCelsius != nil {
                 return
@@ -104,7 +163,21 @@ class TelemetrySyncManager: ObservableObject {
         bleController?.log("🌐 Fetching weather for coordinates: (\(String(format: "%.4f", lat)), \(String(format: "%.4f", lon)))...")
         print("🌐 Fetching weather for coordinates: (\(lat), \(lon))...")
         
+        // Keep background process alive while fetching weather
+        var bgTask: UIBackgroundTaskIdentifier = .invalid
+        bgTask = UIApplication.shared.beginBackgroundTask(withName: "WeatherFetchTask") {
+            UIApplication.shared.endBackgroundTask(bgTask)
+            bgTask = .invalid
+        }
+        
         URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+            defer {
+                if bgTask != .invalid {
+                    UIApplication.shared.endBackgroundTask(bgTask)
+                    bgTask = .invalid
+                }
+            }
+            
             guard let self = self else { return }
             if let error = error {
                 self.bleController?.log("❌ Weather API network error: \(error.localizedDescription)")
@@ -130,6 +203,8 @@ class TelemetrySyncManager: ObservableObject {
                         self.currentWeatherCode = mappedKoveWeather
                         self.currentWindPower = windPowerStr
                         self.weatherIconName = icon
+                        self.saveCachedTelemetry(temp: tempInt, weatherCode: mappedKoveWeather, windPower: windPowerStr, icon: icon, coordinate: location.coordinate)
+                        
                         self.bleController?.log("🌡️ Weather fetched: \(tempInt)°C (Kove code: \(mappedKoveWeather), wind: \(windPowerStr) km/h)")
                         print("🌡️ Weather fetched: \(tempInt)°C, Weather Code: \(mappedKoveWeather)")
                         self.sendTelemetryPackets()

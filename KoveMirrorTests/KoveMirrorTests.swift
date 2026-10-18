@@ -435,4 +435,11 @@ struct KoveMirrorTests {
         let rightPixel = pixelAt(x: 550, y: 500)
         #expect(rightPixel.b == 0 && rightPixel.g == 0 && rightPixel.r == 0)
     }
+
+
+    @Test func testBleControllerStateOnDisconnect() {
+        let controller = BleController(isPreview: true)
+        #expect(controller.connectionState == .disconnected)
+        #expect(controller.connectedDeviceName == nil)
+    }
 }

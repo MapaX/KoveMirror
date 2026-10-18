@@ -230,9 +230,45 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         startTcpServers()
         
         connectionState = .scanning
-        log("🔍 Scanning for Kove TFT devices...")
-        // Scan for all peripherals to discover Kove TFTs whether they advertise service UUIDs or local device names
-        centralManager.scanForPeripherals(withServices: nil, options: [CBCentralManagerScanOptionAllowDuplicatesKey: false])
+        let isBackground = (UIApplication.shared.applicationState == .background)
+        log("🔍 Scanning for Kove TFT devices (background: \(isBackground))...")
+        // iOS requires non-nil service UUID array when scanning in the background.
+        // In foreground, we scan for nil to catch devices advertising by name.
+        let servicesToScan = isBackground ? allSupportedServiceUUIDs : nil
+        centralManager.scanForPeripherals(withServices: servicesToScan, options: [CBCentralManagerScanOptionAllowDuplicatesKey: false])
+    }
+    
+    @discardableResult
+    func reconnectSavedPeripheralIfAvailable() -> Bool {
+        let savedUuidString = UserDefaults(suiteName: appGroupSuiteName)?.string(forKey: "last_ble_uuid") ?? UserDefaults.standard.string(forKey: "last_ble_uuid")
+        guard let savedUuidString = savedUuidString, let uuid = UUID(uuidString: savedUuidString) else {
+            return false
+        }
+        
+        let peripherals = centralManager.retrievePeripherals(withIdentifiers: [uuid])
+        guard let savedPeripheral = peripherals.first else {
+            return false
+        }
+        
+        targetPeripheral = savedPeripheral
+        savedPeripheral.delegate = self
+        
+        if savedPeripheral.state == .connected {
+            log("🔄 Reusing already connected device: \(savedPeripheral.name ?? "TFT Device")")
+            connectionState = .connected
+            connectedDeviceName = savedPeripheral.name
+            savedPeripheral.discoverServices(nil)
+            return true
+        } else {
+            log("⏳ Waiting / auto-connecting to known motorcycle: \(savedPeripheral.name ?? "TFT Device")...")
+            connectionState = .connecting
+            centralManager.connect(savedPeripheral, options: [
+                CBConnectPeripheralOptionNotifyOnConnectionKey: true,
+                CBConnectPeripheralOptionNotifyOnDisconnectionKey: true,
+                CBConnectPeripheralOptionNotifyOnNotificationKey: true
+            ])
+            return true
+        }
     }
     
     func disconnect() {
@@ -271,21 +307,9 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
             isBluetoothPoweredOff = false
             log("🟢 Bluetooth is ON.")
             startTcpServers()
-            // If the saved peripheral is ALREADY connected at the OS level, use it directly
-            if let savedUuidString = UserDefaults(suiteName: appGroupSuiteName)?.string(forKey: "last_ble_uuid"),
-               let uuid = UUID(uuidString: savedUuidString) {
-                let peripherals = central.retrievePeripherals(withIdentifiers: [uuid])
-                if let savedPeripheral = peripherals.first, savedPeripheral.state == .connected {
-                    log("🔄 Reusing already connected device: \(savedPeripheral.name ?? "TFT Device")")
-                    targetPeripheral = savedPeripheral
-                    savedPeripheral.delegate = self
-                    connectionState = .connected
-                    connectedDeviceName = savedPeripheral.name
-                    savedPeripheral.discoverServices(nil)
-                    return
-                }
-            }
-            // Always start a fresh over-the-air scan to connect to the active advertising TFT immediately
+            // If the saved peripheral is known, initiate non-expiring background connection
+            _ = reconnectSavedPeripheralIfAvailable()
+            // Always start background-friendly scanning
             startScanning()
         case .poweredOff:
             isBluetoothPoweredOff = true
@@ -301,13 +325,24 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     }
     
     func centralManager(_ central: CBCentralManager, willRestoreState dict: [String : Any]) {
-        log("🔄 Restoring Bluetooth Central state...")
+        log("🔄 Restoring Bluetooth Central state from iOS background wake...")
         if let peripherals = dict[CBCentralManagerRestoredStatePeripheralsKey] as? [CBPeripheral],
            let restoredPeripheral = peripherals.first {
-            log("🔄 Restored connection to \(restoredPeripheral.name ?? "Device")")
+            log("🔄 Restored connection state for \(restoredPeripheral.name ?? "Device") (state: \(restoredPeripheral.state.rawValue))")
             targetPeripheral = restoredPeripheral
             restoredPeripheral.delegate = self
-            connectionState = .connected
+            if restoredPeripheral.state == .connected {
+                connectionState = .connected
+                connectedDeviceName = restoredPeripheral.name
+                restoredPeripheral.discoverServices(nil)
+            } else {
+                connectionState = .connecting
+                centralManager.connect(restoredPeripheral, options: [
+                    CBConnectPeripheralOptionNotifyOnConnectionKey: true,
+                    CBConnectPeripheralOptionNotifyOnDisconnectionKey: true,
+                    CBConnectPeripheralOptionNotifyOnNotificationKey: true
+                ])
+            }
         }
     }
     
@@ -327,16 +362,21 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         log("📱 Discovered peripheral: \(displayName) [RSSI: \(RSSI)]")
         targetPeripheral = peripheral
         
-        // Save UUID to App Groups to share with the Extension
+        // Save UUID to App Groups and standard UserDefaults
         if let suite = UserDefaults(suiteName: appGroupSuiteName) {
             suite.set(peripheral.identifier.uuidString, forKey: "last_ble_uuid")
             suite.synchronize()
         }
+        UserDefaults.standard.set(peripheral.identifier.uuidString, forKey: "last_ble_uuid")
         
         connectionState = .connecting
         centralManager.stopScan()
         log("🔌 Connecting to \(displayName)...")
-        centralManager.connect(peripheral, options: nil)
+        centralManager.connect(peripheral, options: [
+            CBConnectPeripheralOptionNotifyOnConnectionKey: true,
+            CBConnectPeripheralOptionNotifyOnDisconnectionKey: true,
+            CBConnectPeripheralOptionNotifyOnNotificationKey: true
+        ])
     }
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
@@ -346,6 +386,27 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         rxBuffer = ""
         clearWriteQueue()
         peripheral.delegate = self
+        
+        // Save UUID to App Groups & standard UserDefaults
+        if let suite = UserDefaults(suiteName: appGroupSuiteName) {
+            suite.set(peripheral.identifier.uuidString, forKey: "last_ble_uuid")
+            suite.synchronize()
+        }
+        UserDefaults.standard.set(peripheral.identifier.uuidString, forKey: "last_ble_uuid")
+        
+        // Request background execution time from iOS to allow handshake, TCP bringup & telemetry sync
+        var bgTask: UIBackgroundTaskIdentifier = .invalid
+        bgTask = UIApplication.shared.beginBackgroundTask(withName: "KoveBleConnectionWakeTask") {
+            UIApplication.shared.endBackgroundTask(bgTask)
+            bgTask = .invalid
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 12.0) {
+            if bgTask != .invalid {
+                UIApplication.shared.endBackgroundTask(bgTask)
+                bgTask = .invalid
+            }
+        }
+        
         peripheral.discoverServices(nil)
     }
     
@@ -363,7 +424,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         tripDistanceKm = nil
         TelemetrySyncManager.shared.stopSync()
         NavigationSyncManager.shared.stopSync()
-        log("🔴 Disconnected: \(error?.localizedDescription ?? "Clean disconnect")")
+        log("🔴 Disconnected: \(error?.localizedDescription ?? "Clean disconnect"). Waiting for motorcycle BLE reconnection...")
         connectionState = .disconnected
         heartbeatTimer?.invalidate()
         heartbeatTimer = nil
@@ -377,6 +438,13 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         
         log("🔌 Stopping TCP Servers in main app...")
         tcpServerManager.stop()
+        
+        // Keep pending connection to target peripheral without timeout so iOS auto-wakes app when bike turns on
+        centralManager.connect(peripheral, options: [
+            CBConnectPeripheralOptionNotifyOnConnectionKey: true,
+            CBConnectPeripheralOptionNotifyOnDisconnectionKey: true,
+            CBConnectPeripheralOptionNotifyOnNotificationKey: true
+        ])
         
         // Restart scanning to reconnect automatically
         startScanning()
@@ -565,7 +633,9 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
 
     func startMirroring() {
         guard connectionState == .connected else {
-            log("⚠️ Cannot start mirroring: BLE is not connected to motorcycle.")
+            log("⏳ BLE is not connected yet. Initiating motorcycle connection before mirroring...")
+            reconnectSavedPeripheralIfAvailable()
+            startScanning()
             return
         }
         

@@ -4,6 +4,9 @@
     "" : {
 
     },
+    "--" : {
+
+    },
     "--°C" : {
 
     },
@@ -301,6 +304,12 @@
         }
       }
     },
+    "Add Open App Action" : {
+
+    },
+    "Add the action 'Open Kove Mirror' or 'Open App → Kove Mirror'." : {
+
+    },
     "Adds black letterbox margins at the top and bottom of the mirrored window to prevent motorcycle instrument panel indicators from obscuring the content." : {
 
     },
@@ -346,6 +355,9 @@
 
     },
     "Altitude & Temperature" : {
+
+    },
+    "Automatic Screen Launch" : {
 
     },
     "Automatically streams the in-app dashboard views. When you broadcast the entire screen, it seamlessly switches to the broadcast stream, falling back dynamically on exit." : {
@@ -611,6 +623,15 @@
         }
       }
     },
+    "Choose 'Open Kove Mirror' from Shortcuts or 'Open App → Kove Mirror'. The app will launch and connect automatically." : {
+
+    },
+    "Choose Bluetooth, select your bike's device (e.g. CQKY-... or KOVE-...), and select 'Run Immediately'." : {
+
+    },
+    "Choose your motorcycle's Bluetooth device (e.g. CQKY-... or KOVE-...) and select 'Run Immediately'." : {
+
+    },
     "Close Thinkerride App" : {
 
     },
@@ -766,10 +787,16 @@
     "Connection Overview" : {
 
     },
+    "Copied URL!" : {
+
+    },
     "Copied!" : {
 
     },
     "Copy Log" : {
+
+    },
+    "Copy URL" : {
 
     },
     "Delete" : {
@@ -1205,6 +1232,9 @@
     "How to Connect Wi-Fi" : {
 
     },
+    "How to set up iOS Personal Automation:" : {
+
+    },
     "If the ble is not connecting, remove the old pairing from Bluetooth Settings and pair Ble again." : {
 
     },
@@ -1316,6 +1346,9 @@
         }
       }
     },
+    "km" : {
+
+    },
     "KM/H" : {
 
     },
@@ -1361,6 +1394,9 @@
       }
     },
     "Kove Model / Screen Resolution" : {
+
+    },
+    "Launches Kove Mirror and readies the screen mirroring connection to your motorcycle." : {
 
     },
     "Launches local TCP/UDP socket servers. The motorcycle dashboard connects to your iPhone's hotspot or Wi-Fi to receive the high-fidelity video stream." : {
@@ -1489,6 +1525,9 @@
         }
       }
     },
+    "ODO" : {
+
+    },
     "Offscreen 2nd Window Streaming Active" : {
 
     },
@@ -1502,6 +1541,9 @@
 
     },
     "Open iOS Bluetooth Settings, find your motorcycle (e.g. CQKY_...), tap the ⓘ info button, and select \"Forget This Device\"." : {
+
+    },
+    "Open Kove Mirror" : {
 
     },
     "Open Settings" : {
@@ -1539,6 +1581,12 @@
         }
       }
     },
+    "Open Shortcuts App" : {
+
+    },
+    "Open Shortcuts Automation" : {
+
+    },
     "Open Source Repositories" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1573,6 +1621,12 @@
           }
         }
       }
+    },
+    "Open the Apple Shortcuts app, switch to the Automation tab, and tap + to create a new automation." : {
+
+    },
+    "Open the iOS Shortcuts app and select the Automation tab." : {
+
     },
     "Pair Again in Kove Mirror" : {
 
@@ -1908,6 +1962,9 @@
     "Searching locations..." : {
 
     },
+    "Select Bluetooth Trigger" : {
+
+    },
     "Select your motorcycle TFT screen profile for optimal streaming aspect ratio." : {
 
     },
@@ -1990,13 +2047,28 @@
         }
       }
     },
+    "Shortcuts Automation" : {
+
+    },
     "Simple navigation" : {
 
     },
     "Smart Screen Dimming (Stream-Safe)" : {
 
     },
+    "Start Kove Mirror automatically when connecting to your motorcycle." : {
+
+    },
+    "Start Mirroring" : {
+
+    },
     "START RIDING" : {
+
+    },
+    "Start Screen Mirroring" : {
+
+    },
+    "Starts mirroring your screen to the Kove motorcycle dashboard." : {
 
     },
     "Stop Mirroring" : {
@@ -2037,6 +2109,9 @@
     "Streams your map or phone screen to the motorcycle TFT display using Apple's hardware H.264 encoder at native resolution." : {
 
     },
+    "Tap + and select Bluetooth as the trigger." : {
+
+    },
     "Telemetry & Simple Nav" : {
 
     },
@@ -2065,6 +2140,9 @@
 
     },
     "Transmits real-time GPS altitude and outdoor temperature to the motorcycle TFT display." : {
+
+    },
+    "TRIP" : {
 
     },
     "Turn-by-turn routing for motorcycle TFT display" : {
@@ -2294,6 +2372,9 @@
           }
         }
       }
+    },
+    "You can configure your iPhone to launch Kove Mirror automatically when you turn on the motorcycle ignition:" : {
+
     }
   },
   "version" : "1.0"
