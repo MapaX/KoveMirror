@@ -145,6 +145,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         setupLocalConnectionCallback()
         setupProximityObserver()
         checkLogFileSizeLimit()
+        startTcpServers()
     }
     
     init(isPreview: Bool) {
@@ -721,10 +722,16 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         }
     }
 
+    /// Transmits a raw JSON string wrapped into binary protocol frames to the motorcycle TFT display.
     func sendJsonPacket(_ jsonStr: String) {
         writeString(jsonStr)
     }
 
+    /// Requests the motorcycle TFT display to enter screen projection / mirroring mode.
+    ///
+    /// Transmits two state activation packets:
+    /// - `{"msg_id":25, "msg_type":23, "msg_source":2, "status":1}`: Screen mirroring active state.
+    /// - `{"msg_id":25, "msg_type":21, "msg_source":2, "status":1}`: CarLife / projection connection status active.
     func startMirroring() {
         guard connectionState == .connected else {
             log("⏳ BLE is not connected yet. Initiating motorcycle connection before mirroring...")
@@ -741,6 +748,12 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     
     // MARK: - Turn-by-Turn Navigation BLE API
     
+    /// Sends the navigation destination name to the motorcycle TFT display header.
+    ///
+    /// - Message format:
+    ///   `{"msg_id":27, "func":"NAVI", "act":1, "dest":"<Sanitized Destination>"}`
+    /// - Parameters:
+    ///   - destination: Destination place name (sanitized to ASCII to avoid TFT rendering artifacts).
     func sendNavigationDestination(_ destination: String) {
         let sanitized = KoveTextSanitizer.sanitize(destination)
         let json = "{\"msg_id\":27,\"func\":\"NAVI\",\"act\":1,\"dest\":\"\(sanitized)\"}"
@@ -748,6 +761,37 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         sendJsonPacket(json)
     }
     
+    /// Sends real-time turn-by-turn navigation maneuver instructions to the motorcycle TFT dashboard.
+    ///
+    /// - Message format:
+    ///   ```json
+    ///   {
+    ///     "msg_id": 27,
+    ///     "func": "NAVI",
+    ///     "act": 3,
+    ///     "icon": <Int>,
+    ///     "next_road": "<String>",
+    ///     "cur_road": "<String>",
+    ///     "retain_rate": <0..100>,
+    ///     "cur_retain_distance": "<String>",
+    ///     "cur_unittype": <0 for m, 1 for km>,
+    ///     "path_retain_distance": "<String>",
+    ///     "path_cur_unittype": <0 for m, 1 for km>,
+    ///     "cur_retain_time": <Seconds>,
+    ///     "remain_time": <Unix Timestamp in Seconds>
+    ///   }
+    ///   ```
+    /// - Parameters:
+    ///   - icon: Kove navigation turn icon identifier (e.g. 2: Left, 3: Right, 9: Straight, 21: Arrived).
+    ///   - nextRoad: Next turn street/highway name (sanitized ASCII).
+    ///   - curRoad: Current road name.
+    ///   - retainRate: Route progress percentage (0..100).
+    ///   - curRetainDistance: Formatted distance to next maneuver (e.g. "300" or "2.5").
+    ///   - curUnitType: Distance unit for current maneuver (0: meters, 1: kilometers).
+    ///   - pathRetainDistance: Formatted total remaining trip distance.
+    ///   - pathCurUnitType: Distance unit for total remaining distance (0: meters, 1: kilometers).
+    ///   - curRetainTime: Estimated remaining travel time in seconds.
+    ///   - remainTime: Expected epoch arrival timestamp in seconds.
     func sendNavigationManeuver(
         icon: Int,
         nextRoad: String,
@@ -769,11 +813,19 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         sendJsonPacket(json)
     }
     
+    /// Notifies the motorcycle TFT dashboard that active navigation has ended or been cancelled.
+    ///
+    /// - Message format: `{"msg_id":15}`
     func sendNavigationEnd() {
         log("🧭 Dashboard Nav End: Sending msg_id 15")
         sendJsonPacket("{\"msg_id\":15}")
     }
     
+    /// Stops video screen projection and informs the TFT display to return to native motorcycle dashboard mode.
+    ///
+    /// Transmits two termination state packets:
+    /// - `{"msg_id":25, "msg_type":23, "msg_source":2, "status":0}`: Screen mirroring deactivated.
+    /// - `{"msg_id":25, "msg_type":21, "msg_source":2, "status":0}`: CarLife connection deactivated.
     func stopMirroring() {
         log("🎬 Stopping screen capture...")
         isStreaming = false
@@ -877,6 +929,16 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         }
     }
     
+    /// Decodes and dispatches incoming JSON command packets from the motorcycle TFT display.
+    ///
+    /// Handles the following protocol message types:
+    /// - `msg_id: 10, item: 1`: Motorcycle speed metrics (`current`, `max`, `average` in km/h).
+    /// - `msg_id: 10, item: 2`: ODO and Trip distance counters (values in hectometers / tenths of km).
+    /// - `msg_id: 10, item: 4`: Periodic keepalive ping from TFT (requires response `{"msg_id":11, "time":..., "tag":tag}`).
+    /// - `msg_id: 10, item: 7`: Current transmission sequence index from TFT (`cur_package_index`).
+    /// - `msg_id: 10, item: 9`: Packet loss diagnostic counter (`packet_loss_index`).
+    /// - `msg_id: 27, act: "send_pairinfo"` / `"send_pairresult"`: BLE pairing status confirmation.
+    /// - Handlebar & media buttons (forwarded to `HandlebarKeyManager`).
     func handleIncomingJsonText(_ text: String) {
         log("📥 TFT -> BLE: \(text)")
         
@@ -984,11 +1046,24 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     
     // MARK: - Handshake and Heartbeat Protocol
     
+    /// Requests the current total Odometer (ODO) and Trip distance metrics from the motorcycle TFT.
+    ///
+    /// Message format: `{"msg_id":10, "item":2}`
     func requestMileage() {
         log("📤 Requesting ODO and Trip distances from motorcycle...")
         writeString("{\"msg_id\":10,\"item\":2}")
     }
     
+    /// Sends the initial initialization sequence following BLE connection and characteristic subscription.
+    ///
+    /// Sequence steps (matching ThinkerRide / Kove protocol):
+    /// 1. `{"msg_id":27, "func":"PAIR", "act":"get_pairinfo"}`: Request pairing credentials and verification.
+    /// 2. `{"msg_id":13}`: Query handshake status.
+    /// 3. `{"msg_id":25, "msg_type":18, "msg_source":2, "language":2}`: Set TFT language preference (2 = English).
+    /// 4. `{"msg_id":11, "time":"...", "tag":0}`: Synchronize motorcycle dashboard clock to phone system time.
+    /// 5. `{"msg_id":10, "item":2}`: Query initial ODO and trip mileage.
+    /// 6. `{"msg_id":25, "msg_type":23, "msg_source":2, "status":0}`: Ensure TFT initializes in native Dashboard mode (mirroring idle).
+    /// 7. `{"msg_id":25, "msg_type":21, "msg_source":2, "status":0}`: Set projection connection mode idle.
     private func sendInitHandshake() {
         log("📤 Sending initial BLE handshake sequence...")
         
@@ -1045,6 +1120,9 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         }
     }
     
+    /// Sends a keepalive heartbeat packet to maintain active communication with the TFT MCU.
+    ///
+    /// Message format: `{"msg_id":25, "msg_type":24, "msg_source":2, "status":1}`
     private func sendHeartbeatPacket() {
         writeString("{\"msg_id\":25,\"msg_type\":24,\"msg_source\":2,\"status\":1}")
     }
