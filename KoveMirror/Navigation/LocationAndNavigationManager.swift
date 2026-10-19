@@ -115,10 +115,26 @@ class LocationAndNavigationManager: NSObject, ObservableObject, CLLocationManage
     func startNavigation(route: MKRoute, destination: MKMapItem) {
         self.currentRoute = route
         self.destinationItem = destination
-        self.currentStepIndex = 0
+        
+        // Skip initial departure step if it has empty instructions or 0 distance
+        var initialIndex = 0
+        if route.steps.count > 1 && (route.steps[0].instructions.isEmpty || route.steps[0].distance == 0) {
+            initialIndex = 1
+        }
+        self.currentStepIndex = initialIndex
         self.isNavigating = true
         self.distanceRemainingMeters = route.distance
         self.timeRemainingSeconds = route.expectedTravelTime
+        
+        if initialIndex < route.steps.count {
+            let step = route.steps[initialIndex]
+            if let userLoc = userLocation {
+                let endPt = getStepCoordinate(step: step)
+                self.distanceToNextStep = userLoc.distance(from: endPt)
+            } else {
+                self.distanceToNextStep = step.distance
+            }
+        }
         
         startUpdating()
         
@@ -205,20 +221,24 @@ class LocationAndNavigationManager: NSObject, ObservableObject, CLLocationManage
         }
         
         guard currentStepIndex < route.steps.count else { return }
-        let step = route.steps[currentStepIndex]
+        var step = route.steps[currentStepIndex]
         
         // Calculate distance to end of current step
-        let stepEndPoint = getStepCoordinate(step: step)
-        let distanceToStepEnd = currentLocation.distance(from: stepEndPoint)
-        self.distanceToNextStep = distanceToStepEnd
+        var stepEndPoint = getStepCoordinate(step: step)
+        var distanceToStepEnd = currentLocation.distance(from: stepEndPoint)
         
         // Advance step if within 25m of maneuver point
         if distanceToStepEnd < 25 && currentStepIndex < (route.steps.count - 1) {
             currentStepIndex += 1
             if let newStep = currentStep {
+                step = newStep
+                stepEndPoint = getStepCoordinate(step: newStep)
+                distanceToStepEnd = currentLocation.distance(from: stepEndPoint)
                 updateStepInfo(step: newStep)
             }
         }
+        
+        self.distanceToNextStep = distanceToStepEnd
         
         // Sync live progress with Kove Dashboard Navigation Manager
         NavigationSyncManager.shared.updateProgress(

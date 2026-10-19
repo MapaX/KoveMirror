@@ -128,7 +128,13 @@ class NavigationSyncManager: ObservableObject {
     func startNavigation(route: MKRoute, destination: MKMapItem) {
         self.activeRoute = route
         self.destinationName = destination.name ?? "Destination"
-        self.currentStepIndex = 0
+        
+        // Skip initial departure step if it has empty instructions or 0 distance
+        var initialStepIndex = 0
+        if route.steps.count > 1 && (route.steps[0].instructions.isEmpty || route.steps[0].distance == 0) {
+            initialStepIndex = 1
+        }
+        self.currentStepIndex = initialStepIndex
         self.distanceRemainingMeters = route.distance
         self.timeRemainingSeconds = route.expectedTravelTime
         self.isNavigating = true
@@ -137,8 +143,8 @@ class NavigationSyncManager: ObservableObject {
         self.tickCounter = 0
         self.lastSentSignature = ""
         
-        if let firstStep = route.steps.first {
-            self.distanceToNextStepMeters = firstStep.distance
+        if initialStepIndex < route.steps.count {
+            self.distanceToNextStepMeters = route.steps[initialStepIndex].distance
         }
         
         bleController?.log("🧭 Navigation started to '\(destinationName)' (\(Int(route.distance))m)")
@@ -147,7 +153,7 @@ class NavigationSyncManager: ObservableObject {
         sendDestinationPacket(destinationName)
         
         // 2. Send initial maneuver update (act 3)
-        sendManeuverUpdate()
+        sendManeuverUpdate(forceSend: true)
         
         // 3. Start 1-second update timer loop matching Android m1.java & l1.java
         startTimer()
@@ -243,8 +249,8 @@ class NavigationSyncManager: ObservableObject {
             sendDestinationPacket(destinationName)
         }
         
-        // Maneuver update: send every tick if state changed, or at least every 5 seconds as keep-alive
-        let forceSend = (tickCounter % 5 == 0)
+        // Maneuver update: send every tick if state changed, or at least every 3 seconds as keep-alive (matching Android l1.java)
+        let forceSend = (tickCounter % 3 == 0)
         sendManeuverUpdate(forceSend: forceSend)
     }
     
@@ -262,7 +268,8 @@ class NavigationSyncManager: ObservableObject {
         
         let step = route.steps[currentStepIndex]
         let rawIcon = mapStepToKoveIcon(step: step)
-        let nextRoad = extractRoadName(from: step.instructions)
+        let extractedRoad = extractRoadName(from: step.instructions)
+        let nextRoad = extractedRoad.isEmpty ? KoveTextSanitizer.sanitize(step.instructions.isEmpty ? destinationName : step.instructions) : extractedRoad
         
         let stepMeters = max(0, Int(distanceToNextStepMeters))
         let totalMeters = max(0, Int(distanceRemainingMeters))

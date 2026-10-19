@@ -99,6 +99,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     private var bleWriteQueue: [Data] = []
     private var isWritingPackets = false
     private var bleSequenceNumber: UInt16 = 0
+    private var hasLoggedMaxWriteLen: Bool = false
     private var rxBuffer: String = ""
     
     private var logFilePath: URL {
@@ -659,6 +660,10 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
                         guard let self = self else { return }
                         
                         let maxLen = peripheral.maximumWriteValueLength(for: writeType)
+                        if !self.hasLoggedMaxWriteLen {
+                            self.hasLoggedMaxWriteLen = true
+                            self.log("ℹ️ BLE Max Write Length: \(maxLen) bytes (Packet frame size: \(data.count) bytes)")
+                        }
                         if data.count <= maxLen {
                             peripheral.writeValue(data, for: char, type: writeType)
                         } else {
@@ -711,6 +716,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
             self?.isWritingPackets = false
             if resetSequence {
                 self?.bleSequenceNumber = 0
+                self?.hasLoggedMaxWriteLen = false
             }
         }
     }
@@ -921,23 +927,16 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
                 writeString(reply)
                 
             case 7:
-                // TFT Current Sequence ACK: {"msg_id":10,"item":7,"cur_package_index":X}
+                // TFT Current Sequence status: {"msg_id":10,"item":7,"cur_package_index":X}
                 if let curPkgIndex = json["cur_package_index"] as? Int {
-                    let nextSeq = UInt16((curPkgIndex + 1) & 0xFFFF)
-                    log("📥 TFT reported cur_package_index: \(curPkgIndex) -> Syncing sequence to \(nextSeq)")
-                    queueAccessQueue.async { [weak self] in
-                        self?.bleSequenceNumber = nextSeq
-                    }
+                    log("📥 TFT sequence status: cur_package_index = \(curPkgIndex)")
                 }
                 
             case 9:
-                // TFT Packet Loss Status: {"msg_id":10,"item":9,"packet_loss_index":X}
+                // TFT Packet Loss status: {"msg_id":10,"item":9,"packet_loss_index":X}
                 let lossIndex = json["packet_loss_index"] as? Int ?? 0
                 if lossIndex > 0 {
-                    log("⚠️ TFT reported packet loss at sequence index: \(lossIndex)! Aligning sequence counter.")
-                    queueAccessQueue.async { [weak self] in
-                        self?.bleSequenceNumber = UInt16((lossIndex + 1) & 0xFFFF)
-                    }
+                    log("⚠️ TFT reported packet loss index: \(lossIndex)")
                 } else {
                     log("✅ TFT reported packet_loss_index: 0 (No packet loss)")
                 }
@@ -973,8 +972,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         }
         
         if pairingConfirmed {
-            log("✅ BLE pairing confirmed by TFT (\(json["act"] as? String ?? "pairinfo"))! Automatically starting mirroring.")
-            startMirroring()
+            log("✅ BLE pairing confirmed by TFT (\(json["act"] as? String ?? "pairinfo"))! Ready for navigation & telemetry.")
             if odoDistanceKm == nil {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
                     guard let self = self, self.connectionState == .connected, self.odoDistanceKm == nil else { return }
@@ -994,18 +992,16 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
     private func sendInitHandshake() {
         log("📤 Sending initial BLE handshake sequence...")
         
+        // Matches Android KoveGo BLE handshake: pairinfo, msg_id 13, language, time sync, ODO request,
+        // and explicit status: 0 to ensure TFT starts in Dashboard / Simple Navigation mode (not Screen Mirroring).
         let packets = [
             "{\"msg_id\":27,\"func\":\"PAIR\",\"act\":\"get_pairinfo\"}",
             "{\"msg_id\":13}",
             "{\"msg_id\":25,\"msg_type\":18,\"msg_source\":2,\"language\":2}",
             "{\"msg_id\":11,\"time\":\"\(getCurrentTimeString())\",\"tag\":0}",
             "{\"msg_id\":10,\"item\":2}",
-            "{\"msg_id\":25,\"msg_type\":23,\"msg_source\":2,\"status\":1}",
-            "{\"msg_id\":25,\"msg_type\":21,\"msg_source\":2,\"status\":1}",
-            "{\"msg_id\":27,\"func\":\"INSIDENAVI\",\"query\":1}",
-            "{\"msg_id\":27,\"func\":\"INSIDENAVI\",\"query\":2}",
-            "{\"msg_id\":27,\"func\":\"CAR_INFO\",\"act\":\"get_car_info\"}",
-            "{\"msg_id\":27,\"func\":\"TUC\",\"act\":\"get\"}"
+            "{\"msg_id\":25,\"msg_type\":23,\"msg_source\":2,\"status\":0}",
+            "{\"msg_id\":25,\"msg_type\":21,\"msg_source\":2,\"status\":0}"
         ]
         
         // Android version sends packets in sequence with a 150ms delay
@@ -1014,7 +1010,7 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         }
         
         // Defer telemetry & navigation sync slightly so handshake packets are transmitted first without congestion
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
             guard let self = self, self.connectionState == .connected else { return }
             TelemetrySyncManager.shared.startSync(bleController: self)
             NavigationSyncManager.shared.startSync(bleController: self)

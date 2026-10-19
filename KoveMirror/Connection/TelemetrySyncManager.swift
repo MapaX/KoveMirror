@@ -25,6 +25,7 @@ class TelemetrySyncManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var lastFetchedCoordinate: CLLocationCoordinate2D?
     private var lastSentAltitude: Int?
+    private var lastSentTelemetryDate: Date = Date.distantPast
     
     weak var bleController: BleController?
     
@@ -112,8 +113,10 @@ class TelemetrySyncManager: ObservableObject {
                     DispatchQueue.main.async {
                         self.currentAltitudeMeters = alt
                         self.saveCachedAltitude(alt)
-                        // If altitude changed significantly (>= 3m) and BLE is active, sync immediately
-                        if let lastAlt = self.lastSentAltitude, abs(alt - lastAlt) >= 3,
+                        // If altitude changed significantly (>= 5m), at least 10s elapsed, and BLE is active
+                        let now = Date()
+                        if let lastAlt = self.lastSentAltitude, abs(alt - lastAlt) >= 5,
+                           now.timeIntervalSince(self.lastSentTelemetryDate) >= 10.0,
                            self.bleController?.connectionState == .connected {
                             self.sendTelemetryPackets()
                         }
@@ -219,6 +222,7 @@ class TelemetrySyncManager: ObservableObject {
         
         let alt = currentAltitudeMeters
         lastSentAltitude = alt
+        lastSentTelemetryDate = Date()
         
         // 1. Elevation & Altitude Packet (JsonManager.sendElevationAndPond: msg_id 25, msg_type 9)
         let altJson = "{\"msg_id\":25,\"msg_type\":9,\"msg_source\":2,\"altitude\":\(alt),\"ave_altitude\":0,\"max_altitude\":0,\"pond_distance\":0.0,\"pond_time\":0,\"head\":0}"
