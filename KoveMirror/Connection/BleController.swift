@@ -145,7 +145,6 @@ class BleController: NSObject, ObservableObject, CBCentralManagerDelegate, CBPer
         setupLocalConnectionCallback()
         setupProximityObserver()
         checkLogFileSizeLimit()
-        startTcpServers()
     }
     
     init(isPreview: Bool) {

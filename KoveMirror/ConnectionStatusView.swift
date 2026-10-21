@@ -174,6 +174,7 @@ struct ConnectionStatusView: View {
             Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
                 updateCurrentWifiSSID()
             }
+            bleController.startTcpServers()
         }
     }
     
