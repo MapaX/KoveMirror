@@ -1,23 +1,32 @@
-import Foundation
-import AVFoundation
+import UIKit
+import CoreLocation
 
 class BackgroundKeepAliveManager {
     static let shared = BackgroundKeepAliveManager()
-    private var audioPlayer: AVAudioPlayer?
+    
     private var isRunning = false
+    private var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
     
     private init() {
-        setupAudioSession()
+        setupLifecycleObservers()
     }
     
-    private func setupAudioSession() {
-        do {
-            let session = AVAudioSession.sharedInstance()
-            // playback category keeps the background process alive, mixWithOthers prevents blocking navigation or music apps
-            try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
-            try session.setActive(true)
-        } catch {
-            print("❌ Failed to setup AVAudioSession: \(error.localizedDescription)")
+    private func setupLifecycleObservers() {
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.didEnterBackgroundNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self = self, self.isRunning else { return }
+            self.beginBackgroundTask()
+        }
+        
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.willEnterForegroundNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.endBackgroundTask()
         }
     }
     
@@ -25,67 +34,48 @@ class BackgroundKeepAliveManager {
         guard !isRunning else { return }
         isRunning = true
         
-        playSilence()
+        DispatchQueue.main.async {
+            // 1. Prevent screen dimming and auto-locking while mirroring in the foreground
+            UIApplication.shared.isIdleTimerDisabled = true
+            print("📱 Screen sleep prevented (isIdleTimerDisabled = true).")
+            
+            // 2. Start continuous location tracking with background execution
+            // Keeps the app process and TCP streaming sockets active indefinitely
+            LocationAndNavigationManager.shared.startUpdating()
+            print("🧭 Background location keep-alive started.")
+        }
     }
     
     func stop() {
         guard isRunning else { return }
         isRunning = false
-        audioPlayer?.stop()
-        print("🔊 Background silent audio loop stopped.")
-    }
-    
-    private func playSilence() {
-        let wavData = createSilentWavData()
         
-        do {
-            audioPlayer = try AVAudioPlayer(data: wavData)
-            audioPlayer?.numberOfLoops = -1 // Loop indefinitely
-            audioPlayer?.volume = 0.01 // Minimal inaudible volume
-            audioPlayer?.prepareToPlay()
-            audioPlayer?.play()
-            print("🔊 Background silent audio loop started.")
-        } catch {
-            print("❌ Failed to play silent audio: \(error.localizedDescription)")
+        DispatchQueue.main.async {
+            // 1. Re-enable standard system screen sleep
+            UIApplication.shared.isIdleTimerDisabled = false
+            print("📱 Screen sleep re-enabled (isIdleTimerDisabled = false).")
+            
+            // 2. Stop location updates unless the user is actively navigating
+            if !LocationAndNavigationManager.shared.isNavigating {
+                LocationAndNavigationManager.shared.stopUpdating()
+                print("🧭 Background location keep-alive stopped.")
+            }
+            
+            self.endBackgroundTask()
         }
     }
     
-    private func createSilentWavData() -> Data {
-        var header = Data()
-        
-        // RIFF header
-        header.append("RIFF".data(using: .utf8)!)
-        var fileSize = Int32(44 + 8000 * 2) - 8
-        header.append(Data(bytes: &fileSize, count: 4))
-        header.append("WAVE".data(using: .utf8)!)
-        
-        // Format chunk
-        header.append("fmt ".data(using: .utf8)!)
-        var subchunk1Size = Int32(16)
-        header.append(Data(bytes: &subchunk1Size, count: 4))
-        var audioFormat = Int16(1) // PCM
-        header.append(Data(bytes: &audioFormat, count: 2))
-        var numChannels = Int16(1) // Mono
-        header.append(Data(bytes: &numChannels, count: 2))
-        var sampleRate = Int32(8000)
-        header.append(Data(bytes: &sampleRate, count: 4))
-        var byteRate = Int32(8000 * 2)
-        header.append(Data(bytes: &byteRate, count: 4))
-        var blockAlign = Int16(2)
-        header.append(Data(bytes: &blockAlign, count: 2))
-        var bitsPerSample = Int16(16)
-        header.append(Data(bytes: &bitsPerSample, count: 2))
-        
-        // Data chunk
-        header.append("data".data(using: .utf8)!)
-        var subchunk2Size = Int32(8000 * 2)
-        header.append(Data(bytes: &subchunk2Size, count: 4))
-        
-        // Silent PCM samples
-        let silentSamples = [Int16](repeating: 0, count: 8000)
-        let sampleData = silentSamples.withUnsafeBufferPointer { Data(buffer: $0) }
-        header.append(sampleData)
-        
-        return header
+    private func beginBackgroundTask() {
+        guard backgroundTaskID == .invalid else { return }
+        backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "KoveMirrorStreamKeepAlive") { [weak self] in
+            self?.endBackgroundTask()
+        }
+    }
+    
+    private func endBackgroundTask() {
+        if backgroundTaskID != .invalid {
+            UIApplication.shared.endBackgroundTask(backgroundTaskID)
+            backgroundTaskID = .invalid
+        }
     }
 }

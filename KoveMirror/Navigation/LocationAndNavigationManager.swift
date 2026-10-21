@@ -52,6 +52,7 @@ class LocationAndNavigationManager: NSObject, ObservableObject, CLLocationManage
         locationManager.headingFilter = 3.0   // Update every 3 degrees
         locationManager.allowsBackgroundLocationUpdates = true
         locationManager.showsBackgroundLocationIndicator = true
+        locationManager.pausesLocationUpdatesAutomatically = false
         
         self.authorizationStatus = locationManager.authorizationStatus
     }
