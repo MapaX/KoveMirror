@@ -11,18 +11,17 @@ class BroadcastSetupViewController: UIViewController {
 
     // Call this method when the user has finished interacting with the view controller and a broadcast stream can start
     func userDidFinishSetup() {
-        // URL of the resource where broadcast can be viewed that will be returned to the application
-        let broadcastURL = URL(string:"http://apple.com/broadcast/streamID")
-        
-        // Dictionary with setup information that will be provided to broadcast extension when broadcast is started
-        let setupInfo: [String : NSCoding & NSObjectProtocol] = ["broadcastName": "example" as NSCoding & NSObjectProtocol]
+        let broadcastURL = URL(string: "http://127.0.0.1:15455/broadcast")
+        let setupInfo: [String: NSCoding & NSObjectProtocol] = ["broadcastName": "KoveMirrorBroadcast" as NSString]
         
         // Tell ReplayKit that the extension is finished setting up and can begin broadcasting
-        self.extensionContext?.completeRequest(withBroadcast: broadcastURL!, setupInfo: setupInfo)
+        if let url = broadcastURL {
+            self.extensionContext?.completeRequest(withBroadcast: url, setupInfo: setupInfo)
+        }
     }
     
     func userDidCancelSetup() {
-        let error = NSError(domain: "YouAppDomain", code: -1, userInfo: nil)
+        let error = NSError(domain: "com.mustcode.KoveMirror", code: -1, userInfo: [NSLocalizedDescriptionKey: "User cancelled broadcast setup."])
         // Tell ReplayKit that the extension was cancelled by the user
         self.extensionContext?.cancelRequest(withError: error)
     }

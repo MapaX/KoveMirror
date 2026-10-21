@@ -181,12 +181,39 @@ struct AboutView: View {
                                 url: "https://github.com/MapaX/KoveMirror"
                             )
                             
-                            // Android Link Button
+                            // Community Project Link Button
                             LinkButton(
-                                icon: "play.fill",
-                                title: "iOS version was inspired by the Android version",
+                                icon: "arrow.triangle.branch",
+                                title: "Original Community Project",
                                 subtitle: "github.com/nakturk/kovemirror",
                                 url: "https://github.com/nakturk/kovemirror"
+                            )
+                        }
+                        .padding()
+                        .background(Color.white.opacity(0.03))
+                        .cornerRadius(16)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.white.opacity(0.05), lineWidth: 1)
+                        )
+                        .padding(.horizontal)
+                        
+                        // Privacy & Legal Card
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("Privacy & Legal")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                            
+                            Text("Kove Mirror does not track you or collect personal data. View our privacy terms.")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.6))
+                                .padding(.bottom, 4)
+                            
+                            LinkButton(
+                                icon: "hand.raised.fill",
+                                title: "Privacy Policy",
+                                subtitle: "github.com/MapaX/KoveMirror",
+                                url: "https://github.com/MapaX/KoveMirror/blob/main/PRIVACY_POLICY.md"
                             )
                         }
                         .padding()

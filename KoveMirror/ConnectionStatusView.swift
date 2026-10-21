@@ -157,9 +157,7 @@ struct ConnectionStatusView: View {
         }
         .alert("Bluetooth is Turned Off", isPresented: $bleController.isBluetoothPoweredOff) {
             Button("Open Settings") {
-                if let url = URL(string: "App-Prefs:root=Bluetooth"), UIApplication.shared.canOpenURL(url) {
-                    UIApplication.shared.open(url)
-                } else if let url = URL(string: UIApplication.openSettingsURLString) {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
                     UIApplication.shared.open(url)
                 }
             }

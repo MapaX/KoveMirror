@@ -448,9 +448,7 @@ struct HelpView: View {
     }
     
     private func openBluetoothSettings() {
-        if let url = URL(string: "App-Prefs:root=Bluetooth"), UIApplication.shared.canOpenURL(url) {
-            UIApplication.shared.open(url)
-        } else if let url = URL(string: UIApplication.openSettingsURLString) {
+        if let url = URL(string: UIApplication.openSettingsURLString) {
             UIApplication.shared.open(url)
         }
     }

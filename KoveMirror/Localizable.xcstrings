@@ -3235,41 +3235,6 @@
         }
       }
     },
-    "iOS version was inspired by the Android version" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Die iOS-Version wurde von der Android-Version inspiriert"
-          }
-        },
-        "el" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Η έκδοση iOS εμπνεύστηκε από την έκδοση Android"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La versión de iOS se inspiró en la versión de Android"
-          }
-        },
-        "fi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iOS-versio on saanut inspiraationsa Android-versiosta"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La versione iOS è stata ispirata dalla versione Android"
-          }
-        }
-      }
-    },
     "km" : {
       "localizations" : {
         "de" : {
@@ -3440,6 +3405,9 @@
           }
         }
       }
+    },
+    "Kove Mirror does not track you or collect personal data. View our privacy terms." : {
+
     },
     "Kove Mirror is %@ free and open source. If the app keeps your motorcycle dashboard running smoothly, you can fuel future updates with a voluntary gas tip!" : {
       "localizations" : {
@@ -4330,6 +4298,41 @@
         }
       }
     },
+    "Original Community Project" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ursprüngliches Community-Projekt"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αρχικό έργο κοινότητας"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proyecto comunitario original"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alkuperäinen yhteisöprojekti"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Progetto originale della community"
+          }
+        }
+      }
+    },
     "Pair Again in Kove Mirror" : {
       "localizations" : {
         "de" : {
@@ -4500,6 +4503,12 @@
           }
         }
       }
+    },
+    "Privacy & Legal" : {
+
+    },
+    "Privacy Policy" : {
+
     },
     "Proximity 2nd Screen Offscreen Mode" : {
       "localizations" : {

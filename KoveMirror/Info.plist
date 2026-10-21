@@ -24,7 +24,13 @@
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>NSCameraUsageDescription</key>
-	<string>Camera access is required for non-disruptive proximity detection to dim the screen without turning it off or interrupting video streaming.</string>
+	<string>Camera access is required to scan QR codes for Wi-Fi auto-configuration and for screen-safe proximity dimming while riding.</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Kove Mirror requires Bluetooth to discover, connect, and sync telemetry data with your motorcycle's TFT dashboard.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>Kove Mirror requires Bluetooth to connect with your motorcycle's TFT dashboard.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Kove Mirror needs Local Network access to connect and stream video to your motorcycle's dashboard over Wi-Fi.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Location access is required to display your position on the map and provide turn-by-turn navigation on your motorcycle dashboard.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
